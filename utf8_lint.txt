@@ -1,0 +1,105 @@
+﻿
+> autosdealer-app@0.1.0 lint D:\autosdealer-app
+> eslint
+
+
+D:\autosdealer-app\app\admin\dashboard\page.tsx
+  12:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  81:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\autosdealer-app\app\admin\layout.tsx
+  2:10  warning  'redirect' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\autosdealer-app\app\admin\leads\page.tsx
+  40:13  warning  'isMounted' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  42:14  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\autosdealer-app\app\admin\leads\page.tsx:42:14
+  40 |         let isMounted = true;
+  41 |
+> 42 |         void fetchLeads().then(() => {
+     |              ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  43 |             // Keep state syncing correctly for any potential cancellation
+  44 |         });
+  45 |  react-hooks/set-state-in-effect
+
+D:\autosdealer-app\app\admin\sellers\page.tsx
+  34:9    error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\autosdealer-app\app\admin\sellers\page.tsx:34:9
+  32 |
+  33 |     useEffect(() => {
+> 34 |         fetchSellers();
+     |         ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  35 |     }, [fetchSellers]);
+  36 |
+  37 |     function autoCode(name: string) {  react-hooks/set-state-in-effect
+  83:247  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react/no-unescaped-entities
+  83:256  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react/no-unescaped-entities
+
+D:\autosdealer-app\app\admin\vehicles\page.tsx
+   52:23  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\autosdealer-app\app\admin\vehicles\page.tsx:52:23
+  50 |     }, [router]);
+  51 |
+> 52 |     useEffect(() => { fetchVehicles(); }, [fetchVehicles]);
+     |                       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  53 |
+  54 |     function openAdd() {
+  55 |         setEditing(null);  react-hooks/set-state-in-effect
+   99:68  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  103:84  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  105:79  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+
+D:\autosdealer-app\app\api\admin\leads\route.ts
+   3:10  warning  'cookies' is defined but never used       @typescript-eslint/no-unused-vars
+  28:84  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\autosdealer-app\app\api\admin\login\route.ts
+  24:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\autosdealer-app\app\api\admin\sellers\route.ts
+  19:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  54:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  67:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\autosdealer-app\app\api\admin\vehicles\[id]\route.ts
+  23:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  39:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\autosdealer-app\app\api\admin\vehicles\route.ts
+  22:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  49:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\autosdealer-app\app\api\vehicles\route.ts
+  24:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\autosdealer-app\components\CatalogContent.tsx
+  14:42  warning  'searchParams' is defined but never used     @typescript-eslint/no-unused-vars
+  15:11  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\autosdealer-app\lib\firebase\admin.ts
+  58:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Ô£û 26 problems (13 errors, 13 warnings)
+
+ÔÇëELIFECYCLEÔÇë Command failed with exit code 1.

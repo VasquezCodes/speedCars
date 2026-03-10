@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Public read for vehicles
+    match /vehicles/{vehicleId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // No public access to leads, saleswomen, clicks
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
