@@ -141,6 +141,11 @@ button {
   white-space: nowrap;
 }
 
+.minimal-link-hover:hover {
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
 .btn-primary {
   background: var(--accent);
   color: white;
@@ -247,6 +252,12 @@ button {
   transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
   border-color: var(--accent);
+}
+
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 32px;
 }
 
 /* ---- Forms ---- */

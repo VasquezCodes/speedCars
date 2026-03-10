@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="header-footer-icon" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M2.29 11c0-5.35 4.36-9.71 9.71-9.71 5.35 0 9.71 4.12 9.71 9.71 0 5.569-6.153 9.57-8.207 10.905l-.023.015c-.45.29-.97.44-1.48.44s-1.03-.15-1.48-.44C8.48 20.6 2.29 16.35 2.29 11Zm8.97 9.711.03.019c.43.28.99.28 1.42 0 1.87-1.21 7.58-4.91 7.58-9.73 0-4.57-3.72-8.29-8.29-8.29-4.57 0-8.29 3.48-8.29 8.29 0 4.785 5.651 8.472 7.55 9.711ZM8.29 11c0-2.05 1.66-3.71 3.71-3.71s3.71 1.66 3.71 3.71-1.66 3.71-3.71 3.71S8.29 13.05 8.29 11Zm1.42 0c0 1.26 1.03 2.29 2.29 2.29s2.29-1.03 2.29-2.29S13.26 8.71 12 8.71 9.71 9.74 9.71 11Z"/>
+                    <circle class="hidden header-footer-location-icon-alert-circle" cx="19" cy="4" r="4" stroke="#1773cf" stroke-width="1"/>
+                    <circle class="hidden header-footer-location-icon-alert-circle" cx="19" cy="4" r="3" stroke="white" stroke-width="1"/>
+                </svg>
