@@ -1,28 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
+import { adminAuth } from "@/lib/firebase/admin";
 
 export async function POST(request: NextRequest) {
     try {
-        const { password } = await request.json();
+        const { idToken } = await request.json();
 
-        if (password !== process.env.ADMIN_PASSWORD) {
-            return NextResponse.json(
-                { error: "Contraseña incorrecta" },
-                { status: 401 }
-            );
+        if (!idToken) {
+            return NextResponse.json({ error: "Token requerido" }, { status: 400 });
         }
 
-        const response = NextResponse.json({ success: true });
-        response.cookies.set("admin_session", "authenticated", {
+        const decodedToken = await adminAuth.verifyIdToken(idToken);
+        
+        // Require email verification or just accept it. We'll accept any valid token for now.
+        // We can add role checks here later if we want to reject sign-in.
+        
+        const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+        const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
+
+        const response = NextResponse.json({ success: true, role: decodedToken.role || 'user' });
+        response.cookies.set("admin_session", sessionCookie, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            maxAge: 60 * 60 * 8, // 8 hours
+            maxAge: expiresIn / 1000,
             path: "/",
         });
 
         return response;
     } catch (error) {
-        return NextResponse.json({ error: "Error interno" }, { status: 500 });
+        console.error("Login route error", error);
+        return NextResponse.json({ error: "Credenciales inválidas o expiradas" }, { status: 401 });
     }
 }
 

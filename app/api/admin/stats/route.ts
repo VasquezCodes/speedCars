@@ -1,45 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 
-function isAuthenticated(request: NextRequest) {
-    return request.cookies.get("admin_session")?.value === "authenticated";
+import { adminAuth } from "@/lib/firebase/admin";
+
+async function isAuthenticated(request: NextRequest) {
+    const sessionCookie = request.cookies.get("admin_session")?.value;
+    if (!sessionCookie) return false;
+    try {
+        await adminAuth.verifySessionCookie(sessionCookie, true);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export async function GET(request: NextRequest) {
-    if (!isAuthenticated(request)) {
+    const isAuth = await isAuthenticated(request);
+    if (!isAuth) {
         return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
     try {
-        const [leadsSnap, vehiclesSnap, clicksSnap, sellersSnap] =
-            await Promise.all([
-                adminDb.collection("leads").count().get(),
-                adminDb
-                    .collection("vehicles")
-                    .where("isAvailable", "==", true)
-                    .count()
-                    .get(),
-                adminDb.collection("whatsappClicks").count().get(),
-                adminDb.collection("sellers").count().get(),
-            ]);
+        const vehiclesSnap = await adminDb
+            .collection("vehicles")
+            .where("isAvailable", "==", true)
+            .count()
+            .get();
 
-        // Recent leads (last 5)
-        const recentLeadsSnap = await adminDb
-            .collection("leads")
-            .orderBy("createdAt", "desc")
+        // Recientes (ultimos 5 agregados o disponibles)
+        const recentVehiclesSnap = await adminDb
+            .collection("vehicles")
             .limit(5)
             .get();
 
-        const recentLeads = recentLeadsSnap.docs.map((doc) => ({
-            id: doc.id,
+        const recentVehicles = recentVehiclesSnap.docs.map((doc) => ({
             ...doc.data(),
+            id: doc.id,
         }));
 
         return NextResponse.json({
-            totalLeads: leadsSnap.data().count,
             totalVehicles: vehiclesSnap.data().count,
-            totalClicks: clicksSnap.data().count,
-            totalSellers: sellersSnap.data().count,
-            recentLeads,
+            recentVehicles,
         });
     } catch (error) {
         console.error("Stats error:", error);

@@ -1,9 +1,26 @@
 'use client';
 
-import { useState } from "react";
-import Image from "next/image";
-import { Vehicle } from "@/components/VehicleCard";
-import ContactForm from "@/components/ContactForm";
+import { useState, useEffect, useRef } from "react";
+import Link from 'next/link';
+import Image from 'next/image';
+import { CalendarCheck, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Vehicle } from '@/types/vehicle';
+import { AppointmentForm } from '@/components/AppointmentForm';
+import { StatusBadge, FeaturedBadge } from '@/components/StatusBadge';
+
+const COLOR_MAP: Record<string, { hex: string, border: string }> = {
+    "Blanco": { hex: "#FFFFFF", border: "#e5e7eb" },
+    "Negro": { hex: "#000000", border: "#000000" },
+    "Gris Plata": { hex: "#D8D8D8", border: "#c0c0c0" },
+    "Gris Oscuro": { hex: "#595959", border: "#404040" },
+    "Rojo": { hex: "#CC0000", border: "#b30000" },
+    "Azul": { hex: "#0033A0", border: "#002b80" },
+    "Beige": { hex: "#F5F5DC", border: "#e6e6cc" },
+    "Marrón": { hex: "#654321", border: "#54381c" },
+    "Verde": { hex: "#2E5A27", border: "#254a20" },
+};
+import ContactForm from './ContactForm';
+
 
 interface Props {
     vehicle: Vehicle;
@@ -15,167 +32,946 @@ function getCookie(name: string): string | null {
     return match ? decodeURIComponent(match[2]) : null;
 }
 
+const getBrandLogo = (brand: string) => {
+    const normalize = brand.toLowerCase().trim();
+    const map: Record<string, string> = {
+        "fiat": "fiat-svgrepo-com.svg",
+        "ford": "ford-svgrepo-com.svg",
+        "honda": "honda-svgrepo-com.svg",
+        "infiniti": "infiniti-svgrepo-com.svg",
+        "jeep": "jeep-alt-svgrepo-com.svg",
+        "kia": "kia-svgrepo-com.svg",
+        "land rover": "land-rover-svgrepo-com.svg",
+        "lexus": "lexus-svgrepo-com.svg",
+        "mazda": "mazda-alt-svgrepo-com.svg",
+        "mercedes": "mercedes-benz-alt-svgrepo-com.svg",
+        "mercedes-benz": "mercedes-benz-alt-svgrepo-com.svg",
+        "mercedes benz": "mercedes-benz-alt-svgrepo-com.svg",
+        "mercedez": "mercedes-benz-alt-svgrepo-com.svg",
+        "mitsubishi": "mitsubishi-svgrepo-com.svg",
+        "nissan": "nissan-svgrepo-com.svg",
+        "volkswagen": "volkswagen-1.svg",
+        "vw": "volkswagen-1.svg",
+        "toyota": "toyota-svgrepo-com.svg",
+        "chevrolet": "Chevrolet.svg",
+        "audi": "Audi_Logo_1995.svg",
+        "bmw": "BMW_logo_(gray).svg",
+        "peugeot": "peugeot-svgrepo-com.svg",
+        "renault": "renault-svgrepo-com.svg",
+        "citroen": "Citroen_2016_logo.svg",
+        "citroën": "Citroen_2016_logo.svg",
+        "dodge": "Dodge_black_logo.svg",
+        "hummer": "Hummer_wordmark.svg",
+    };
+    return map[normalize] || `${normalize.replace(/\s+/g, '-')}-svgrepo-com.svg`;
+};
+
 export default function VehicleDetailClient({ vehicle }: Props) {
     const [activeImg, setActiveImg] = useState(0);
     const [showContactModal, setShowContactModal] = useState(false);
+    const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+    const [logoError, setLogoError] = useState(false);
+    const [referrerId, setReferrerId] = useState<string | undefined>(undefined);
+    const touchStartX = useRef<number | null>(null);
+    const trackRef = useRef<HTMLDivElement>(null);
+    const isDragging = useRef(false);
+
+    useEffect(() => {
+        const code = getCookie("referral");
+        if (code) setReferrerId(code);
+    }, []);
+
+    useEffect(() => {
+        setLogoError(false);
+        setActiveImg(0);
+    }, [vehicle.slug]);
+
+    const brandLogo = getBrandLogo(vehicle.brand);
 
     const images = vehicle.images?.length ? vehicle.images : ["/placeholder-car.jpg"];
-    const vehicleTitle = `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
+    const vehicleTitle = `${vehicle.brand} ${vehicle.model}`;
     const priceFormatted = new Intl.NumberFormat("es-AR", {
         style: "currency",
         currency: "USD",
         maximumFractionDigits: 0,
     }).format(vehicle.price);
     const mileageFormatted = vehicle.mileage === 0
-        ? "0 km — ¡Nuevo!"
+        ? "0 km — Nuevo"
         : new Intl.NumberFormat("es-AR").format(vehicle.mileage) + " km";
 
+    function handlePrevImg() {
+        setActiveImg(i => (i === 0 ? images.length - 1 : i - 1));
+    }
+    function handleNextImg() {
+        setActiveImg(i => (i === images.length - 1 ? 0 : i + 1));
+    }
+
+    function handleTouchStart(e: React.TouchEvent) {
+        if (images.length < 2) return;
+        touchStartX.current = e.touches[0].clientX;
+        isDragging.current = true;
+        if (trackRef.current) trackRef.current.style.transition = 'none';
+    }
+    function handleTouchMove(e: React.TouchEvent) {
+        if (!isDragging.current || touchStartX.current === null || !trackRef.current) return;
+        const delta = e.touches[0].clientX - touchStartX.current;
+        trackRef.current.style.transform = `translateX(calc(-33.333% + ${delta}px))`;
+    }
+    function handleTouchEnd(e: React.TouchEvent) {
+        if (!isDragging.current || touchStartX.current === null || !trackRef.current) return;
+        const delta = touchStartX.current - e.changedTouches[0].clientX;
+        isDragging.current = false;
+        const track = trackRef.current;
+        if (Math.abs(delta) > 50) {
+            const targetPct = delta > 0 ? '-66.666%' : '0%';
+            track.style.transition = 'transform 0.28s ease-out';
+            track.style.transform = `translateX(${targetPct})`;
+            setTimeout(() => {
+                track.style.transition = 'none';
+                track.style.transform = 'translateX(-33.333%)';
+                setActiveImg(i => delta > 0
+                    ? (i === images.length - 1 ? 0 : i + 1)
+                    : (i === 0 ? images.length - 1 : i - 1)
+                );
+            }, 280);
+        } else {
+            track.style.transition = 'transform 0.2s ease-out';
+            track.style.transform = 'translateX(-33.333%)';
+        }
+        touchStartX.current = null;
+    }
+
     async function handleWhatsApp() {
-        // Log click
         const sellerCode = getCookie("referral");
         fetch("/api/whatsapp-click", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 vehicleSlug: vehicle.slug,
-                vehicleName: vehicleTitle,
+                vehicleName: `${vehicleTitle} ${vehicle.year}`,
                 sellerCode: sellerCode || null,
             }),
         }).catch(() => { });
 
-        // Open WhatsApp
         const phone = process.env.NEXT_PUBLIC_DEALER_PHONE || "5491112345678";
         const text = encodeURIComponent(
-            `Hola! Me interesa el ${vehicleTitle} a ${priceFormatted}. ¿Podés darme más información?`
+            `Hola! Me interesa el ${vehicleTitle} ${vehicle.year} a ${priceFormatted}. ¿Podés darme más información?`
         );
         window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
     }
 
+    const specRows = [
+        { label: "Kilometraje", value: mileageFormatted },
+        { label: "Combustible", value: vehicle.fuelType || "—" },
+        { label: "Transmisión", value: vehicle.transmission || "—" },
+    ];
+
     return (
-        <div className="container" style={{ padding: "40px 24px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }}>
-                {/* Left: Gallery */}
-                <div>
-                    {/* Main image */}
-                    <div style={{
-                        borderRadius: "var(--radius-xl)", overflow: "hidden", aspectRatio: "4/3",
-                        position: "relative", background: "var(--gray-100)", marginBottom: 12
-                    }}>
-                        <Image
-                            src={images[activeImg]}
-                            alt={vehicleTitle}
-                            fill
-                            style={{ objectFit: "cover" }}
-                            priority
-                            sizes="(max-width: 768px) 100vw, 50vw"
-                        />
-                    </div>
+        <div style={{ backgroundColor: "#ffffff", minHeight: "100vh" }}>
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500;700;800&display=swap');
 
-                    {/* Thumbnails */}
-                    {images.length > 1 && (
-                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                            {images.map((img, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => setActiveImg(i)}
-                                    style={{
-                                        width: 72, height: 56, borderRadius: "var(--radius-sm)", overflow: "hidden",
-                                        border: i === activeImg ? "3px solid var(--accent)" : "3px solid transparent",
-                                        position: "relative", cursor: "pointer", background: "none", padding: 0,
-                                        transition: "border-color 0.15s"
-                                    }}
-                                >
-                                    <Image src={img} alt="" fill style={{ objectFit: "cover" }} sizes="72px" />
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                /* ── Base ───────────────────────────────────────── */
+                .vd-container {
+                    max-width: 1400px;
+                    margin: 0 auto;
+                    padding: 60px 24px;
+                    font-family: 'Manrope', sans-serif;
+                    color: #111;
+                }
+                .vd-grid {
+                    display: grid;
+                    grid-template-columns: 1.2fr 1fr;
+                    gap: 80px;
+                    align-items: start;
+                }
+                .vd-title {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: clamp(28px, 3.5vw, 44px);
+                    font-weight: 700;
+                    letter-spacing: -0.02em;
+                    line-height: 1.1;
+                    margin-bottom: 8px;
+                    color: #000;
+                    text-transform: uppercase;
+                }
+                .vd-year {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 14px;
+                    font-weight: 500;
+                    letter-spacing: 0.1em;
+                    color: var(--accent);
+                    margin-bottom: 12px;
+                    display: block;
+                }
+                .vd-price {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 32px;
+                    font-weight: 600;
+                    letter-spacing: -0.02em;
+                    color: #000;
+                    margin: 24px 0;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 4px;
+                }
+                .vd-price span {
+                    font-size: 18px;
+                    font-weight: 500;
+                    color: #666;
+                    margin-top: 6px;
+                }
+                .vd-badge-group {
+                    display: flex;
+                    gap: 12px;
+                    margin-bottom: 40px;
+                    flex-wrap: wrap;
+                }
+                .vd-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 6px 14px;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 40px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    letter-spacing: 0.05em;
+                    text-transform: uppercase;
+                    color: #333;
+                }
+                .vd-badge-accent {
+                    border: 1.5px solid #fca5a5;
+                    color: #dc2626;
+                    background: rgba(254, 242, 242, 0.95);
+                }
+                .vd-badge-status {
+                    border: 1.5px solid #e0e0e0;
+                    color: #333;
+                    font-weight: 800;
+                    padding: 8px 16px;
+                }
+                .vd-specs {
+                    margin-bottom: 48px;
+                }
+                .vd-spec-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 20px 0;
+                    border-bottom: 1px solid #eaeaea;
+                }
+                .vd-spec-label {
+                    color: #666;
+                    font-size: 15px;
+                    font-weight: 500;
+                }
+                .vd-spec-value {
+                    color: #000;
+                    font-size: 16px;
+                    font-weight: 600;
+                    text-align: right;
+                }
+                .vd-thumb {
+                    transition: all 0.3s ease;
+                    opacity: 0.6;
+                }
+                .vd-thumb:hover, .vd-thumb.active {
+                    opacity: 1;
+                }
+                .vd-desc {
+                    font-size: 16px;
+                    line-height: 1.8;
+                    color: #444;
+                    margin-bottom: 48px;
+                }
+                .vd-btn-black {
+                    background: #000;
+                    color: #fff;
+                    border: none;
+                    padding: 20px 32px;
+                    font-size: 15px;
+                    font-weight: 600;
+                    letter-spacing: 0.05em;
+                    text-transform: uppercase;
+                    cursor: pointer;
+                    width: 100%;
+                    transition: background 0.3s ease;
+                    font-family: 'Outfit', sans-serif;
+                }
+                .vd-btn-black:hover {
+                    background: #222;
+                }
+                .vd-btn-whatsapp {
+                    background: #fff;
+                    color: #000;
+                    border: 1px solid #e0e0e0;
+                    padding: 20px 32px;
+                    font-size: 15px;
+                    font-weight: 600;
+                    letter-spacing: 0.05em;
+                    text-transform: uppercase;
+                    cursor: pointer;
+                    width: 100%;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 12px;
+                    font-family: 'Outfit', sans-serif;
+                }
+                .vd-btn-whatsapp:hover {
+                    border-color: #25D366;
+                    color: #25D366;
+                    background: #fafafa;
+                }
 
-                {/* Right: Info */}
-                <div style={{ position: "sticky", top: "calc(var(--nav-height) + 24px)" }}>
-                    {/* Badges */}
-                    <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-                        {vehicle.isFeatured && <span className="badge badge-gold" style={{ display: "flex", alignItems: "center", gap: 4 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg> Destacado</span>}
-                        <span className="badge badge-gray" style={{ textTransform: "capitalize" }}>{vehicle.type}</span>
-                        {vehicle.mileage === 0 && <span className="badge badge-success">0 km</span>}
-                    </div>
+                /* ── Mobile gallery ─────────────────────────────── */
+                .vd-gallery-mobile {
+                    display: none;
+                    position: relative;
+                    width: 100%;
+                    background: #f2f2f2;
+                }
+                .vd-gallery-mobile-img {
+                    width: 100%;
+                    aspect-ratio: 4/3;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .vd-gallery-mobile-arrow {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    z-index: 10;
+                    background: rgba(0,0,0,0.38);
+                    border: none;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    color: #fff;
+                    transition: background 0.2s;
+                }
+                .vd-gallery-mobile-arrow:hover {
+                    background: rgba(0,0,0,0.6);
+                }
+                .vd-gallery-mobile-arrow-left {
+                    left: 12px;
+                }
+                .vd-gallery-mobile-arrow-right {
+                    right: 12px;
+                }
+                .vd-gallery-mobile-dots {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 10px 0 8px;
+                    background: #fff;
+                }
+                .vd-gallery-mobile-dot {
+                    height: 5px;
+                    border-radius: 3px;
+                    background: #d1d5db;
+                    transition: all 0.25s ease;
+                    width: 8px;
+                }
+                .vd-gallery-mobile-dot.active {
+                    background: var(--accent, #dc2626);
+                    width: 22px;
+                }
 
-                    <h1 style={{ fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 800, color: "var(--primary)", marginBottom: 6, lineHeight: 1.2 }}>
-                        {vehicleTitle}
-                    </h1>
+                /* ── Mobile info block ──────────────────────────── */
+                .vd-info-mobile {
+                    display: none;
+                    padding: 20px 16px 32px;
+                    font-family: 'Manrope', sans-serif;
+                }
+                .vd-info-mobile-title-wrap {
+                    display: flex;
+                    align-items: baseline;
+                    justify-content: flex-start;
+                    gap: 10px;
+                    margin-bottom: 10px;
+                }
+                .vd-info-mobile-title {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 26px;
+                    font-weight: 800;
+                    color: #0a0a0a;
+                    letter-spacing: -0.02em;
+                    line-height: 1.05;
+                }
+                .vd-info-mobile-year {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 13px;
+                    font-weight: 500;
+                    color: #999;
+                    white-space: nowrap;
+                    flex-shrink: 0;
+                }
+                .vd-gallery-brand-pill {
+                    position: absolute;
+                    top: 12px;
+                    right: 12px;
+                    z-index: 10;
+                    background: rgba(255,255,255,0.88);
+                    backdrop-filter: blur(6px);
+                    border-radius: 10px;
+                    padding: 6px 10px;
+                    box-shadow: 0 1px 8px rgba(0,0,0,0.12);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    max-width: 80px;
+                    max-height: 44px;
+                }
+                .vd-gallery-brand-pill img {
+                    height: 28px;
+                    width: auto;
+                    max-width: 60px;
+                    object-fit: contain;
+                }
+                .vd-info-mobile-chips {
+                    font-size: 13px;
+                    color: #666;
+                    font-weight: 500;
+                    margin-bottom: 16px;
+                    line-height: 1.6;
+                }
+                .vd-info-mobile-price {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 30px;
+                    font-weight: 700;
+                    color: #000;
+                    letter-spacing: -0.02em;
+                    margin-bottom: 12px;
+                }
+                .vd-info-mobile-trust {
+                    display: flex;
+                    align-items: center;
+                    gap: 7px;
+                    font-size: 12px;
+                    color: #666;
+                    margin-bottom: 20px;
+                }
+                .vd-info-mobile-cta {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    background: var(--accent, #dc2626);
+                    color: #fff;
+                    border: none;
+                    width: 100%;
+                    height: 52px;
+                    border-radius: 999px;
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 16px;
+                    font-weight: 700;
+                    letter-spacing: 0.03em;
+                    cursor: pointer;
+                    transition: background 0.2s ease;
+                    margin-bottom: 24px;
+                }
+                .vd-info-mobile-cta:hover {
+                    background: var(--accent-hover, #b91c1c);
+                }
+                .vd-info-mobile-separator {
+                    border: none;
+                    border-top: 1px solid #eaeaea;
+                    margin: 0 0 24px;
+                }
+                .vd-info-mobile-spec-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 16px 0;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+                .vd-info-mobile-spec-label {
+                    font-size: 14px;
+                    color: #777;
+                    font-weight: 500;
+                }
+                .vd-info-mobile-spec-value {
+                    font-size: 14px;
+                    color: #111;
+                    font-weight: 600;
+                    text-align: right;
+                }
+                .vd-info-mobile-desc {
+                    font-size: 14px;
+                    line-height: 1.75;
+                    color: #555;
+                    margin-top: 20px;
+                }
 
-                    <p style={{ fontSize: 34, fontWeight: 900, color: "var(--accent)", marginBottom: 24 }}>
-                        {priceFormatted}
-                    </p>
+                /* ── Desktop gallery ────────────────────────────── */
+                .vd-gallery-desktop {
+                    display: block;
+                }
 
-                    <div style={{
-                        display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 28,
-                        background: "var(--gray-50)", borderRadius: "var(--radius-md)", padding: 20
-                    }}>
+                /* ── Desktop info column ────────────────────────── */
+                .vd-info-desktop {
+                    display: block;
+                    position: sticky;
+                    top: calc(var(--nav-height, 80px) + 40px);
+                }
+
+                /* ── Responsive breakpoint ──────────────────────── */
+                @media (max-width: 992px) {
+                    .vd-container {
+                        display: none;
+                    }
+                    .vd-gallery-mobile {
+                        display: block;
+                    }
+                    .vd-info-mobile {
+                        display: block;
+                    }
+                }
+                @media (min-width: 993px) {
+                    .vd-gallery-mobile {
+                        display: none !important;
+                    }
+                    .vd-info-mobile {
+                        display: none !important;
+                    }
+                }
+                `}} />
+
+            {/* ── MOBILE GALLERY ─────────────────────────────────────────────── */}
+            <div className="vd-gallery-mobile">
+                {/* Outer wrapper: clips the sliding track */}
+                <div
+                    className="vd-gallery-mobile-img"
+                    style={{ overflow: "hidden" }}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    {/* Sliding track: 3 images (prev | current | next) */}
+                    <div
+                        ref={trackRef}
+                        style={{
+                            display: "flex",
+                            width: "300%",
+                            height: "100%",
+                            transform: "translateX(-33.333%)",
+                            willChange: "transform",
+                        }}
+                    >
                         {[
-                            { label: "Kilometraje", value: mileageFormatted, icon: <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="13" r="3" /></> },
-                            { label: "Combustible", value: vehicle.fuelType || "—", icon: <><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></> },
-                            { label: "Transmisión", value: vehicle.transmission || "—", icon: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></> },
-                            { label: "Color", value: vehicle.color || "—", icon: <><path d="m13.4 10.6-2.8-2.8" /><path d="M11 4.5l6 6a1.9 1.9 0 0 1 0 2.7l-9 9a1.9 1.9 0 0 1-2.7 0l-3-3a1.9 1.9 0 0 1 0-2.7l9-9a1.9 1.9 0 0 1 2.7 0z" /><path d="M4.5 9.5 9.5 4.5" /><path d="M2 22h20" /></> },
-                            { label: "Año", value: vehicle.year?.toString() || "—", icon: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></> },
-                            { label: "Tipo", value: vehicle.type || "—", icon: <><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" /><path d="M15 18H9" /><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" /><circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" /></> },
-                        ].map((spec) => (
-                            <div key={spec.label}>
-                                <p style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--gray-500)", marginBottom: 4 }}>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{spec.icon}</svg>
-                                    {spec.label}
-                                </p>
-                                <p style={{ fontSize: 16, fontWeight: 700, color: "var(--primary)" }}>{spec.value}</p>
+                            images[(activeImg - 1 + images.length) % images.length],
+                            images[activeImg],
+                            images[(activeImg + 1) % images.length],
+                        ].map((src, i) => (
+                            <div key={i} style={{ width: "33.333%", height: "100%", position: "relative", flexShrink: 0 }}>
+                                <Image
+                                    src={src}
+                                    alt={vehicleTitle}
+                                    fill
+                                    style={{ objectFit: "cover" }}
+                                    priority={i === 1}
+                                    sizes="100vw"
+                                    quality={100}
+                                    unoptimized
+                                />
                             </div>
                         ))}
                     </div>
 
-                    {/* Description */}
-                    {vehicle.description && (
-                        <div style={{ marginBottom: 28, padding: "16px 20px", background: "white", borderRadius: "var(--radius-md)", border: "1px solid var(--gray-200)" }}>
-                            <h3 style={{ fontWeight: 600, color: "var(--primary)", marginBottom: 8, fontSize: 15 }}>Descripción</h3>
-                            <p style={{ color: "var(--gray-600)", fontSize: 15, lineHeight: 1.7 }}>{vehicle.description}</p>
+                    {/* Back arrow overlay */}
+                    <Link
+                        href="/autos"
+                        aria-label="Volver al catálogo"
+                        style={{
+                            position: "absolute", top: 12, left: 12, zIndex: 10,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            width: 36, height: 36, borderRadius: "50%",
+                            background: "rgba(255,255,255,0.88)",
+                            backdropFilter: "blur(6px)",
+                            boxShadow: "0 1px 8px rgba(0,0,0,0.15)",
+                            color: "#111", textDecoration: "none",
+                        }}
+                    >
+                        <ChevronLeft size={20} strokeWidth={2.5} />
+                    </Link>
+
+                    {/* Status badge overlay */}
+                    {vehicle.status && vehicle.status !== "Disponible" && (
+                        <div style={{ position: "absolute", top: 12, left: 56, zIndex: 5 }}>
+                            <StatusBadge status={vehicle.status} variant="overlay" />
                         </div>
                     )}
+                </div>
 
-                    {/* CTA Buttons */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        <button
-                            onClick={handleWhatsApp}
-                            className="btn btn-whatsapp btn-lg"
-                            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%" }}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
-                            Consultar por WhatsApp
-                        </button>
-                        <button
-                            onClick={() => setShowContactModal(true)}
-                            className="btn btn-dark btn-lg"
-                            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%" }}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
-                            Enviar Consulta
-                        </button>
+                {/* Dot indicators */}
+                {images.length > 1 && (
+                    <div className="vd-gallery-mobile-dots">
+                        {images.map((_, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setActiveImg(i)}
+                                className={`vd-gallery-mobile-dot${i === activeImg ? ' active' : ''}`}
+                                aria-label={`Ir a imagen ${i + 1}`}
+                                style={{ border: "none", padding: 0, cursor: "pointer" }}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* ── MOBILE INFO BLOCK ──────────────────────────────────────────── */}
+            <div className="vd-info-mobile">
+                {/* Title */}
+                <div className="vd-info-mobile-title-wrap">
+                    <div className="vd-info-mobile-title">
+                        {vehicle.brand} {vehicle.model}
+                    </div>
+                    <span className="vd-info-mobile-year">{vehicle.year}</span>
+                </div>
+
+                {/* Chips row */}
+                <div className="vd-info-mobile-chips">
+                    {mileageFormatted}
+                    {vehicle.fuelType ? ` · ${vehicle.fuelType}` : ""}
+                    {vehicle.transmission ? ` · ${vehicle.transmission}` : ""}
+                </div>
+
+                {/* Price */}
+                <div className="vd-info-mobile-price">{priceFormatted}</div>
+
+                {/* Status badge (non-Disponible only) */}
+                {vehicle.status && vehicle.status !== "Disponible" && (
+                    <div style={{ marginBottom: 12 }}>
+                        <StatusBadge status={vehicle.status} variant="inline" />
+                    </div>
+                )}
+                {vehicle.isFeatured && (
+                    <div style={{ marginBottom: 12 }}>
+                        <FeaturedBadge variant="inline" />
+                    </div>
+                )}
+
+                {/* CTA */}
+                <button
+                    className="vd-info-mobile-cta"
+                    onClick={() => setShowAppointmentModal(true)}
+                >
+                    <CalendarCheck size={19} />
+                    Agendar visita
+                </button>
+
+                <hr className="vd-info-mobile-separator" />
+
+                {/* Specs */}
+                {specRows.map(spec => (
+                    <div key={spec.label} className="vd-info-mobile-spec-row">
+                        <span className="vd-info-mobile-spec-label">{spec.label}</span>
+                        <span className="vd-info-mobile-spec-value">{spec.value}</span>
+                    </div>
+                ))}
+
+                {/* Color */}
+                {vehicle.color && (
+                    <div className="vd-info-mobile-spec-row">
+                        <span className="vd-info-mobile-spec-label">Color</span>
+                        <span className="vd-info-mobile-spec-value" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            {COLOR_MAP[vehicle.color] && (
+                                <span style={{
+                                    display: "inline-block",
+                                    width: 14, height: 14,
+                                    borderRadius: "50%",
+                                    backgroundColor: COLOR_MAP[vehicle.color].hex,
+                                    border: `1px solid ${COLOR_MAP[vehicle.color].border}`,
+                                    boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.06)"
+                                }} />
+                            )}
+                            {vehicle.color}
+                        </span>
+                    </div>
+                )}
+
+                {/* Type */}
+                {vehicle.type && (
+                    <div className="vd-info-mobile-spec-row">
+                        <span className="vd-info-mobile-spec-label">Tipo</span>
+                        <span className="vd-info-mobile-spec-value">{vehicle.type}</span>
+                    </div>
+                )}
+
+                {/* Description */}
+                {vehicle.description && (
+                    <p className="vd-info-mobile-desc">{vehicle.description}</p>
+                )}
+            </div>
+
+            {/* ── DESKTOP LAYOUT ─────────────────────────────────────────────── */}
+            <div className="vd-container">
+                <div className="vd-grid">
+                    {/* Left: Gallery (Desktop) */}
+                    <div className="vd-gallery-desktop">
+                        {/* Main image */}
+                        <div style={{
+                            width: "100%",
+                            aspectRatio: "4/3",
+                            position: "relative",
+                            backgroundColor: "#f9f9f9",
+                            marginBottom: 16,
+                            borderRadius: "16px",
+                            overflow: "hidden"
+                        }}>
+                            <Image
+                                src={images[activeImg]}
+                                alt={vehicleTitle}
+                                fill
+                                style={{ objectFit: "cover" }}
+                                priority
+                                sizes="(max-width: 992px) 100vw, 60vw"
+                                quality={100}
+                                unoptimized
+                            />
+                            {/* Back arrow overlay */}
+                            <Link
+                                href="/autos"
+                                aria-label="Volver al catálogo"
+                                style={{
+                                    position: "absolute", top: 14, left: 14, zIndex: 10,
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                    width: 38, height: 38, borderRadius: "50%",
+                                    background: "rgba(255,255,255,0.88)",
+                                    backdropFilter: "blur(6px)",
+                                    boxShadow: "0 1px 8px rgba(0,0,0,0.15)",
+                                    color: "#111", textDecoration: "none",
+                                    transition: "background 0.15s",
+                                }}
+                                onMouseOver={e => (e.currentTarget.style.background = "rgba(255,255,255,1)")}
+                                onMouseOut={e => (e.currentTarget.style.background = "rgba(255,255,255,0.88)")}
+                            >
+                                <ChevronLeft size={20} strokeWidth={2.5} />
+                            </Link>
+                        </div>
+
+                        {/* Thumbnails */}
+                        {images.length > 1 && (
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 16 }}>
+                                {images.map((img, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setActiveImg(i)}
+                                        className={`vd-thumb ${i === activeImg ? 'active' : ''}`}
+                                        style={{
+                                            aspectRatio: "4/3",
+                                            position: "relative",
+                                            cursor: "pointer",
+                                            background: "none",
+                                            padding: 0,
+                                            border: "none",
+                                            borderRadius: "8px",
+                                            overflow: "hidden"
+                                        }}
+                                    >
+                                        <Image src={img} alt="" fill style={{ objectFit: "cover" }} sizes="120px" quality={100} unoptimized />
+                                        {i === activeImg && (
+                                            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "#000" }} />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                    <p style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 13, color: "var(--gray-400)", marginTop: 16 }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-                        Tus datos son confidenciales
-                    </p>
+                    {/* Right: Content (Desktop Sticky Column) */}
+                    <div className="vd-info-desktop">
+                        {!logoError && brandLogo && (
+                            <div style={{ marginBottom: 20 }}>
+                                <img
+                                    src={`/carBrands/${brandLogo}`}
+                                    alt={`${vehicle.brand} logo`}
+                                    style={{ height: 48, width: "auto", objectFit: "contain", opacity: 0.9 }}
+                                    onError={() => setLogoError(true)}
+                                />
+                            </div>
+                        )}
+
+                        <span className="vd-year">{vehicle.year}</span>
+                        <h1 className="vd-title">{vehicleTitle}</h1>
+
+                        <div className="vd-price">
+                            {priceFormatted} <span> USD</span>
+                        </div>
+
+                        <div className="vd-badge-group">
+                            {vehicle.status && (
+                                <StatusBadge status={vehicle.status} variant="inline" />
+                            )}
+                            {vehicle.isFeatured && (
+                                <FeaturedBadge variant="inline" />
+                            )}
+                            {vehicle.color && COLOR_MAP[vehicle.color] && (
+                                <div style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 8,
+                                    padding: "6px 14px",
+                                    borderRadius: 40,
+                                    border: "1px solid #e0e0e0",
+                                    background: "#fff",
+                                    fontSize: 12,
+                                    fontWeight: 600,
+                                    color: "#333",
+                                    textTransform: "uppercase"
+                                }}>
+                                    <div style={{
+                                        width: 14,
+                                        height: 14,
+                                        borderRadius: "50%",
+                                        backgroundColor: COLOR_MAP[vehicle.color].hex,
+                                        border: `1px solid ${COLOR_MAP[vehicle.color].border}`,
+                                        boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.05)"
+                                    }} />
+                                    {vehicle.color}
+                                </div>
+                            )}
+                            {vehicle.type && <span className="vd-badge">{vehicle.type}</span>}
+                            {vehicle.mileage === 0 && <span className="vd-badge" style={{ borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.05)" }}>0 km</span>}
+                        </div>
+
+                        <div className="vd-specs">
+                            {specRows.map((spec) => (
+                                <div key={spec.label} className="vd-spec-row">
+                                    <span className="vd-spec-label">{spec.label}</span>
+                                    <span className="vd-spec-value">{spec.value}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {vehicle.description && (
+                            <div className="vd-desc">
+                                {vehicle.description}
+                            </div>
+                        )}
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+                            <button
+                                onClick={() => setShowAppointmentModal(true)}
+                                style={{
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                                    background: "var(--accent)", color: "#fff", border: "none",
+                                    padding: "18px 32px", fontFamily: "'Outfit', sans-serif",
+                                    fontSize: 15, fontWeight: 700, letterSpacing: "0.05em",
+                                    textTransform: "uppercase", cursor: "pointer", width: "100%",
+                                    transition: "background 0.2s ease",
+                                }}
+                                onMouseEnter={e => (e.currentTarget.style.background = "var(--accent-hover)")}
+                                onMouseLeave={e => (e.currentTarget.style.background = "var(--accent)")}
+                            >
+                                <CalendarCheck size={18} />
+                                Agendar visita
+                            </button>
+                        </div>
+
+                        <p style={{ textAlign: "center", fontSize: 12, color: "#888", marginTop: 8, letterSpacing: "0.02em" }}>
+                            Tus datos son 100% confidenciales y seguros.
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            {/* Contact Modal */}
+            {/* ── APPOINTMENT MODAL ──────────────────────────────────────────── */}
+            {showAppointmentModal && (
+                <>
+                <style>{`
+                    .vd-apt-overlay {
+                        position: fixed; inset: 0;
+                        background: rgba(0,0,0,0.65);
+                        backdrop-filter: blur(6px);
+                        z-index: 9999;
+                        display: flex;
+                        align-items: flex-start;
+                        justify-content: center;
+                        padding: 40px 16px;
+                        overflow-y: auto;
+                    }
+                    .vd-apt-inner {
+                        background: #fff;
+                        width: 100%;
+                        max-width: 1000px;
+                        position: relative;
+                        border-radius: 16px;
+                        box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+                    }
+                    .vd-apt-close {
+                        position: absolute; top: 16px; right: 20px;
+                        background: none; border: none;
+                        font-size: 22px; color: #999;
+                        cursor: pointer; z-index: 1;
+                        line-height: 1;
+                    }
+                    @media (max-width: 768px) {
+                        .vd-apt-overlay {
+                            align-items: flex-end;
+                            padding: 0;
+                            overflow-y: hidden;
+                        }
+                        .vd-apt-inner {
+                            border-radius: 20px 20px 0 0;
+                            max-height: 92dvh;
+                            overflow-y: auto;
+                            box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
+                        }
+                        .vd-apt-close { display: none; }
+                    }
+                `}</style>
+                <div
+                    className="vd-apt-overlay"
+                    onClick={(e) => { if (e.target === e.currentTarget) setShowAppointmentModal(false); }}
+                >
+                    <div className="vd-apt-inner">
+                        <button
+                            className="vd-apt-close"
+                            onClick={() => setShowAppointmentModal(false)}
+                        >✕</button>
+                        <AppointmentForm
+                            referrerId={referrerId}
+                            vehicleId={vehicle.id}
+                            vehicleName={`${vehicle.brand} ${vehicle.model} ${vehicle.year}`}
+                            onSuccess={() => setShowAppointmentModal(false)}
+                        />
+                    </div>
+                </div>
+                </>
+            )}
+
+            {/* ── CONTACT MODAL ──────────────────────────────────────────────── */}
             {showContactModal && (
-                <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowContactModal(false); }}>
-                    <div className="modal-box">
+                <div
+                    onClick={(e) => { if (e.target === e.currentTarget) setShowContactModal(false); }}
+                    style={{
+                        position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+                        zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 24
+                    }}
+                >
+                    <div style={{
+                        background: "#fff", width: "100%", maxWidth: 500, padding: 40, position: "relative",
+                        fontFamily: "'Manrope', sans-serif"
+                    }}>
                         <button
                             onClick={() => setShowContactModal(false)}
-                            style={{ position: "absolute", top: 16, right: 20, background: "none", border: "none", fontSize: 20, color: "var(--gray-400)", lineHeight: 1 }}
+                            style={{ position: "absolute", top: 20, right: 24, background: "none", border: "none", fontSize: 24, color: "#999", cursor: "pointer" }}
                         >✕</button>
-                        <h2 style={{ fontWeight: 700, color: "var(--primary)", marginBottom: 6, fontSize: 22 }}>Enviar Consulta</h2>
-                        <p style={{ color: "var(--gray-500)", fontSize: 14, marginBottom: 24 }}>Completá el formulario y nos comunicamos a la brevedad.</p>
+                        <h2 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 28, marginBottom: 8, color: "#000" }}>
+                            Solicitar Info
+                        </h2>
+                        <p style={{ color: "#666", fontSize: 15, marginBottom: 32 }}>
+                            Dejanos tus datos y un asesor se comunicará con vos por el <strong>{vehicleTitle}</strong>.
+                        </p>
                         <ContactForm
                             vehicleSlug={vehicle.slug}
                             vehicleName={vehicleTitle}
@@ -184,15 +980,6 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     </div>
                 </div>
             )}
-
-            {/* Mobile responsive fix */}
-            <style>{`
-        @media (max-width: 768px) {
-          div[style*="grid-template-columns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
         </div>
     );
 }

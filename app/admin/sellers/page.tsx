@@ -1,185 +1,302 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { sileo } from "sileo";
+import type { SellerRecord } from "@/types/seller";
+import type { AnyTimestamp } from "@/types/referral";
 
-interface Seller {
-    id: string;
-    name: string;
-    code: string;
-    email: string;
+function formatDate(ts: AnyTimestamp | null | undefined): string {
+  if (!ts) return "—";
+  try {
+    const seconds =
+      typeof (ts as { toDate?: unknown }).toDate === "function"
+        ? Math.floor((ts as { toDate: () => Date }).toDate().getTime() / 1000)
+        : (ts as { _seconds: number })._seconds;
+    if (typeof seconds !== "number") return "—";
+    return new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(
+      new Date(seconds * 1000)
+    );
+  } catch {
+    return "—";
+  }
 }
 
 export default function AdminSellersPage() {
-    const [sellers, setSellers] = useState<Seller[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [showForm, setShowForm] = useState(false);
-    const [form, setForm] = useState({ name: "", code: "", email: "" });
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState("");
-    const router = useRouter();
+  const [sellers, setSellers] = useState<SellerRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const router = useRouter();
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const [form, setForm] = useState({ name: "", username: "", password: "" });
 
-    const fetchSellers = useCallback(async () => {
-        setLoading(true);
-        const res = await fetch("/api/admin/sellers");
-        if (res.status === 401) { router.push("/admin"); return; }
-        const data = await res.json();
-        setSellers(Array.isArray(data) ? data : []);
-        setLoading(false);
-    }, [router]);
-
-    useEffect(() => {
-        fetchSellers();
-    }, [fetchSellers]);
-
-    function autoCode(name: string) {
-        return name.toLowerCase().trim().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+  const fetchSellers = async () => {
+    setLoading(true);
+    try {
+      const r = await fetch("/api/admin/sellers");
+      if (r.status === 401) { router.push("/admin"); return; }
+      const data = (await r.json()) as { sellers: SellerRecord[] };
+      setSellers(data.sellers ?? []);
+    } catch (err) {
+      console.error("Sellers fetch error:", err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    async function handleAdd() {
-        setSaving(true);
-        setError("");
-        const res = await fetch("/api/admin/sellers", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(form),
+  useEffect(() => { fetchSellers(); }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const r = await fetch("/api/admin/sellers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = (await r.json()) as { error?: string; id?: string };
+      if (!r.ok) {
+        sileo.error({
+          title: "Error al crear",
+          description: data.error ?? "No se pudo crear el vendedor.",
         });
-        const data = await res.json();
-        if (!res.ok) {
-            setError(data.error || "Error al agregar");
-        } else {
-            setShowForm(false);
-            setForm({ name: "", code: "", email: "" });
-            fetchSellers();
-        }
-        setSaving(false);
+      } else {
+        sileo.success({
+          title: "Vendedor creado",
+          description: `${form.name} fue agregado al equipo.`,
+        });
+        setForm({ name: "", username: "", password: "" });
+        setShowForm(false);
+        await fetchSellers();
+      }
+    } catch {
+      sileo.error({
+        title: "Error de conexión",
+        description: "Verificá tu conexión e intentá nuevamente.",
+      });
+    } finally {
+      setSubmitting(false);
     }
+  };
 
-    async function handleDelete(id: string, name: string) {
-        if (!confirm(`¿Eliminar a "${name}"?`)) return;
-        await fetch("/api/admin/sellers", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-        setSellers((s) => s.filter((x) => x.id !== id));
+  const handleDelete = async (id: string) => {
+    const seller = sellers.find((s) => s.id === id);
+    setDeletingId(id);
+    await new Promise((resolve) => setTimeout(resolve, 280));
+    try {
+      await fetch(`/api/admin/sellers/${id}`, { method: "DELETE" });
+      setSellers((prev) => prev.filter((s) => s.id !== id));
+      setDeleteConfirm(null);
+      sileo.success({
+        title: "Vendedor eliminado",
+        description: seller ? `${seller.name} y sus datos fueron eliminados.` : "El vendedor fue eliminado.",
+      });
+    } catch {
+      sileo.error({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el vendedor.",
+      });
+    } finally {
+      setDeletingId(null);
     }
+  };
 
-    function copyLink(code: string) {
-        navigator.clipboard.writeText(`${siteUrl}/?ref=${code}`);
-        alert("¡Link copiado al portapapeles!");
-    }
-
-    return (
-        <div style={{ padding: "32px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
-                <div>
-                    <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--primary)", marginBottom: 4 }}>Vendedores</h1>
-                    <p style={{ color: "var(--gray-500)" }}>Gestión de vendedores y sus links de referido</p>
-                </div>
-                <button onClick={() => setShowForm(true)} className="btn btn-primary">+ Agregar Vendedor</button>
-            </div>
-
-            {/* Info box */}
-            <div style={{ background: "rgba(79,70,229,0.06)", border: "1px solid rgba(79,70,229,0.2)", borderRadius: "var(--radius-lg)", padding: "16px 20px", marginBottom: 24, fontSize: 14, color: "var(--primary)" }}>
-                <strong>💡 ¿Cómo funciona?</strong> Cada vendedor tiene un link único como <code style={{ background: "rgba(0,0,0,0.06)", padding: "2px 6px", borderRadius: 4 }}>/? ref=nombre</code>. Cuando un cliente abre ese link, el sistema lo "memoriza" por 30 días. Si ese cliente llena un formulario o hace clic en WhatsApp, el lead quedará asignado al vendedor correspondiente.
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
-                {loading ? (
-                    Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} style={{ background: "white", borderRadius: "var(--radius-xl)", padding: 24, boxShadow: "var(--shadow-card)" }}>
-                            <div className="skeleton" style={{ height: 24, borderRadius: 4, marginBottom: 12 }} />
-                            <div className="skeleton" style={{ height: 16, borderRadius: 4, width: "60%" }} />
-                        </div>
-                    ))
-                ) : sellers.length ? (
-                    sellers.map((seller) => (
-                        <div key={seller.id} style={{ background: "white", borderRadius: "var(--radius-xl)", padding: 24, boxShadow: "var(--shadow-card)" }}>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                    <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg, var(--primary), var(--accent))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 18 }}>
-                                        {seller.name.charAt(0).toUpperCase()}
-                                    </div>
-                                    <div>
-                                        <p style={{ fontWeight: 700, color: "var(--primary)", fontSize: 16 }}>{seller.name}</p>
-                                        <p style={{ fontSize: 13, color: "var(--gray-400)" }}>{seller.email || "Sin email"}</p>
-                                    </div>
-                                </div>
-                                <button onClick={() => handleDelete(seller.id, seller.name)} style={{ background: "none", border: "none", color: "var(--gray-300)", cursor: "pointer", fontSize: 18 }}>🗑️</button>
-                            </div>
-
-                            {/* Referral Link */}
-                            <div style={{ background: "var(--gray-50)", borderRadius: "var(--radius-md)", padding: "12px 14px", marginBottom: 12 }}>
-                                <p style={{ fontSize: 11, color: "var(--gray-400)", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Link de referido</p>
-                                <p style={{ fontSize: 13, fontFamily: "monospace", color: "var(--primary)", wordBreak: "break-all" }}>
-                                    {siteUrl}/?ref={seller.code}
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => copyLink(seller.code)}
-                                className="btn btn-outline btn-sm"
-                                style={{ width: "100%" }}
-                            >
-                                📋 Copiar Link
-                            </button>
-                        </div>
-                    ))
-                ) : (
-                    <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "48px", color: "var(--gray-400)" }}>
-                        <p style={{ fontSize: 40, marginBottom: 16 }}>🤝</p>
-                        <p>No hay vendedores registrados. Agregá el primero.</p>
-                    </div>
-                )}
-            </div>
-
-            {/* Add Seller Modal */}
-            {showForm && (
-                <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}>
-                    <div className="modal-box">
-                        <button onClick={() => setShowForm(false)} style={{ position: "absolute", top: 16, right: 20, background: "none", border: "none", fontSize: 20, color: "var(--gray-400)", cursor: "pointer" }}>✕</button>
-                        <h2 style={{ fontWeight: 700, color: "var(--primary)", marginBottom: 24, fontSize: 20 }}>Agregar Vendedor</h2>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                            <div className="form-group">
-                                <label className="form-label">Nombre completo *</label>
-                                <input
-                                    className="form-input"
-                                    value={form.name}
-                                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, code: autoCode(e.target.value) }))}
-                                    placeholder="Ej: Ana García"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Código único *</label>
-                                <input
-                                    className="form-input"
-                                    value={form.code}
-                                    onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") }))}
-                                    placeholder="ana_garcia"
-                                />
-                                <p style={{ fontSize: 12, color: "var(--gray-400)", marginTop: 4 }}>
-                                    Link: {siteUrl}/?ref={form.code || "codigo"}
-                                </p>
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Email (para notificaciones)</label>
-                                <input
-                                    type="email"
-                                    className="form-input"
-                                    value={form.email}
-                                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                                    placeholder="vendedor@email.com"
-                                />
-                            </div>
-                            {error && <p style={{ color: "var(--accent)", fontSize: 14 }}>{error}</p>}
-                            <div style={{ display: "flex", gap: 12 }}>
-                                <button onClick={handleAdd} className="btn btn-primary" style={{ flex: 1 }} disabled={saving}>
-                                    {saving ? "Guardando..." : "Agregar Vendedor"}
-                                </button>
-                                <button onClick={() => setShowForm(false)} className="btn btn-outline">Cancelar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+  return (
+    <div className="admin-page-pad">
+      {/* Header */}
+      <div className="admin-sellers-header-inner">
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: "#111", letterSpacing: "-0.02em", marginBottom: 6 }}>Vendedores</h1>
+          <p style={{ color: "#666", fontSize: 15 }}>Administrá el equipo de ventas. Cada vendedor tiene su propio link de referido.</p>
         </div>
-    );
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="admin-sellers-new-btn"
+          style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 10, background: "#0a0a0a", color: "#fff", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, fontFamily: "inherit", whiteSpace: "nowrap" }}
+        >
+          <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Nuevo Vendedor
+        </button>
+      </div>
+
+      {/* Create Form */}
+      {showForm && (
+        <div style={{ marginBottom: 32, background: "white", borderRadius: 12, border: "1px solid #eaeaea", padding: 28, animation: "slideUp 0.2s ease" }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#111", marginBottom: 20 }}>Nuevo Vendedor</h2>
+          <form onSubmit={handleCreate}>
+            <div className="admin-form-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+              {[
+                { label: "Nombre completo", key: "name", placeholder: "Juan García", type: "text", required: true },
+                { label: "Usuario (para login)", key: "username", placeholder: "juangarcia", type: "text", required: true },
+                { label: "Contraseña", key: "password", placeholder: "Mínimo 6 caracteres", type: "password", required: true },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                    {field.label}
+                  </label>
+                  <input
+                    type={field.type}
+                    placeholder={field.placeholder}
+                    value={form[field.key as keyof typeof form]}
+                    onChange={(e) => setForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                    required={field.required}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 14, color: "#111", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                type="submit"
+                disabled={submitting}
+                style={{
+                  padding: "10px 24px", borderRadius: 8,
+                  background: submitting ? "#e5e7eb" : "#0a0a0a",
+                  color: submitting ? "#888" : "#fff",
+                  border: "none", cursor: submitting ? "not-allowed" : "pointer",
+                  fontSize: 14, fontWeight: 600, fontFamily: "inherit",
+                  display: "flex", alignItems: "center", gap: 8,
+                }}
+              >
+                {submitting && (
+                  <span style={{
+                    display: "inline-block", width: 14, height: 14, borderRadius: "50%",
+                    border: "2px solid rgba(0,0,0,0.15)", borderTopColor: "#555",
+                    animation: "sellerSpin 0.6s linear infinite",
+                  }} />
+                )}
+                {submitting ? "Creando..." : "Crear Vendedor"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                style={{ padding: "10px 24px", borderRadius: 8, background: "transparent", color: "#666", border: "1px solid #e5e7eb", cursor: "pointer", fontSize: 14, fontWeight: 600, fontFamily: "inherit" }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Sellers Table */}
+      <div style={{ background: "white", borderRadius: 12, border: "1px solid #eaeaea" }}>
+        <div className="admin-table-wrap" style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#fafafa" }}>
+                {["Vendedor", "Usuario", "Estado", "Creado", ""].map((h) => (
+                  <th key={h} style={{ padding: "16px 24px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: "0.05em", textTransform: "uppercase", borderBottom: "1px solid #eaeaea" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid #eaeaea" }}>
+                    <td style={{ padding: "16px 24px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div className="skeleton" style={{ width: 36, height: 36, borderRadius: "50%", flexShrink: 0 }} />
+                        <div className="skeleton" style={{ width: 120, height: 14 }} />
+                      </div>
+                    </td>
+                    <td style={{ padding: "16px 24px" }}>
+                      <div className="skeleton" style={{ width: 80, height: 22, borderRadius: 4 }} />
+                    </td>
+                    <td style={{ padding: "16px 24px" }}>
+                      <div className="skeleton" style={{ width: 60, height: 22, borderRadius: 20 }} />
+                    </td>
+                    <td style={{ padding: "16px 24px" }}>
+                      <div className="skeleton" style={{ width: 72, height: 14 }} />
+                    </td>
+                    <td style={{ padding: "16px 24px" }}>
+                      <div className="skeleton" style={{ width: 24, height: 24, borderRadius: 4 }} />
+                    </td>
+                  </tr>
+                ))
+              ) : sellers.length ? (
+                sellers.map((seller, i) => (
+                  <tr
+                    key={seller.id}
+                    style={{
+                      borderBottom: i < sellers.length - 1 ? "1px solid #eaeaea" : "none",
+                      animation: deletingId === seller.id
+                        ? "slideOutRow 0.28s ease forwards"
+                        : "fadeInRow 0.3s ease both",
+                      animationDelay: deletingId === seller.id ? "0ms" : `${i * 40}ms`,
+                    }}
+                  >
+                    <td style={{ padding: "16px 24px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                          {seller.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <span style={{ fontWeight: 600, fontSize: 14, color: "#111" }}>{seller.name}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: "16px 24px", fontSize: 13, color: "#666" }}>
+                      <code style={{ background: "#f4f4f5", padding: "2px 8px", borderRadius: 4 }}>{seller.username}</code>
+                    </td>
+                    <td style={{ padding: "16px 24px" }}>
+                      <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 20, background: seller.isActive ? "#f0fdf4" : "#fef2f2", color: seller.isActive ? "#16a34a" : "#dc2626", fontSize: 12, fontWeight: 700 }}>
+                        {seller.isActive ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+                    <td style={{ padding: "16px 24px", fontSize: 13, color: "#888" }}>{formatDate(seller.createdAt)}</td>
+                    <td style={{ padding: "16px 24px" }}>
+                      {deleteConfirm === seller.id ? (
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <span style={{ fontSize: 12, color: "#666" }}>¿Confirmar?</span>
+                          <button
+                            onClick={() => handleDelete(seller.id)}
+                            disabled={!!deletingId}
+                            style={{
+                              padding: "4px 10px", borderRadius: 6, background: "#dc2626", color: "#fff",
+                              border: "none", cursor: deletingId ? "not-allowed" : "pointer",
+                              fontSize: 12, fontWeight: 600, fontFamily: "inherit",
+                              display: "flex", alignItems: "center", gap: 5,
+                              opacity: deletingId ? 0.7 : 1,
+                            }}
+                          >
+                            {deletingId === seller.id && (
+                              <span style={{
+                                display: "inline-block", width: 10, height: 10, borderRadius: "50%",
+                                border: "1.5px solid rgba(255,255,255,0.4)", borderTopColor: "#fff",
+                                animation: "sellerSpin 0.6s linear infinite",
+                              }} />
+                            )}
+                            Sí
+                          </button>
+                          <button onClick={() => setDeleteConfirm(null)} style={{ padding: "4px 10px", borderRadius: 6, background: "#f4f4f5", color: "#666", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit" }}>No</button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setDeleteConfirm(seller.id)}
+                          title="Eliminar vendedor"
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", padding: 4, display: "flex", transition: "color 0.15s" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = "#dc2626"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = "#aaa"; }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr><td colSpan={5} style={{ padding: 48, textAlign: "center", color: "#888", fontSize: 14 }}>Aún no hay vendedores. Creá el primero.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes sellerSpin { to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
 }

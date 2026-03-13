@@ -1,4 +1,64 @@
+@import "tailwindcss";
+
+@source "../components";
+@source "../app";
+
+@theme {
+  /* ── Brand tokens ── */
+  --color-primary-mid: var(--primary-mid);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
+  --color-accent-glow: var(--accent-glow);
+
+  /* ── shadcn/ui required color tokens ── */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  /* primary = dark/black → selected calendar day, default button */
+  --color-primary: var(--shadcn-primary);
+  --color-primary-foreground: var(--shadcn-primary-foreground);
+  --color-secondary: var(--shadcn-secondary);
+  --color-secondary-foreground: var(--shadcn-secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  /* accent = light gray → calendar hover, not the brand red */
+  --color-accent: var(--shadcn-accent);
+  --color-accent-foreground: var(--shadcn-accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
 :root {
+  /* ── shadcn/ui CSS variable requirements ── */
+  --background: #FFFFFF;
+  --foreground: #0a0a0a;
+  --card: #FFFFFF;
+  --card-foreground: #0a0a0a;
+  --popover: #FFFFFF;
+  --popover-foreground: #0a0a0a;
+  --shadcn-primary: #0a0a0a;
+  --shadcn-primary-foreground: #FFFFFF;
+  --shadcn-secondary: #F4F4F5;
+  --shadcn-secondary-foreground: #0a0a0a;
+  --muted: #F4F4F5;
+  --muted-foreground: #71717A;
+  --shadcn-accent: #F4F4F5;
+  --shadcn-accent-foreground: #0a0a0a;
+  --destructive: #ef4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #E4E4E7;
+  --input: #E4E4E7;
+  --ring: #0a0a0a;
+  --radius: 6px;
+
   /* ---- Brand Colors — Light Mode Palette ---- */
 
   /* Light backgrounds — white base */
@@ -343,6 +403,42 @@ button {
   }
 }
 
+/* ---- Table row animations ---- */
+@keyframes fadeInRow {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOutRow {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+/* Force sileo toaster above all modals */
+[data-sileo-viewport] {
+  z-index: 99999 !important;
+}
+
+/* Dark skeleton (for dark backgrounds like seller dashboard) */
+.skeleton-dark {
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
 /* ---- Modal ---- */
 .modal-overlay {
   position: fixed;
@@ -391,30 +487,10 @@ button {
   }
 }
 
-/* ---- Admin Layout ---- */
+/* ---- Admin Layout (Structural Only) ---- */
 .admin-layout {
   display: flex;
   min-height: 100vh;
-}
-
-.admin-sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background: var(--primary-dark);
-  min-height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  overflow-y: auto;
-  z-index: 100;
-}
-
-.admin-content {
-  margin-left: 260px;
-  flex: 1;
-  min-height: 100vh;
-  background: var(--gray-50);
 }
 
 /* ---- Type Cards (Browse by Type) ---- */
@@ -485,6 +561,17 @@ button {
 
   .admin-layout {
     flex-direction: column;
+  }
+}
+
+/* ---- Trending Section Responsive ---- */
+@media (max-width: 640px) {
+  .trending-section {
+    padding-bottom: 60px !important;
+  }
+
+  .trending-section .container > div:first-child {
+    margin-bottom: 40px !important;
   }
 }
 
@@ -570,7 +657,8 @@ button {
   font-weight: 700;
   line-height: 0.95;
   letter-spacing: -0.01em;
-  color: #8C1C1C;
+  color: #FF3333;
+  text-shadow: 0px 4px 24px rgba(0, 0, 0, 0.8), 0px 2px 8px rgba(0,0,0,0.6);
   white-space: nowrap;
   text-transform: uppercase;
   margin-bottom: 16px;
@@ -583,10 +671,12 @@ button {
 .hero-subtitle {
   font-family: var(--font-carmax-sharp), sans-serif;
   font-size: 27px;
-  color: #8C1C1C;
+  color: #FF4D4D;
+  text-shadow: 0px 2px 12px rgba(0, 0, 0, 0.9);
   line-height: 1.35;
   margin-bottom: 28px;
   font-weight: 700;
+  max-width: 800px;
 }
 
 
@@ -676,15 +766,15 @@ button {
   animation-delay: 0.12s;
 }
 
-/* Left-to-right gradient — contraste suave para leer el texto */
+/* Left-to-right gradient — contraste para leer texto blanco */
 .hero-gradient-overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
   background: linear-gradient(to right,
-      rgba(0, 0, 0, 0.85) 0%,
-      rgba(0, 0, 0, 0.70) 35%,
-      rgba(0, 0, 0, 0.40) 58%,
+      rgba(0, 0, 0, 0.80) 0%,
+      rgba(0, 0, 0, 0.65) 35%,
+      rgba(0, 0, 0, 0.30) 60%,
       rgba(0, 0, 0, 0)    85%);
 }
 
@@ -707,6 +797,26 @@ button {
   }
 }
 
+@media (max-width: 640px) {
+  .hero-headline {
+    font-size: clamp(48px, 14vw, 80px);
+    white-space: normal;
+    line-height: 0.9;
+    margin-bottom: 12px;
+  }
+
+  .hero-subtitle {
+    font-size: 17px;
+    line-height: 1.4;
+    margin-bottom: 20px;
+  }
+
+  .hero-cta-btn {
+    font-size: 16px;
+    padding: 10px 22px;
+  }
+}
+
 @media (max-width: 500px) {
   .hero-section {
     padding: 16px 0 28px;
@@ -718,7 +828,15 @@ button {
   }
 
   .hero-content {
-    padding: 32px 20px;
+    padding: 28px 20px;
+  }
+
+  .hero-headline {
+    font-size: clamp(42px, 13vw, 64px);
+  }
+
+  .hero-subtitle {
+    font-size: 15px;
   }
 
   .hero-actions {
@@ -742,4 +860,302 @@ button {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN & SELLER PORTAL — MOBILE-FIRST RESPONSIVE SYSTEM
+   ═══════════════════════════════════════════════════════════
+
+   Strategy: render BOTH desktop sidebar and mobile topbar in the DOM.
+   CSS wrappers show/hide each. No JS window detection — no hydration flash.
+
+   Mobile (default):   show mobile topbar, hide desktop sidebar
+   Desktop (≥768px):   show desktop sidebar, hide mobile topbar
+*/
+
+/* ── Sidebar show/hide wrappers ── */
+.admin-sidebar-desktop-wrap {
+  display: none !important;   /* hidden on mobile by default */
+  min-width: 0;
+  flex-shrink: 0;
+}
+.admin-sidebar-mobile-wrap {
+  display: block !important;  /* visible on mobile by default */
+  min-width: 0;
+  width: 0;                   /* takes no space in flow; topbar is position:fixed */
+  overflow: visible;
+}
+
+/* ── Admin main area — mobile default ── */
+.admin-main {
+  min-width: 0;        /* critical: prevents flex item from growing beyond viewport */
+  margin-left: 0;
+  padding-top: 56px;   /* offset for fixed 56px mobile topbar */
+}
+
+/* ── Sticky page headers — mobile default ── */
+.admin-sticky-header {
+  top: 56px;           /* offset below mobile topbar */
+}
+
+/* ── Page-level padding — mobile default ── */
+.admin-page-pad {
+  padding: 20px 16px;
+}
+
+/* ── Page header inner rows — mobile: stack vertically ── */
+.admin-veh-header-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.admin-sellers-header-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* ── Add / New buttons — full width on mobile ── */
+.admin-veh-add-btn,
+.admin-sellers-new-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── Vehicle cards — 1 column on mobile ── */
+.admin-veh-cards-grid {
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+/* ── 2-column form grids → 1 column on mobile ── */
+.admin-form-grid-2 {
+  grid-template-columns: 1fr;
+}
+
+/* ── Stats grid — 2 columns on mobile ── */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* ── Vehicles page: header inner, search area, grid area ── */
+.admin-veh-header {
+  padding: 16px 16px;
+}
+.admin-veh-search {
+  padding: 20px 16px 0;
+}
+.admin-veh-grid {
+  padding: 0 16px;
+}
+
+/* ── Referrals tabs — horizontal scroll on mobile ── */
+.admin-ref-tabs {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.admin-ref-tabs::-webkit-scrollbar { display: none; }
+.admin-ref-tabs button {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 10px 14px;
+}
+
+/* ── Tables — touch scroll on mobile ── */
+.admin-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-table-wrap table {
+  min-width: 560px;
+  width: 100%;
+}
+.admin-table-wrap th,
+.admin-table-wrap td {
+  padding: 12px 14px !important;
+}
+
+/* ── Modal title & close button ── */
+.admin-modal-title {
+  font-size: 1.2rem;
+}
+.admin-modal-subtitle {
+  font-size: 12px;
+}
+.admin-modal-close-btn {
+  width: 36px;
+  height: 36px;
+}
+.admin-modal-left-col {
+  gap: 32px;
+}
+.admin-modal-right-col {
+  gap: 24px;
+}
+.admin-modal-section-head {
+  margin-bottom: 16px !important;
+}
+
+/* ── Vehicle modal — bottom sheet on mobile ── */
+.admin-modal-overlay {
+  padding: 0;
+  align-items: flex-end;
+}
+.admin-modal-box {
+  border-radius: 24px 24px 0 0;
+  height: 95vh;
+  max-width: 100%;
+  width: 100%;
+  max-height: 95vh;
+}
+.admin-modal-header { padding: 20px 16px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.admin-modal-body   { padding: 20px 16px; flex: 1; overflow-y: auto; }
+.admin-modal-cols   { display: grid; grid-template-columns: 1fr; gap: 40px; }
+.admin-inner-grid-2 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.admin-modal-footer {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.admin-modal-save-btn {
+  width: 100%;
+  padding: 18px 24px;
+  justify-content: center;
+  order: -1;          /* save button appears first on mobile */
+}
+.admin-modal-discard-btn {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+
+/* ── Seller portal — mobile defaults ── */
+.seller-header {
+  padding: 14px 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.seller-main { padding: 28px 16px; }
+.seller-ref-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+.seller-ref-row button {
+  width: 100%;
+  padding: 14px 16px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   DESKTOP OVERRIDES — min-width: 768px
+   ════════════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+  /* Show desktop sidebar, hide mobile topbar */
+  .admin-sidebar-desktop-wrap { display: block !important; }
+  .admin-sidebar-mobile-wrap  { display: none !important; }
+
+  /* Main area: offset for 260px fixed sidebar, no top padding */
+  .admin-main {
+    margin-left: 260px;
+    padding-top: 0;
+  }
+
+  /* Sticky headers: top of page (no mobile topbar) */
+  .admin-sticky-header { top: 0; }
+
+  /* Page padding */
+  .admin-page-pad { padding: 40px; }
+
+  /* Vehicles page header/search/grid */
+  .admin-veh-header { padding: 24px 32px; }
+  .admin-veh-search { padding: 40px 32px 0; }
+  .admin-veh-grid   { padding: 0 32px; }
+
+  /* Header inner rows: side by side */
+  .admin-veh-header-inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .admin-sellers-header-inner {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  /* Add / New buttons: auto width */
+  .admin-veh-add-btn,
+  .admin-sellers-new-btn {
+    width: auto;
+    justify-content: flex-start;
+  }
+
+  /* Vehicle cards: auto-fill grid */
+  .admin-veh-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 32px;
+  }
+
+  /* 2-column form grids */
+  .admin-form-grid-2 { grid-template-columns: 1fr 1fr; }
+
+  /* Stats grid: auto-fill */
+  .admin-stats-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px;
+  }
+
+  /* Table cell padding on desktop */
+  .admin-table-wrap th,
+  .admin-table-wrap td {
+    padding: 16px 24px !important;
+  }
+
+  /* Referrals tabs: normal flex */
+  .admin-ref-tabs { overflow-x: visible; flex-wrap: wrap; }
+  .admin-ref-tabs button { font-size: 14px; padding: 10px 20px; }
+
+  /* Vehicle modal: centered dialog */
+  .admin-modal-overlay { padding: 32px; align-items: center; }
+  .admin-modal-box {
+    border-radius: 48px;
+    height: 90vh;
+    max-width: 1280px;
+    max-height: 90vh;
+  }
+  .admin-modal-title { font-size: 1.875rem; }
+  .admin-modal-subtitle { font-size: 14px; }
+  .admin-modal-close-btn { width: 56px; height: 56px; }
+  .admin-modal-left-col { gap: 64px; }
+  .admin-modal-right-col { gap: 48px; }
+  .admin-modal-section-head { margin-bottom: 32px !important; }
+
+  .admin-modal-header { padding: 32px 40px; }
+  .admin-modal-body   { padding: 48px 40px; }
+  .admin-modal-cols   { grid-template-columns: 7fr 5fr; gap: 64px; }
+  .admin-inner-grid-2 { grid-template-columns: 1fr 1fr; gap: 24px; }
+  .admin-modal-footer { padding: 32px 40px; flex-direction: row; gap: 20px; background: rgba(248,249,250,0.5); }
+  .admin-modal-save-btn { width: auto; padding: 20px 48px; order: 0; }
+  .admin-modal-discard-btn { width: auto; }
+
+  /* Seller portal */
+  .seller-header { padding: 20px 32px; flex-wrap: nowrap; gap: 16px; }
+  .seller-main { padding: 48px 24px; }
+  .seller-ref-row { flex-direction: row; align-items: center; }
+  .seller-ref-row button { width: auto; padding: 8px 16px; }
 }

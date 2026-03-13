@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Toaster } from "sileo";
+import "sileo/styles.css";
+import ReferralCapture from "@/components/ReferralCapture";
 
 const lato = localFont({
   src: [
@@ -47,7 +50,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${lato.variable} ${carmaxSharp.variable} ${rbRational.variable}`}>
-      <body>{children}</body>
+      <body>
+        <Toaster position="top-center" theme="dark" />
+        <ReferralCapture />
+        {children}
+      </body>
     </html>
   );
 }

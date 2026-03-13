@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useRef, useCallback } from "react";
 
-const VIDEOS = ["/hero3.mp4", "/hero5.mp4"];
+const VIDEOS = ["/hero3.mp4", "/hero7.mp4", "/hero6.mp4"];
 const FADE_MS = 900; // duración del crossfade en ms
 
 export default function HeroSection() {

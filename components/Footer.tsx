@@ -1,66 +1,126 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowUpRight } from "lucide-react";
 
 export default function Footer() {
-    const phone = process.env.NEXT_PUBLIC_DEALER_PHONE || "5491112345678";
+  const phone = process.env.NEXT_PUBLIC_DEALER_PHONE || "5491112345678";
 
-    return (
-        <footer style={{ background: "var(--primary)", color: "rgba(255,255,255,0.7)", marginTop: "auto" }}>
-            <div className="container" style={{ padding: "48px 24px 24px" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 40, marginBottom: 40 }}>
-                    {/* Brand */}
-                    <div>
-                        <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-                            <Image
-                                src="/logo-nuevo.png"
-                                alt="Speed Cars Logo"
-                                width={180}
-                                height={60}
-                                style={{ height: "48px", width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }}
-                            />
-                        </div>
-                        <p style={{ fontSize: 14, lineHeight: 1.7, maxWidth: 260 }}>
-                            Tu concesionaria de confianza. Los mejores vehículos con la mejor atención.
-                        </p>
-                    </div>
+  return (
+    <footer style={{ 
+      background: "var(--white)", 
+      borderTop: "1px solid var(--gray-200)",
+      padding: "32px 0 16px",
+      position: "relative",
+      overflow: "hidden"
+    }}>
+      <div className="container" style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ 
+          display: "flex", 
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          gap: "40px", 
+          marginBottom: "24px" 
+        }}>
+          {/* Marca y Descripcion */}
+          <div style={{ maxWidth: "320px" }}>
+            <Link href="/" style={{ display: "inline-block", marginBottom: "12px", textDecoration: "none" }}>
+              <Image
+                src="/logoLightMode.jpeg"
+                alt="FF Speed Cars Logo"
+                width={150}
+                height={48}
+                style={{ height: "40px", width: "auto", objectFit: "contain" }}
+              />
+            </Link>
+            <p style={{ 
+              color: "var(--text-muted)", 
+              fontSize: "14px", 
+              lineHeight: 1.6, 
+              fontFamily: "var(--font-lato), sans-serif",
+              marginBottom: "16px"
+            }}>
+              Calidad, precio y transparencia para que te lleves el vehículo de tus sueños con total confianza.
+            </p>
+          </div>
 
-                    {/* Quick Links */}
-                    <div>
-                        <h4 style={{ color: "white", fontWeight: 700, marginBottom: 16, fontSize: 15 }}>Navegación</h4>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                            <FooterLink href="/">Inicio</FooterLink>
-                            <FooterLink href="/autos">Catálogo de Autos</FooterLink>
-                            <FooterLink href="/#contacto">Contacto</FooterLink>
-                        </div>
-                    </div>
-
-                    {/* Contact */}
-                    <div>
-                        <h4 style={{ color: "white", fontWeight: 700, marginBottom: 16, fontSize: 15 }}>Contacto</h4>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 14 }}>
-                            <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer"
-                                style={{ color: "#25D366", display: "flex", alignItems: "center", gap: 8, fontWeight: 500 }}>
-                                💬 WhatsApp
-                            </a>
-                            <span>📍 Tu Ciudad, Argentina</span>
-                            <span>⏰ Lun–Sáb: 9 a 18hs</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-                    <p style={{ fontSize: 13 }}>© {new Date().getFullYear()} AutosDealer. Todos los derechos reservados.</p>
-                    <Link href="/admin" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>Admin</Link>
-                </div>
+          {/* Navegación Derecha */}
+          <div style={{ display: "flex", gap: "60px" }}>
+            <div>
+              <h4 style={{ 
+                color: "var(--text-primary)", 
+                fontFamily: "var(--font-rb-rational), sans-serif",
+                fontWeight: 700, 
+                marginBottom: "16px", 
+                fontSize: "12px",
+                letterSpacing: "0.2em",
+                textTransform: "uppercase"
+              }}>
+                Navegación
+              </h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <FooterLink href="/">Inicio</FooterLink>
+                <FooterLink href="/autos">Inventario</FooterLink>
+              </div>
             </div>
-        </footer>
-    );
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div style={{ 
+          borderTop: "1px solid var(--gray-200)", 
+          paddingTop: "16px", 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center", 
+          flexWrap: "wrap", 
+          gap: "16px" 
+        }}>
+          <p style={{ 
+            fontSize: "12px", 
+            color: "var(--gray-300)",
+            letterSpacing: "0.05em",
+            fontFamily: "var(--font-rb-rational)"
+          }}>
+            © {new Date().getFullYear()} FF SPEED CARS. TODOS LOS DERECHOS RESERVADOS.
+          </p>
+          <div style={{ 
+            display: "flex", 
+            gap: "24px", 
+            fontSize: "12px", 
+            color: "var(--gray-300)",
+            letterSpacing: "0.05em"
+          }}>
+            <span>FORT WORTH, TEXAS</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 }
 
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
-    return (
-        <Link href={href} style={{ color: "rgba(255,255,255,0.65)", fontSize: 14, transition: "color 0.15s" }}>
-            {children}
-        </Link>
-    );
+  return (
+    <Link 
+      href={href} 
+      style={{ 
+        color: "var(--text-muted)", 
+        fontSize: "14px", 
+        textDecoration: "none",
+        transition: "color 0.2s ease, transform 0.2s ease",
+        display: "inline-block"
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = "var(--text-primary)";
+        e.currentTarget.style.transform = "translateX(4px)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = "var(--text-muted)";
+        e.currentTarget.style.transform = "translateX(0)";
+      }}
+    >
+      {children}
+    </Link>
+  );
 }

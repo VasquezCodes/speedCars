@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 
-function isAuthenticated(request: NextRequest) {
-    return request.cookies.get("admin_session")?.value === "authenticated";
+import { adminAuth } from "@/lib/firebase/admin";
+
+export const dynamic = "force-dynamic";
+
+async function isAuthenticated(request: NextRequest) {
+    const sessionCookie = request.cookies.get("admin_session")?.value;
+    if (!sessionCookie) return false;
+    try {
+        await adminAuth.verifySessionCookie(sessionCookie, true);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export async function GET(request: NextRequest) {
-    if (!isAuthenticated(request)) {
+    const isAuth = await isAuthenticated(request);
+    if (!isAuth) {
         return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
     try {
@@ -14,10 +26,13 @@ export async function GET(request: NextRequest) {
             .collection("vehicles")
             .orderBy("createdAt", "desc")
             .get();
-        const vehicles = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-        }));
+        const vehicles = snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+                ...data,
+                id: doc.id,
+            };
+        });
         return NextResponse.json(vehicles);
     } catch (error) {
         return NextResponse.json({ error: "Error interno" }, { status: 500 });
@@ -25,7 +40,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    if (!isAuthenticated(request)) {
+    const isAuth = await isAuthenticated(request);
+    if (!isAuth) {
         return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
     try {
@@ -41,6 +57,7 @@ export async function POST(request: NextRequest) {
             ...data,
             slug,
             isAvailable: data.isAvailable ?? true,
+            status: data.status || "Disponible",
             isFeatured: data.isFeatured ?? false,
             images: data.images || [],
             createdAt: new Date().toISOString(),

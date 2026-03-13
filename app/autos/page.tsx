@@ -16,23 +16,10 @@ export default function CatalogPage({
     return (
         <>
             <Navbar />
-            <main style={{ minHeight: "80vh" }}>
-                <div style={{ background: "var(--primary)", padding: "40px 0 60px" }}>
-                    <div className="container">
-                        <p className="section-eyebrow" style={{ marginBottom: 8, color: "var(--accent)" }}>Inventario disponible</p>
-                        <h1 style={{ color: "white", fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, marginBottom: 8 }}>
-                            Catálogo de Vehículos
-                        </h1>
-                        <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 16 }}>
-                            Encontrá el auto perfecto entre todos nuestros vehículos disponibles.
-                        </p>
-                    </div>
-                </div>
-                <div style={{ marginTop: -20 }}>
-                    <Suspense fallback={<CatalogSkeleton />}>
-                        <CatalogContent searchParams={searchParams} />
-                    </Suspense>
-                </div>
+            <main style={{ minHeight: "80vh", background: "#f7f7f8" }}>
+                <Suspense fallback={<CatalogSkeleton />}>
+                    <CatalogContent searchParams={searchParams} />
+                </Suspense>
             </main>
             <Footer />
         </>
@@ -41,19 +28,28 @@ export default function CatalogPage({
 
 function CatalogSkeleton() {
     return (
-        <div className="container" style={{ padding: "40px 24px" }}>
-            <div style={{ height: 60, borderRadius: "var(--radius-lg)", marginBottom: 32 }} className="skeleton" />
-            <div className="vehicle-grid">
+        <div style={{ display: "flex", maxWidth: 1280, margin: "0 auto", padding: "0 24px" }}>
+            {/* Sidebar skeleton */}
+            <aside style={{ width: 280, flexShrink: 0, padding: "24px 0" }}>
+                <div style={{ height: 40, borderRadius: 8, background: "#ebebeb", marginBottom: 16 }} />
                 {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} style={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
-                        <div style={{ height: 200 }} className="skeleton" />
-                        <div style={{ padding: 20, background: "white" }}>
-                            <div style={{ height: 16, borderRadius: 4, marginBottom: 8 }} className="skeleton" />
-                            <div style={{ height: 24, borderRadius: 4, marginBottom: 16 }} className="skeleton" />
-                            <div style={{ height: 16, borderRadius: 4, width: "60%" }} className="skeleton" />
-                        </div>
-                    </div>
+                    <div key={i} style={{ height: 52, borderBottom: "1px solid #eee", background: "white" }} />
                 ))}
+            </aside>
+            {/* Content skeleton */}
+            <div style={{ flex: 1, minWidth: 0, padding: "24px 0 24px 24px" }}>
+                <div style={{ height: 130, borderRadius: 12, background: "#ebebeb", marginBottom: 24 }} />
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} style={{ borderRadius: 10, overflow: "hidden", background: "white" }}>
+                            <div style={{ paddingTop: "66%", background: "#ebebeb" }} />
+                            <div style={{ padding: 14 }}>
+                                <div style={{ height: 14, borderRadius: 4, background: "#ebebeb", marginBottom: 8 }} />
+                                <div style={{ height: 18, borderRadius: 4, background: "#ebebeb" }} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

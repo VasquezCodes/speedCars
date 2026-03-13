@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin — AutosDealer" };
 
 export default async function AdminLayout({
@@ -14,16 +15,16 @@ export default async function AdminLayout({
 
     // Allow access to the login page without auth
     // The actual check for authenticated routes is done per-page via redirect
-    const isAuthenticated = session?.value === "authenticated";
+    const isAuthenticated = !!session?.value;
 
     return (
         <div style={{ minHeight: "100vh" }}>
             {isAuthenticated ? (
-                <div className="admin-layout">
+                <div style={{ display: "flex", minHeight: "100vh" }}>
                     <AdminSidebar />
-                    <div className="admin-content" style={{ padding: 0 }}>
+                    <main className="admin-main" style={{ flex: 1, minWidth: 0, background: "#f8f9fa", minHeight: "100vh" }}>
                         {children}
-                    </div>
+                    </main>
                 </div>
             ) : (
                 children

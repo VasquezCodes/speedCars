@@ -1,70 +1,80 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebase/admin";
+import { adminDb, adminAuth } from "@/lib/firebase/admin";
+import { hashPassword } from "@/lib/seller-auth";
+import type { SellerRecord, CreateSellerBody } from "@/types/seller";
+import type { Timestamp } from "firebase-admin/firestore";
 
-function isAuthenticated(request: NextRequest) {
-    return request.cookies.get("admin_session")?.value === "authenticated";
+async function isAuthenticated(request: NextRequest): Promise<boolean> {
+  const sessionCookie = request.cookies.get("admin_session")?.value;
+  if (!sessionCookie) return false;
+  try {
+    await adminAuth.verifySessionCookie(sessionCookie, true);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-export async function GET(request: NextRequest) {
-    if (!isAuthenticated(request)) {
-        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
-    try {
-        const snapshot = await adminDb
-            .collection("sellers")
-            .orderBy("createdAt", "desc")
-            .get();
-        const sellers = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        return NextResponse.json(sellers);
-    } catch (error) {
-        return NextResponse.json({ error: "Error interno" }, { status: 500 });
-    }
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+  try {
+    const snap = await adminDb.collection("sellers").orderBy("createdAt", "desc").get();
+    const sellers: SellerRecord[] = snap.docs.map((doc) => ({
+      id: doc.id,
+      username: doc.data().username as string,
+      name: doc.data().name as string,
+      isActive: (doc.data().isActive as boolean) ?? true,
+      createdAt: doc.data().createdAt as Timestamp,
+    }));
+    return NextResponse.json({ sellers });
+  } catch (error) {
+    console.error("Sellers GET error:", error);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+  }
 }
 
-export async function POST(request: NextRequest) {
-    if (!isAuthenticated(request)) {
-        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
-    try {
-        const { name, code, email } = await request.json();
-        if (!name || !code) {
-            return NextResponse.json(
-                { error: "Nombre y código son requeridos" },
-                { status: 400 }
-            );
-        }
-        // Check code uniqueness
-        const existing = await adminDb
-            .collection("sellers")
-            .where("code", "==", code)
-            .get();
-        if (!existing.empty) {
-            return NextResponse.json(
-                { error: "El código ya está en uso" },
-                { status: 400 }
-            );
-        }
-        const docRef = await adminDb.collection("sellers").add({
-            name,
-            code: code.toLowerCase().replace(/\s+/g, "_"),
-            email: email || null,
-            createdAt: new Date().toISOString(),
-        });
-        return NextResponse.json({ id: docRef.id, success: true });
-    } catch (error) {
-        return NextResponse.json({ error: "Error interno" }, { status: 500 });
-    }
-}
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+  try {
+    const body = (await request.json()) as CreateSellerBody;
+    const { name, username, password } = body;
 
-export async function DELETE(request: NextRequest) {
-    if (!isAuthenticated(request)) {
-        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!name || !username || !password) {
+      return NextResponse.json({ error: "Nombre, usuario y contraseña son requeridos" }, { status: 400 });
     }
-    try {
-        const { id } = await request.json();
-        await adminDb.collection("sellers").doc(id).delete();
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        return NextResponse.json({ error: "Error interno" }, { status: 500 });
+    if (password.length < 6) {
+      return NextResponse.json({ error: "La contraseña debe tener al menos 6 caracteres" }, { status: 400 });
     }
+
+    const cleanUsername = username.toLowerCase().trim().replace(/\s+/g, "");
+
+    const existing = await adminDb
+      .collection("sellers")
+      .where("username", "==", cleanUsername)
+      .limit(1)
+      .get();
+
+    if (!existing.empty) {
+      return NextResponse.json({ error: "El nombre de usuario ya existe" }, { status: 409 });
+    }
+
+    const passwordHash = await hashPassword(password);
+
+    const docRef = await adminDb.collection("sellers").add({
+      username: cleanUsername,
+      name: name.trim(),
+      passwordHash,
+      isActive: true,
+      createdAt: new Date(),
+    });
+
+    return NextResponse.json({ id: docRef.id }, { status: 201 });
+  } catch (error) {
+    console.error("Sellers POST error:", error);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+  }
 }

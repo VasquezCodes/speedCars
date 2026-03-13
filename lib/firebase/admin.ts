@@ -6,8 +6,10 @@ import {
     App,
 } from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
+import { getAuth as getAdminAuth, Auth } from "firebase-admin/auth";
 
 let _db: Firestore | null = null;
+let _auth: Auth | null = null;
 
 function getAdminApp(): App {
     if (getApps().length > 0) return getApps()[0];
@@ -52,10 +54,24 @@ function getAdminDb(): Firestore {
     return _db;
 }
 
+function getAuthInstance(): Auth {
+    if (_auth) return _auth;
+    _auth = getAdminAuth(getAdminApp());
+    return _auth;
+}
+
 export const adminDb = new Proxy({} as Firestore, {
     get(_target, prop) {
         const db = getAdminDb();
         const value = (db as any)[prop];
         return typeof value === "function" ? value.bind(db) : value;
+    },
+});
+
+export const adminAuth = new Proxy({} as Auth, {
+    get(_target, prop) {
+        const auth = getAuthInstance();
+        const value = (auth as any)[prop];
+        return typeof value === "function" ? value.bind(auth) : value;
     },
 });

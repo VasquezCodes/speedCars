@@ -1,15 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 
-function isAuthenticated(request: NextRequest) {
-    return request.cookies.get("admin_session")?.value === "authenticated";
+import { adminAuth } from "@/lib/firebase/admin";
+
+export const dynamic = "force-dynamic";
+
+async function isAuthenticated(request: NextRequest) {
+    const sessionCookie = request.cookies.get("admin_session")?.value;
+    if (!sessionCookie) return false;
+    try {
+        await adminAuth.verifySessionCookie(sessionCookie, true);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    if (!isAuthenticated(request)) {
+    const isAuth = await isAuthenticated(request);
+    if (!isAuth) {
         return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
     try {
@@ -29,7 +41,8 @@ export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    if (!isAuthenticated(request)) {
+    const isAuth = await isAuthenticated(request);
+    if (!isAuth) {
         return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
     try {

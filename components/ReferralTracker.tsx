@@ -1,34 +1,23 @@
-'use client';
+"use client";
 
-import { useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePageView } from "@/hooks/usePageView";
 
 interface ReferralTrackerProps {
-    vehicleName?: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  vehicleName: string;
 }
 
 /**
- * Invisible client component placed on vehicle detail pages.
- * Tracks which vehicles the visitor viewed in sessionStorage,
- * so that info can be included in the lead when they contact.
+ * Invisible client component placed on every vehicle detail page.
+ * Delegates tracking to `usePageView`, which writes to Firestore `pageViews`
+ * and deduplicates per session so we don't inflate counts on re-renders.
  */
-export default function ReferralTracker({ vehicleName }: ReferralTrackerProps) {
-    const pathname = usePathname();
-
-    useEffect(() => {
-        if (!vehicleName) return;
-        try {
-            const viewed: string[] = JSON.parse(
-                sessionStorage.getItem("viewedVehicles") || "[]"
-            );
-            if (!viewed.includes(vehicleName)) {
-                viewed.push(vehicleName);
-                sessionStorage.setItem("viewedVehicles", JSON.stringify(viewed));
-            }
-        } catch {
-            // silently fail
-        }
-    }, [vehicleName, pathname]);
-
-    return null; // Renders nothing
+export default function ReferralTracker({
+  vehicleId,
+  vehicleSlug,
+  vehicleName,
+}: ReferralTrackerProps) {
+  usePageView(vehicleId, vehicleSlug, vehicleName);
+  return null;
 }

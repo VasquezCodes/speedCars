@@ -4,9 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { MapPin, Heart, User, Search, Menu, X, ChevronDown } from "lucide-react";
 
 export default function Navbar() {
+    const router = useRouter();
+    const [navSearch, setNavSearch] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const [locationHover, setLocationHover] = useState(false);
     const [hoursOpen, setHoursOpen] = useState(false);
@@ -23,7 +26,7 @@ export default function Navbar() {
                 weekday: 'short'
             });
             const parts = formatter.formatToParts(new Date());
-            
+
             const hourStr = parts.find(p => p.type === 'hour')?.value;
             const currentHour = parseInt(hourStr || '0', 10);
             const weekday = parts.find(p => p.type === 'weekday')?.value; // 'Sun', 'Mon', etc.
@@ -38,7 +41,7 @@ export default function Navbar() {
                 hoursText = "9 AM - 6 PM";
                 if (currentHour >= 9 && currentHour < 18) open = true;
             }
-            
+
             setIsOpenStatus(open);
             setTodayHours(hoursText);
         };
@@ -75,10 +78,11 @@ export default function Navbar() {
                     <Link href="/" style={{ display: "flex", alignItems: "center" }}>
                         <Image
                             src="/logoLightMode.jpeg"
-                            alt="Speed Cars Logo"
-                            width={300}
-                            height={80}
-                            style={{ height: "64px", width: "auto", objectFit: "contain", margin: "-6px 0" }}
+                            alt="FF Speed Cars Logo"
+                            width={340}
+                            height={100}
+                            className="logo-img"
+                            style={{ width: "auto", objectFit: "contain" }}
                             priority
                         />
                     </Link>
@@ -86,12 +90,10 @@ export default function Navbar() {
                     {/* Desktop Nav */}
                     <nav className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "28px" }}>
                         <NavLink href="/autos">Catálogo</NavLink>
-                        <NavLink href="/#vender">Vender / Entregar</NavLink>
-                        <NavLink href="/#financiacion">Financiación</NavLink>
-                        <NavLink href="/#info">Información</NavLink>
-                        <div className="nav-link" style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
-                            Más <ChevronDown size={14} style={{ opacity: 0.7 }} />
-                        </div>
+                        <NavLink href="/#nosotros">Nosotros</NavLink>
+                        <NavLink href="/#testimonios">Testimonios</NavLink>
+                        <NavLink href="/#faq">Preguntas</NavLink>
+                        <NavLink href="/#contacto">Contacto</NavLink>
                     </nav>
                 </div>
 
@@ -100,7 +102,7 @@ export default function Navbar() {
 
                     <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "28px" }}>
                         {/* Location */}
-                        <div 
+                        <div
                             className="location-wrapper"
                             style={{ position: "relative" }}
                             onMouseEnter={() => setLocationHover(true)}
@@ -113,9 +115,9 @@ export default function Navbar() {
                                     <span className="action-text" style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.2 }}>Fort Worth, TX</span>
                                 </div>
                             </div>
-                            
+
                             {/* Dropdown menu */}
-                            <div 
+                            <div
                                 style={{
                                     position: "absolute",
                                     top: "calc(100% + 18px)",
@@ -145,21 +147,18 @@ export default function Navbar() {
                                     borderRadius: "3px",
                                     boxShadow: "-4px -4px 10px rgba(0,0,0,0.02)"
                                 }} />
-                                
+
                                 <div style={{ position: "relative", zIndex: 2 }}>
                                     <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "4px" }}>Tu sucursal en 76119:</p>
                                     <h3 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text-primary)", margin: "0 0 4px 0", letterSpacing: "-0.02em" }}>Fort Worth</h3>
-                                    <Link href="/detalles-sucursal" style={{ fontSize: "13px", color: "var(--text-primary)", textDecoration: "underline", display: "inline-block", marginBottom: "20px", fontWeight: 500 }}>
-                                        Ver detalles de sucursal
-                                    </Link>
-                                    
+
                                     <p style={{ fontSize: "14px", color: "var(--text-primary)", marginBottom: "16px", lineHeight: 1.5 }}>
-                                        5047 David Strickland Rd<br/>
+                                        5047 David Strickland Rd<br />
                                         Ste 137, Fort Worth, TX 76119
                                     </p>
-                                    
-                                    <div 
-                                        style={{ 
+
+                                    <div
+                                        style={{
                                             marginBottom: "20px",
                                             border: hoursOpen ? "1px solid var(--accent)" : "1px solid transparent",
                                             borderRadius: "8px",
@@ -170,28 +169,28 @@ export default function Navbar() {
                                         }}
                                     >
                                         <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "14px" }}>
-                                            <span style={{ 
-                                                background: isOpenStatus ? "#E8F5E9" : "#FFEBEB", 
-                                                color: isOpenStatus ? "#1B5E20" : "#CC0000", 
-                                                padding: "4px 10px", 
-                                                borderRadius: "100px", 
-                                                fontSize: "12px", 
+                                            <span style={{
+                                                background: isOpenStatus ? "#E8F5E9" : "#FFEBEB",
+                                                color: isOpenStatus ? "#1B5E20" : "#CC0000",
+                                                padding: "4px 10px",
+                                                borderRadius: "100px",
+                                                fontSize: "12px",
                                                 fontWeight: 600,
                                                 letterSpacing: "-0.01em"
                                             }}>
                                                 {isOpenStatus ? "Abierto ahora" : "Cerrado ahora"}
                                             </span>
-                                            <div 
+                                            <div
                                                 onClick={() => setHoursOpen(!hoursOpen)}
                                                 style={{ display: "flex", alignItems: "center", gap: "4px", color: "var(--text-primary)", fontWeight: 500, cursor: "pointer", userSelect: "none" }}
                                             >
                                                 {todayHours} <span style={{ transition: "transform 0.2s", transform: hoursOpen ? "rotate(180deg)" : "rotate(0deg)", display: "flex" }}><ChevronDown size={14} /></span>
                                             </div>
                                         </div>
-                                        
+
                                         {hoursOpen && (
-                                            <div style={{ 
-                                                marginTop: "12px", 
+                                            <div style={{
+                                                marginTop: "12px",
                                                 paddingTop: "12px",
                                                 borderTop: "1px solid var(--gray-200)",
                                                 fontSize: "14px",
@@ -206,7 +205,7 @@ export default function Navbar() {
                                             </div>
                                         )}
                                     </div>
-                                    
+
 
                                 </div>
                             </div>
@@ -220,6 +219,15 @@ export default function Navbar() {
                         {/* FB */}
                         <div className="action-item" style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                             <Image src="/fb.svg" alt="Facebook" width={22} height={22} className="action-icon" />
+                        </div>
+                    </div>
+
+                    {/* Mobile-only location chip */}
+                    <div className="mobile-location" style={{ display: "none", alignItems: "center", gap: "6px" }}>
+                        <MapPin size={16} strokeWidth={1.5} color="var(--text-secondary)" />
+                        <div>
+                            <div style={{ fontSize: "10px", color: "var(--text-muted)", lineHeight: 1, fontWeight: 500 }}>Tu sucursal</div>
+                            <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3 }}>Fort Worth</div>
                         </div>
                     </div>
 
@@ -244,18 +252,44 @@ export default function Navbar() {
             </div>
 
             {/* Bottom Row: Search */}
-            <div className="container search-container" style={{ padding: "0 24px 16px 24px" }}>
+            <div className="container search-container" style={{ padding: "0 24px 12px 24px" }}>
                 <div className="search-wrapper" style={{ position: "relative", width: "100%" }}>
                     <input
                         type="text"
                         id="header-inventory-search"
                         placeholder="¿Qué tipo de auto estás buscando?"
                         className="search-input"
+                        value={navSearch}
+                        onChange={(e) => setNavSearch(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                const q = navSearch.trim();
+                                router.push(q ? `/autos?search=${encodeURIComponent(q)}` : "/autos");
+                            }
+                        }}
                     />
-                    <div style={{ position: "absolute", right: "20px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
-                        <Search size={22} color="var(--primary)" strokeWidth={2} />
-                    </div>
+                    <button
+                        onClick={() => {
+                            const q = navSearch.trim();
+                            router.push(q ? `/autos?search=${encodeURIComponent(q)}` : "/autos");
+                        }}
+                        style={{
+                            position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)",
+                            background: "none", border: "none", cursor: "pointer", padding: 4,
+                            display: "flex", alignItems: "center",
+                        }}
+                        aria-label="Buscar"
+                    >
+                        <Search size={22} color="#222" strokeWidth={2.5} />
+                    </button>
                 </div>
+            </div>
+
+            {/* Quick-access pills — mobile only */}
+            <div className="quick-pills">
+                <QuickPill href="/autos">Catálogo</QuickPill>
+                <QuickPill href="/#nosotros">Nosotros</QuickPill>
+                <QuickPill href="/#contacto">Contacto</QuickPill>
             </div>
 
             {/* Mobile Menu */}
@@ -271,9 +305,10 @@ export default function Navbar() {
                     paddingBottom: "100px"
                 }}>
                     <MobileNavLink href="/autos" onClick={() => setMenuOpen(false)}>Catálogo</MobileNavLink>
-                    <MobileNavLink href="/#vender" onClick={() => setMenuOpen(false)}>Vender / Entregar</MobileNavLink>
-                    <MobileNavLink href="/#financiacion" onClick={() => setMenuOpen(false)}>Financiación</MobileNavLink>
-                    <MobileNavLink href="/#info" onClick={() => setMenuOpen(false)}>Información</MobileNavLink>
+                    <MobileNavLink href="/#nosotros" onClick={() => setMenuOpen(false)}>Nosotros</MobileNavLink>
+                    <MobileNavLink href="/#testimonios" onClick={() => setMenuOpen(false)}>Testimonios</MobileNavLink>
+                    <MobileNavLink href="/#faq" onClick={() => setMenuOpen(false)}>Preguntas Frecuentes</MobileNavLink>
+                    <MobileNavLink href="/#contacto" onClick={() => setMenuOpen(false)}>Contacto</MobileNavLink>
 
                     <div style={{ padding: "24px", display: "flex", gap: "24px", borderTop: "1px solid var(--gray-200)", marginTop: "20px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px", color: "var(--text-primary)" }}>
@@ -362,22 +397,57 @@ export default function Navbar() {
             font-weight: 400;
         }
 
+        .logo-img {
+            height: 96px;
+            margin: -12px 0;
+        }
+
         .navbar-container {
-            position: sticky;
-            top: 0;
-            z-index: 999;
+            position: relative;
+            z-index: 50;
         }
         .navbar-container .container {
             max-width: 1504px;
         }
 
+        .quick-pills {
+            display: none;
+            gap: 8px;
+            padding: 0 16px 12px;
+        }
+
+        .quick-pill {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 0;
+            border-radius: 100px;
+            border: 1.5px solid var(--gray-200);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            text-decoration: none;
+            background: var(--white);
+            text-align: center;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .quick-pill:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+
         @media (max-width: 1024px) {
             .desktop-nav { display: none !important; }
             .mobile-menu-btn { display: flex !important; }
+            .mobile-location { display: flex !important; }
+            .quick-pills { display: flex !important; }
+            .logo-img { height: 52px !important; margin: 0 !important; }
         }
         @media (min-width: 1025px) {
-            .navbar-container { position: relative !important; z-index: 50; }
             .mobile-menu-btn { display: none !important; }
+            .mobile-location { display: none !important; }
         }
       `}</style>
         </header>
@@ -387,6 +457,14 @@ export default function Navbar() {
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
     return (
         <Link href={href} className="nav-link">
+            {children}
+        </Link>
+    );
+}
+
+function QuickPill({ href, children }: { href: string; children: React.ReactNode }) {
+    return (
+        <Link href={href} className="quick-pill">
             {children}
         </Link>
     );

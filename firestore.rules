@@ -6,7 +6,36 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
-    // No public access to leads, saleswomen, clicks
+
+    // appointments: public read (check slot availability) + public create (book)
+    match /appointments/{appointmentId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['date', 'time', 'name', 'phone', 'email', 'createdAt'])
+        && request.resource.data.date is string
+        && request.resource.data.time is string
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.phone is string
+        && request.resource.data.email is string;
+      allow update, delete: if false;
+    }
+
+    // pageViews: client creates (tracking), reads only via Admin SDK
+    match /pageViews/{viewId} {
+      allow read: if false;
+      allow create: if request.resource.data.keys().hasAll(['vehicleId', 'vehicleSlug', 'vehicleName', 'timestamp'])
+        && request.resource.data.vehicleId is string
+        && request.resource.data.vehicleSlug is string
+        && request.resource.data.vehicleName is string;
+      allow update, delete: if false;
+    }
+
+    // sellers: no client access — all reads/writes go through Admin SDK (API routes)
+    match /sellers/{sellerId} {
+      allow read, write: if false;
+    }
+
+    // No public access to anything else
     match /{document=**} {
       allow read, write: if false;
     }

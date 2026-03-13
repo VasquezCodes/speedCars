@@ -1,11 +1,15 @@
 import { adminDb } from "@/lib/firebase/admin";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import VehicleCard, { Vehicle } from "@/components/VehicleCard";
+import type { Vehicle } from "@/components/VehicleCard";
 import HeroSection from "@/components/HeroSection";
-import WavySeparator from "@/components/WavySeparator";
+import BrandDivider from "@/components/BrandDivider";
+import FAQSection from "@/components/FAQSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
+import ContactSection from "@/components/ContactSection";
 import Link from "next/link";
-import { ArrowRight, ChevronRight, ShieldCheck, Handshake, HeadphonesIcon, Settings } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import FeaturedCarousel from "@/components/FeaturedCarousel";
 
 async function getFeaturedVehicles(): Promise<Vehicle[]> {
   try {
@@ -16,7 +20,7 @@ async function getFeaturedVehicles(): Promise<Vehicle[]> {
       .limit(20)
       .get();
 
-    const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Vehicle));
+    const all = snap.docs.map((d) => ({ ...d.data(), id: d.id } as Vehicle));
     const featured = all.filter((v) => v.isFeatured);
     return (featured.length > 0 ? featured : all).slice(0, 6);
   } catch (error) {
@@ -25,7 +29,7 @@ async function getFeaturedVehicles(): Promise<Vehicle[]> {
   }
 }
 
-const TYPES = ["Sedán", "SUV", "Pickup", "Hatchback", "Coupé", "Minivan"];
+
 
 export default async function HomePage() {
   const featuredVehicles = await getFeaturedVehicles();
@@ -37,12 +41,12 @@ export default async function HomePage() {
         {/* Hero */}
         <HeroSection />
 
-        <div style={{ marginTop: "60px", marginBottom: "120px", width: "100%", overflow: "hidden" }}>
-          <WavySeparator />
+        <div style={{ marginTop: "40px", marginBottom: "120px", width: "100%", overflow: "hidden" }}>
+          <BrandDivider />
         </div>
 
         {/* Featured Vehicles */}
-        <section style={{ padding: "0 0 100px", background: "var(--primary)", position: "relative" }}>
+        <section className="trending-section" style={{ padding: "0 0 100px", background: "var(--primary)", position: "relative" }}>
 
           <div className="container" style={{ position: "relative", zIndex: 2 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "40px", alignItems: "end", marginBottom: "80px" }}>
@@ -96,11 +100,7 @@ export default async function HomePage() {
             </div>
 
             {featuredVehicles.length > 0 ? (
-              <div className="vehicle-grid">
-                {featuredVehicles.map((vehicle) => (
-                  <VehicleCard key={vehicle.id} vehicle={vehicle} />
-                ))}
-              </div>
+              <FeaturedCarousel vehicles={featuredVehicles} />
             ) : (
               <div style={{ textAlign: "center", padding: "80px 0", border: "1px dashed var(--gray-200)", borderRadius: "var(--radius-lg)" }}>
                 <p style={{ fontSize: 48, marginBottom: 16 }}>🏁</p>
@@ -110,112 +110,120 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Browse by Type */}
-        <section style={{ background: "var(--primary)", padding: "100px 0", borderTop: "1px solid var(--gray-200)" }}>
+        {/* About Us */}
+        <section id="nosotros" style={{ padding: "80px 0", background: "var(--white)", borderTop: "1px solid var(--gray-200)" }}>
           <div className="container">
-            <div style={{ textAlign: "center", marginBottom: 64 }}>
-              <h2 style={{ fontSize: "clamp(32px, 4vw, 46px)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 16, color: "var(--text-primary)" }}>Explorar Segmentos</h2>
-              <div style={{ width: 60, height: 4, background: "var(--accent)", margin: "0 auto" }}></div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "64px", alignItems: "center" }}>
+              
+              <div style={{ order: 1 }}>
+                <h2 style={{
+                  fontFamily: "var(--font-rb-rational), sans-serif",
+                  fontSize: "clamp(48px, 6vw, 84px)",
+                  fontWeight: 700,
+                  color: "var(--text-primary)",
+                  lineHeight: 0.9,
+                  letterSpacing: "-0.02em",
+                  textTransform: "uppercase",
+                  marginBottom: "32px",
+                  marginLeft: "-4px"
+                }}>
+                  Conoce<br />nuestra<br />historia<span style={{ color: "var(--accent)" }}>.</span>
+                </h2>
+                <div style={{ width: 40, height: 4, background: "var(--accent)", marginBottom: 32 }}></div>
+                <p style={{
+                  color: "var(--text-muted)",
+                  fontSize: "18px",
+                  lineHeight: 1.6,
+                  marginBottom: "0",
+                  maxWidth: "500px"
+                }}>
+                  En FF Speed Cars entregamos la libertad de conducir con absoluta tranquilidad. Especialistas en vehículos meticulosamente verificados listos para exigentes conductores.
+                </p>
+              </div>
+              
+              <div style={{ position: "relative", width: "100%", aspectRatio: "16/10", margin: "16px 0" }}>
+                {/* Marco fotográfico elegante */}
+                <div style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage: "url('/history.png')",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundColor: "var(--gray-100)",
+                  borderRadius: "16px",
+                  boxShadow: "0 20px 40px -10px rgba(0,0,0,0.12)",
+                  border: "6px solid var(--white)"
+                }} />
+                
+                {/* Bloque decorativo estilo outline fino */}
+                <div style={{
+                  position: "absolute",
+                  bottom: "-24px",
+                  right: "-24px",
+                  width: "60%",
+                  height: "50%",
+                  border: "2px solid var(--gray-200)",
+                  borderRadius: "16px",
+                  zIndex: -1
+                }} />
+
+                {/* Detalle sutil color acento - top left */}
+                <div style={{
+                  position: "absolute",
+                  top: "-16px",
+                  left: "-16px",
+                  width: "80px",
+                  height: "80px",
+                  borderTop: "3px solid var(--accent)",
+                  borderLeft: "3px solid var(--accent)",
+                  borderTopLeftRadius: "8px",
+                  zIndex: -1
+                }} />
+              </div>
+
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 20 }}>
-              {TYPES.map((type) => (
-                <Link key={type} href={`/autos?type=${encodeURIComponent(type)}`}
-                  className="type-card-link"
-                  style={{
-                    background: "var(--white)",
-                    padding: "32px 20px",
-                    borderRadius: "0",
-                    border: "1px solid var(--gray-200)",
-                    textAlign: "center",
-                    transition: "all 0.3s ease",
-                    cursor: "pointer",
-                    textDecoration: "none"
-                  }}
-                >
-                  <div style={{ fontSize: 36, marginBottom: 16 }}>
-                    {type === "SUV" ? "🚙" : type === "Pickup" ? "🛻" : type === "Sedán" ? "🚗" : type === "Hatchback" ? "🚘" : type === "Coupé" ? "🏎️" : "🚐"}
-                  </div>
-                  <h3 style={{ color: "var(--text-primary)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", fontSize: 14 }}>{type}</h3>
-                </Link>
+            {/* Mision, Vision, Proposito Grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "40px", marginTop: "80px", borderTop: "1px solid var(--gray-200)", paddingTop: "64px" }}>
+              {[
+                { 
+                  title: "Misión", 
+                  text: "Brindar a nuestros clientes vehículos de calidad a precios accesibles, ofreciendo un servicio honesto, transparente y personalizado. Nos enfocamos en ayudar a cada persona a encontrar el automóvil que mejor se adapte a sus necesidades, haciendo que el proceso de compra sea fácil, confiable y satisfactorio." 
+                },
+                { 
+                  title: "Visión", 
+                  text: "Ser una de las ventas de vehículos más confiables y recomendadas en la comunidad, destacándonos por nuestra integridad, excelente atención al cliente y por ofrecer opciones de vehículos que generen confianza y seguridad en cada compra." 
+                },
+                { 
+                  title: "Propósito", 
+                  text: "Nuestro propósito es ayudar a las personas y familias a cumplir el sueño de tener su propio vehículo, creando relaciones de confianza con nuestros clientes y aportando valor a nuestra comunidad a través de un servicio responsable y transparente." 
+                }
+              ].map((item, index) => (
+                <div key={index} style={{ paddingRight: "20px" }}>
+                  <h3 style={{ fontSize: "18px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ width: "8px", height: "8px", background: "var(--accent)" }} />
+                    {item.title}
+                  </h3>
+                  <p style={{ color: "var(--text-muted)", fontSize: "15px", lineHeight: 1.6 }}>
+                    {item.text}
+                  </p>
+                </div>
               ))}
             </div>
+
           </div>
         </section>
 
-        {/* Why choose us */}
-        <section style={{ padding: "120px 0", background: "var(--primary-mid)", borderTop: "1px solid var(--gray-200)" }} id="contacto">
-          <div className="container">
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64 }}>
-              <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                <h2 style={{ fontSize: "clamp(40px, 5vw, 64px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-0.04em", marginBottom: 32, color: "var(--text-primary)" }}>
-                  Ingeniería en<br />
-                  <span style={{ color: "var(--accent)" }}>cada detalle.</span>
-                </h2>
-                <p style={{ color: "var(--text-muted)", fontSize: 18, lineHeight: 1.6, marginBottom: 40, maxWidth: 480 }}>
-                  No solo vendemos autos. Entregamos máquinas verificadas, certificadas y listas para el desafío. Transparencia total en el historial y mecánicas garantizadas.
-                </p>
-                <div style={{ display: "grid", gap: 24 }}>
-                  {[
-                    { number: "01", icon: <ShieldCheck size={32} strokeWidth={1.5} />, title: "Transparencia Total", desc: "Historial 100% verificado y documentación en regla." },
-                    { number: "02", icon: <HeadphonesIcon size={32} strokeWidth={1.5} />, title: "Atención Privada", desc: "Asesoramiento 1 a 1 enfocado absolutamente en el cliente." },
-                    { number: "03", icon: <Handshake size={32} strokeWidth={1.5} />, title: "Financiación VIP", desc: "Trazamos el plan perfecto a tu medida sin letras chicas." },
-                    { number: "04", icon: <Settings size={32} strokeWidth={1.5} />, title: "Garantía Mecánica", desc: "Testeo en 150 puntos críticos antes de salir a pista." },
-                  ].map((feat, idx) => (
-                    <div key={idx} className="feat-card" style={{ background: "var(--white)", border: "1px solid var(--gray-200)", padding: 32, display: "flex", gap: 24, alignItems: "flex-start", transition: "transform 0.3s", cursor: "default", position: "relative", overflow: "hidden" }}
-                    >
-                      <div className="feat-number" style={{ position: "absolute", right: -10, bottom: -20, fontSize: 120, fontWeight: 900, color: "rgba(0,0,0,0.04)", transition: "color 0.3s", lineHeight: 1, zIndex: 0 }}>
-                        {feat.number}
-                      </div>
+        {/* Testimoniales / Clientes Satisfechos */}
+        <TestimonialsSection />
 
-                      <div style={{ color: "var(--accent)", position: "relative", zIndex: 1 }}>
-                        {feat.icon}
-                      </div>
-                      <div style={{ position: "relative", zIndex: 1 }}>
-                        <h3 style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: 18, marginBottom: 8, letterSpacing: "0.02em" }}>{feat.title}</h3>
-                        <p style={{ color: "var(--text-muted)", fontSize: 15, lineHeight: 1.5 }}>{feat.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* FAQ Section */}
+        <FAQSection />
 
-        {/* CTA Banner - Full impact red */}
-        <section style={{ background: "var(--accent)", padding: "100px 0", position: "relative", overflow: "hidden" }}>
-          {/* Abstract background shapes */}
-          <div style={{ position: "absolute", top: -50, right: -50, width: 300, height: 300, background: "rgba(0,0,0,0.1)", transform: "rotate(45deg)", zIndex: 0 }}></div>
-          <div style={{ position: "absolute", bottom: -100, left: 100, width: 200, height: 600, background: "rgba(255,255,255,0.1)", transform: "rotate(45deg)", zIndex: 0 }}></div>
-
-          <div className="container" style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-            <h2 style={{ color: "var(--white)", fontSize: "clamp(36px, 6vw, 64px)", fontWeight: 900, marginBottom: 24, letterSpacing: "-0.04em", lineHeight: 1 }}>
-              EMPEZÁ A METER<br />CAMBIOS HOY.
-            </h2>
-            <p style={{ color: "var(--primary)", fontSize: "clamp(18px, 2vw, 22px)", fontWeight: 700, marginBottom: 40, maxWidth: 600, margin: "0 auto 40px" }}>
-              Nuestra flota premium te espera. Acercate o contactanos para una experiencia inolvidable.
-            </p>
-            <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/autos" className="btn-cta-primary" style={{ background: "var(--primary)", color: "var(--white)", padding: "20px 48px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", fontSize: 15, display: "inline-flex", alignItems: "center", gap: 10, transition: "background 0.3s" }}>
-                Ver Inventario <ChevronRight size={18} />
-              </Link>
-              <a href={`https://wa.me/${process.env.NEXT_PUBLIC_DEALER_PHONE}`} target="_blank" rel="noopener noreferrer" className="btn-cta-secondary" style={{ background: "transparent", color: "var(--white)", border: "2px solid var(--white)", padding: "18px 48px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", fontSize: 15, display: "inline-flex", alignItems: "center", gap: 10, transition: "all 0.3s" }}>
-                Contactar Ventas
-              </a>
-            </div>
-          </div>
-        </section>
+        {/* Contact Section */}
+        <ContactSection />
       </main>
       <Footer />
-      <style>{`
-        @media (max-width: 900px) {
-          section[id="contacto"] .container > div {
-            grid-template-columns: 1fr;
-            gap: 40px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

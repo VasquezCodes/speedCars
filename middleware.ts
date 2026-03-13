@@ -7,13 +7,44 @@ export function middleware(request: NextRequest) {
     const ref = searchParams.get("ref");
 
     if (ref) {
-        // Set referral cookie for 30 days
         response.cookies.set("referral", ref, {
-            maxAge: 60 * 60 * 24 * 30, // 30 days
+            maxAge: 60 * 60 * 24 * 15, // 15 days
             path: "/",
             httpOnly: false, // Must be readable by client JS
             sameSite: "lax",
         });
+    }
+
+    const { pathname } = request.nextUrl;
+    const adminSession = request.cookies.get("admin_session");
+    const sellerSession = request.cookies.get("seller_session");
+
+    // Admin routes protection
+    if (pathname.startsWith("/admin")) {
+        if (pathname === "/admin") {
+            if (adminSession) {
+                return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+            }
+        } else {
+            if (!adminSession) {
+                return NextResponse.redirect(new URL("/admin", request.url));
+            }
+        }
+    }
+
+    // Seller routes protection
+    if (pathname.startsWith("/seller")) {
+        if (pathname === "/seller") {
+            // Already logged in → go to dashboard
+            if (sellerSession) {
+                return NextResponse.redirect(new URL("/seller/dashboard", request.url));
+            }
+        } else {
+            // Any /seller/* route (dashboard, etc.) → require session
+            if (!sellerSession) {
+                return NextResponse.redirect(new URL("/seller", request.url));
+            }
+        }
     }
 
     return response;
@@ -21,7 +52,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        // Run on all routes except Next.js internals and static files
         "/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)",
     ],
 };
