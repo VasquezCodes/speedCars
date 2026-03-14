@@ -145,10 +145,6 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     });
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-    const stripRef = useRef<HTMLDivElement>(null);
-    const [canScrollLeft, setCanScrollLeft]   = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(true);
-
     const fetchVehicles = useCallback(async () => {
         setLoading(true);
         try {
@@ -182,23 +178,6 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
 
     const hasFilters = type || brand || maxPrice || maxMileage || fuelTypes.length > 0 || search;
     const filterCount = [type, brand, maxPrice, maxMileage, ...fuelTypes].filter(Boolean).length;
-
-    const updateScrollState = () => {
-        const el = stripRef.current;
-        if (!el) return;
-        setCanScrollLeft(el.scrollLeft > 8);
-        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 8);
-    };
-    useEffect(() => {
-        const el = stripRef.current;
-        if (!el) return;
-        updateScrollState();
-        el.addEventListener("scroll", updateScrollState, { passive: true });
-        return () => el.removeEventListener("scroll", updateScrollState);
-    }, []);
-
-    const scrollStrip = (dir: "left" | "right") =>
-        stripRef.current?.scrollBy({ left: dir === "right" ? 300 : -300, behavior: "smooth" });
 
     /* ── Sidebar content (shared desktop + mobile drawer) ── */
     const sidebarFilters = (
@@ -278,35 +257,6 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     return (
         <>
             <style>{`
-                .cat-strip::-webkit-scrollbar { display: none; }
-                /* Type card — sized to fill ~296px strip height */
-                .cat-type-btn {
-                    flex: 0 0 auto;
-                    display: flex; flex-direction: column; align-items: center; gap: 10px;
-                    padding: 16px 20px 14px;
-                    background: white;
-                    border: 1.5px solid #dde1f0;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    min-width: 130px;
-                    height: 120px;
-                    box-sizing: border-box;
-                    transition: border-color 0.16s, background 0.16s, transform 0.16s;
-                }
-                .cat-type-btn:hover { border-color: #d11119; transform: translateY(-2px); }
-                .cat-type-btn.active { border-color: #d11119; background: #fff5f5; }
-                .cat-type-btn.active .cat-type-lbl { color: #d11119; font-weight: 700; }
-                .cat-type-lbl { font-size: 13px; font-weight: 400; color: "#555"; white-space: nowrap; }
-                /* Scroll arrows */
-                .cat-sarrow {
-                    position: absolute; top: 50%; transform: translateY(-50%);
-                    width: 34px; height: 34px; border-radius: 50%;
-                    border: 1.5px solid #f0c0c2; background: white; cursor: pointer;
-                    display: flex; align-items: center; justify-content: center;
-                    z-index: 5; transition: opacity 0.2s, background 0.2s;
-                }
-                .cat-sarrow:hover { background: rgba(255,255,255,0.28); }
-                .cat-sarrow.hidden { opacity: 0; pointer-events: none; }
                 /* Grid */
                 .cat-grid {
                     display: grid;
@@ -367,18 +317,6 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                             )}
                         </div>
 
-                        <p style={{ fontSize: 13, color: "#6d747a", lineHeight: 1.5, margin: "0 0 16px" }}>
-                            Agregá filtros para guardar tu búsqueda y recibir notificaciones cuando lleguen nuevos vehículos.
-                        </p>
-
-                        <button style={{
-                            width: "100%", height: 36, borderRadius: 8,
-                            border: "1.5px solid #d11119", background: "white",
-                            color: "#d11119", fontSize: 13, fontWeight: 600,
-                            cursor: "pointer", fontFamily: "inherit",
-                        }}>
-                            Guardar búsqueda
-                        </button>
                     </div>
 
                     {/* Filter sections — each row 70px collapsed */}
@@ -387,64 +325,6 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
 
                 {/* ── MAIN CONTENT ── */}
                 <div style={{ flex: 1, minWidth: 0, padding: "24px 24px 64px" }}>
-
-                    {/* TYPE STRIP — 296px tall */}
-                    <div style={{
-                        background: "linear-gradient(180deg, #fdf0f0 0%, #fae8e8 100%)",
-                        borderRadius: 14, marginBottom: 20,
-                        padding: "20px 28px 20px",
-                        boxSizing: "border-box",
-                        display: "flex", flexDirection: "column",
-                    }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-                            {/* Small car icon like CarMax */}
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c0606a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1l3-4h8l3 4h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/>
-                                <circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/>
-                            </svg>
-                            <p style={{ fontSize: 13, fontWeight: 600, color: "#b04a52", margin: 0 }}>
-                                ¿Qué tipo de auto buscás?
-                            </p>
-                        </div>
-
-                        <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "stretch" }}>
-                            <button
-                                className={`cat-sarrow${canScrollLeft ? "" : " hidden"}`}
-                                style={{ left: -14 }}
-                                onClick={() => scrollStrip("left")}
-                            >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#444" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-                            </button>
-
-                            <div ref={stripRef} className="cat-strip" style={{
-                                display: "flex", gap: 10, overflowX: "auto",
-                                scrollbarWidth: "none", flex: 1, alignItems: "flex-start",
-                            }}>
-                                {VEHICLE_TYPES.map((vt) => (
-                                    <button
-                                        key={vt.value}
-                                        className={`cat-type-btn${type === vt.value ? " active" : ""}`}
-                                        onClick={() => setType(type === vt.value ? "" : vt.value)}
-                                    >
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img
-                                            src={vt.asset} alt={vt.label}
-                                            style={{ width: 110, height: 60, objectFit: "contain" }}
-                                        />
-                                        <span className="cat-type-lbl">{vt.label}</span>
-                                    </button>
-                                ))}
-                            </div>
-
-                            <button
-                                className={`cat-sarrow${canScrollRight ? "" : " hidden"}`}
-                                style={{ right: -14 }}
-                                onClick={() => scrollStrip("right")}
-                            >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#444" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-                            </button>
-                        </div>
-                    </div>
 
                     {/* COUNT ROW */}
                     <div style={{

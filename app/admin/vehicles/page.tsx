@@ -254,7 +254,7 @@ export default function AdminVehiclesPage() {
     return (
         <div className="min-h-screen bg-white" style={{ background: "#fff", minHeight: "100vh" }}>
             {/* Header Section */}
-            <header className="admin-sticky-header" style={{ position: "sticky", zIndex: 40, background: "rgba(255,255,255,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid #f4f4f5" }}>
+            <header className="admin-sticky-header" style={{ zIndex: 40, background: "rgba(255,255,255,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid #f4f4f5" }}>
                 <div className="max-w-[1600px] mx-auto admin-veh-header" style={{ maxWidth: 1600, margin: "0 auto" }}>
                     <div className="admin-veh-header-inner" style={{ display: "flex" }}>
                         <div>

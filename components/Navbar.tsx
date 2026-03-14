@@ -12,6 +12,7 @@ export default function Navbar() {
     const [navSearch, setNavSearch] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const [locationHover, setLocationHover] = useState(false);
+    const [locationPopupOpen, setLocationPopupOpen] = useState(false);
     const [hoursOpen, setHoursOpen] = useState(false);
     const [isOpenStatus, setIsOpenStatus] = useState(false);
     const [todayHours, setTodayHours] = useState("9 AM - 6 PM");
@@ -212,9 +213,9 @@ export default function Navbar() {
                         </div>
 
                         {/* IG */}
-                        <div className="action-item" style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <a href="https://www.instagram.com/ffspeedcars/" target="_blank" rel="noopener noreferrer" className="action-item" style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                             <Image src="/ig.svg" alt="Instagram" width={22} height={22} className="action-icon" />
-                        </div>
+                        </a>
 
                         {/* FB */}
                         <div className="action-item" style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -223,12 +224,50 @@ export default function Navbar() {
                     </div>
 
                     {/* Mobile-only location chip */}
-                    <div className="mobile-location" style={{ display: "none", alignItems: "center", gap: "6px" }}>
-                        <MapPin size={16} strokeWidth={1.5} color="var(--text-secondary)" />
-                        <div>
-                            <div style={{ fontSize: "10px", color: "var(--text-muted)", lineHeight: 1, fontWeight: 500 }}>Tu sucursal</div>
-                            <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3 }}>Fort Worth</div>
-                        </div>
+                    <div className="mobile-location" style={{ display: "none", position: "relative" }}>
+                        <button
+                            onClick={() => setLocationPopupOpen(!locationPopupOpen)}
+                            style={{ display: "flex", alignItems: "center", gap: "6px", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                        >
+                            <MapPin size={16} strokeWidth={1.5} color="var(--text-secondary)" />
+                            <div>
+                                <div style={{ fontSize: "10px", color: "var(--text-muted)", lineHeight: 1, fontWeight: 500 }}>Tu sucursal</div>
+                                <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3 }}>Fort Worth</div>
+                            </div>
+                        </button>
+
+                        {locationPopupOpen && (
+                            <>
+                                {/* backdrop */}
+                                <div onClick={() => setLocationPopupOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 98 }} />
+                                <div style={{
+                                    position: "absolute", top: "calc(100% + 12px)", left: "50%",
+                                    transform: "translateX(-50%)", width: 260,
+                                    background: "var(--white)", borderRadius: 16,
+                                    boxShadow: "0 12px 40px rgba(0,0,0,0.14)", padding: "20px",
+                                    zIndex: 99,
+                                }}>
+                                    {/* tip arrow */}
+                                    <div style={{ position: "absolute", top: -7, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 14, height: 14, background: "var(--white)", borderRadius: 3 }} />
+                                    <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "0 0 2px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Tu sucursal en 76119</p>
+                                    <p style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>Fort Worth, TX</p>
+                                    <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                                        5047 David Strickland Rd<br />
+                                        Ste 137, Fort Worth, TX 76119
+                                    </p>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+                                        <span style={{
+                                            background: isOpenStatus ? "#E8F5E9" : "#FFEBEB",
+                                            color: isOpenStatus ? "#1B5E20" : "#CC0000",
+                                            padding: "3px 9px", borderRadius: 100, fontSize: 12, fontWeight: 600,
+                                        }}>
+                                            {isOpenStatus ? "Abierto ahora" : "Cerrado ahora"}
+                                        </span>
+                                        <span style={{ color: "var(--text-secondary)" }}>{todayHours}</span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile hamburger */}
@@ -310,14 +349,23 @@ export default function Navbar() {
                     <MobileNavLink href="/#faq" onClick={() => setMenuOpen(false)}>Preguntas Frecuentes</MobileNavLink>
                     <MobileNavLink href="/#contacto" onClick={() => setMenuOpen(false)}>Contacto</MobileNavLink>
 
-                    <div style={{ padding: "24px", display: "flex", gap: "24px", borderTop: "1px solid var(--gray-200)", marginTop: "20px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "12px", color: "var(--text-primary)" }}>
-                            <MapPin size={24} strokeWidth={1.5} />
-                            <span style={{ fontSize: "15px", fontWeight: 600 }}>Fort Worth</span>
+                    <div style={{ padding: "24px", borderTop: "1px solid var(--gray-200)", marginTop: "20px" }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "20px" }}>
+                            <MapPin size={22} strokeWidth={1.5} color="var(--accent)" style={{ flexShrink: 0, marginTop: 2 }} />
+                            <div>
+                                <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: "0 0 2px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Tu sucursal en 76119</p>
+                                <p style={{ fontSize: "17px", fontWeight: 800, color: "var(--text-primary)", margin: "0 0 4px", letterSpacing: "-0.02em" }}>Fort Worth, TX</p>
+                                <p style={{ fontSize: "14px", color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
+                                    5047 David Strickland Rd<br />
+                                    Ste 137, Fort Worth, TX 76119
+                                </p>
+                            </div>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "16px", color: "var(--text-primary)", marginLeft: "auto" }}>
-                            <Image src="/ig.svg" alt="Instagram" width={24} height={24} />
-                            <Image src="/fb.svg" alt="Facebook" width={24} height={24} />
+                        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                            <a href="https://www.instagram.com/ffspeedcars/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center" }}>
+                                <Image src="/ig.svg" alt="Instagram" width={28} height={28} />
+                            </a>
+                            <Image src="/fb.svg" alt="Facebook" width={28} height={28} />
                         </div>
                     </div>
                 </div>

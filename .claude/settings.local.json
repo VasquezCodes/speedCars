@@ -31,4 +31,8 @@
       "Bash(grep -n 'overflowX: \"\"auto\"\"' app/admin/referrals/page.tsx)",
       "Bash(npx tsc:*)",
       "Bash(npx next:*)",
-      "Bash
+      "Bash(grep -r \"NEXT_PUBLIC_URL\\\\|process\\\\.env\\\\.\" d:/autosdealer-app/app --include=*.ts --include=*.tsx -l)",
+      "Bash(grep -r \"NEXT_PUBLIC_URL\\\\|NEXT_PUBLIC_\" d:/autosdealer-app --include=*.ts --include=*.tsx --include=.env* --include=*.env -h)"
+    ]
+  }
+}

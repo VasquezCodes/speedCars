@@ -130,6 +130,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -138,6 +139,7 @@ body {
   font-family: var(--font-lato), sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 /*
@@ -893,9 +895,10 @@ button {
   padding-top: 56px;   /* offset for fixed 56px mobile topbar */
 }
 
-/* ── Sticky page headers — mobile default ── */
+/* ── Sticky page headers — not sticky on mobile ── */
 .admin-sticky-header {
-  top: 56px;           /* offset below mobile topbar */
+  position: static;    /* not sticky on mobile */
+  top: 56px;
 }
 
 /* ── Page-level padding — mobile default ── */
@@ -1021,17 +1024,17 @@ button {
 .admin-modal-cols   { display: grid; grid-template-columns: 1fr; gap: 40px; }
 .admin-inner-grid-2 { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .admin-modal-footer {
-  padding: 16px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 .admin-modal-save-btn {
   width: 100%;
-  padding: 18px 24px;
+  padding: 12px 24px;
   justify-content: center;
   order: -1;          /* save button appears first on mobile */
 }
@@ -1073,7 +1076,7 @@ button {
   }
 
   /* Sticky headers: top of page (no mobile topbar) */
-  .admin-sticky-header { top: 0; }
+  .admin-sticky-header { position: sticky; top: 0; }
 
   /* Page padding */
   .admin-page-pad { padding: 40px; }
