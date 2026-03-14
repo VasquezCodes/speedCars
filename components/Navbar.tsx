@@ -11,6 +11,7 @@ export default function Navbar() {
     const router = useRouter();
     const [navSearch, setNavSearch] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
+    const [menuClosing, setMenuClosing] = useState(false);
     const [locationHover, setLocationHover] = useState(false);
     const [locationPopupOpen, setLocationPopupOpen] = useState(false);
     const [hoursOpen, setHoursOpen] = useState(false);
@@ -60,6 +61,14 @@ export default function Navbar() {
             document.body.style.overflow = 'unset';
         }
     }, [menuOpen]);
+
+    const closeMenu = () => {
+        setMenuClosing(true);
+        setTimeout(() => {
+            setMenuOpen(false);
+            setMenuClosing(false);
+        }, 300);
+    };
 
     return (
         <header className="navbar-container" style={{
@@ -272,7 +281,7 @@ export default function Navbar() {
 
                     {/* Mobile hamburger */}
                     <button
-                        onClick={() => setMenuOpen(!menuOpen)}
+                        onClick={() => menuOpen ? closeMenu() : setMenuOpen(true)}
                         style={{
                             background: "transparent",
                             border: "none",
@@ -332,7 +341,7 @@ export default function Navbar() {
             </div>
 
             {/* Mobile Menu */}
-            {menuOpen && (
+            {(menuOpen || menuClosing) && (
                 <div className="mobile-menu" style={{
                     position: "absolute", top: "100%", left: 0, width: "100%",
                     background: "var(--white)",
@@ -341,13 +350,16 @@ export default function Navbar() {
                     boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
                     height: "100vh",
                     overflowY: "auto",
-                    paddingBottom: "100px"
+                    paddingBottom: "100px",
+                    animation: menuClosing
+                        ? "mobileMenuSlideUp 0.3s cubic-bezier(0.4, 0, 1, 1) forwards"
+                        : "mobileMenuSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards",
                 }}>
-                    <MobileNavLink href="/autos" onClick={() => setMenuOpen(false)}>Catálogo</MobileNavLink>
-                    <MobileNavLink href="/#nosotros" onClick={() => setMenuOpen(false)}>Nosotros</MobileNavLink>
-                    <MobileNavLink href="/#testimonios" onClick={() => setMenuOpen(false)}>Testimonios</MobileNavLink>
-                    <MobileNavLink href="/#faq" onClick={() => setMenuOpen(false)}>Preguntas Frecuentes</MobileNavLink>
-                    <MobileNavLink href="/#contacto" onClick={() => setMenuOpen(false)}>Contacto</MobileNavLink>
+                    <MobileNavLink href="/autos" onClick={() => closeMenu()}>Catálogo</MobileNavLink>
+                    <MobileNavLink href="/#nosotros" onClick={() => closeMenu()}>Nosotros</MobileNavLink>
+                    <MobileNavLink href="/#testimonios" onClick={() => closeMenu()}>Testimonios</MobileNavLink>
+                    <MobileNavLink href="/#faq" onClick={() => closeMenu()}>Preguntas Frecuentes</MobileNavLink>
+                    <MobileNavLink href="/#contacto" onClick={() => closeMenu()}>Contacto</MobileNavLink>
 
                     <div style={{ padding: "24px", borderTop: "1px solid var(--gray-200)", marginTop: "20px" }}>
                         <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "20px" }}>
@@ -372,6 +384,14 @@ export default function Navbar() {
             )}
 
             <style>{`
+        @keyframes mobileMenuSlideDown {
+            from { opacity: 0; transform: translateY(-100%); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes mobileMenuSlideUp {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(-100%); }
+        }
         .nav-link {
             color: var(--text-secondary);
             font-size: 15px;
