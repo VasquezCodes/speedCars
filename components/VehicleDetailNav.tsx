@@ -15,35 +15,45 @@ export default function VehicleDetailNav() {
             position: 'sticky',
             top: 0,
             zIndex: 50,
-            background: 'var(--white)',
-            borderBottom: '1px solid var(--gray-200)',
+            background: 'var(--primary)',
+            borderBottom: '1px solid var(--clr-surface-a20)',
         }}>
             {/* Top row: logo + icons */}
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '12px 20px',
+                padding: '6px 16px',
             }}>
-                <Link href="/" style={{ display: 'flex', alignItems: 'center' }}>
+                <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Image
-                        src="/logoLightMode.jpeg"
+                        src="/logo-nuevo.png"
                         alt="FF Speed Cars"
-                        width={220}
-                        height={64}
-                        style={{ height: 52, width: 'auto', objectFit: 'contain' }}
+                        width={340}
+                        height={100}
+                        style={{ height: 72, width: 'auto', objectFit: 'contain', margin: '-10px 0' }}
                         priority
+                    />
+                    <Image
+                        src="/racing-flag-2-svgrepo-com.svg"
+                        alt=""
+                        aria-hidden
+                        width={32}
+                        height={32}
+                        style={{ filter: 'invert(1) opacity(0.65)', flexShrink: 0 }}
                     />
                 </Link>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <Image src="/ig.svg" alt="Instagram" width={22} height={22} style={{ opacity: 0.7 }} />
-                    <Image src="/fb.svg" alt="Facebook" width={22} height={22} style={{ opacity: 0.7 }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                    <a href="https://www.instagram.com/ffspeedcars/" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center' }}>
+                        <Image src="/ig.svg" alt="Instagram" width={22} height={22} style={{ opacity: 0.75 }} />
+                    </a>
+                    <Image src="/fb.svg" alt="Facebook" width={22} height={22} style={{ opacity: 0.75 }} />
                 </div>
             </div>
 
             {/* Search bar */}
-            <div style={{ padding: '0 20px 12px' }}>
+            <div style={{ padding: '0 16px 10px' }}>
                 <div style={{ position: 'relative' }}>
                     <input
                         type="text"
@@ -60,11 +70,11 @@ export default function VehicleDetailNav() {
                             width: '100%',
                             height: 44,
                             borderRadius: 100,
-                            border: '2px solid var(--gray-200)',
+                            border: '1.5px solid var(--clr-surface-a20)',
                             padding: '0 52px 0 22px',
                             fontSize: 15,
                             color: 'var(--text-primary)',
-                            background: 'var(--gray-50)',
+                            background: 'var(--clr-surface-a10)',
                             outline: 'none',
                             fontFamily: 'inherit',
                             boxSizing: 'border-box',
@@ -72,12 +82,12 @@ export default function VehicleDetailNav() {
                         }}
                         onFocus={e => {
                             e.currentTarget.style.borderColor = 'var(--accent)';
-                            e.currentTarget.style.background = 'var(--white)';
-                            e.currentTarget.style.boxShadow = '0 0 0 4px rgba(209,17,25,0.08)';
+                            e.currentTarget.style.background = 'var(--clr-surface-a10)';
+                            e.currentTarget.style.boxShadow = '0 0 0 4px rgba(209,17,25,0.12)';
                         }}
                         onBlur={e => {
-                            e.currentTarget.style.borderColor = 'var(--gray-200)';
-                            e.currentTarget.style.background = 'var(--gray-50)';
+                            e.currentTarget.style.borderColor = 'var(--clr-surface-a20)';
+                            e.currentTarget.style.background = 'var(--clr-surface-a10)';
                             e.currentTarget.style.boxShadow = 'none';
                         }}
                     />
@@ -94,7 +104,7 @@ export default function VehicleDetailNav() {
                         }}
                         aria-label="Buscar"
                     >
-                        <Search size={20} color="#222" strokeWidth={2.5} />
+                        <Search size={20} color="var(--text-muted)" strokeWidth={2.5} />
                     </button>
                 </div>
             </div>

@@ -57,23 +57,22 @@ function FilterSection({
     children: React.ReactNode;
 }) {
     return (
-        <div style={{ borderBottom: "1px solid #ebebeb" }}>
+        <div style={{ borderBottom: "1px solid var(--clr-surface-a20)" }}>
             <button
                 onClick={onToggle}
                 style={{
                     width: "100%",
-                    // 70px total: 24px top + ~22px content + 24px bottom
                     padding: "24px 20px",
                     display: "flex", alignItems: "center", justifyContent: "space-between",
                     background: "none", border: "none", cursor: "pointer",
-                    fontSize: 14, fontWeight: 400, color: "#111",
+                    fontSize: 14, fontWeight: 400, color: "var(--text-primary)",
                     fontFamily: "inherit", textAlign: "left",
                     minHeight: 70,
                 }}
             >
                 {title}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="#888" strokeWidth="2.5" strokeLinecap="round"
+                    stroke="var(--clr-surface-a40)" strokeWidth="2.5" strokeLinecap="round"
                     style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }}>
                     <polyline points="6 9 12 15 18 9" />
                 </svg>
@@ -87,12 +86,12 @@ function CheckItem({ label, checked, onChange }: { label: string; checked: boole
     return (
         <label style={{
             display: "flex", alignItems: "center", gap: 10,
-            padding: "5px 0", cursor: "pointer", fontSize: 13.5, color: "#333",
+            padding: "5px 0", cursor: "pointer", fontSize: 13.5, color: "var(--text-secondary)",
         }}>
             <div style={{
                 width: 17, height: 17, borderRadius: 4, flexShrink: 0,
-                border: `1.5px solid ${checked ? "#d11119" : "#ccc"}`,
-                background: checked ? "#d11119" : "white",
+                border: `1.5px solid ${checked ? "#d11119" : "var(--clr-surface-a30)"}`,
+                background: checked ? "#d11119" : "var(--clr-surface-a10)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.15s",
             }}>
@@ -186,12 +185,12 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
             <div style={{
                 padding: "24px 20px", minHeight: 70,
                 display: "flex", alignItems: "center", justifyContent: "space-between",
-                borderBottom: "1px solid #ebebeb", cursor: "pointer",
+                borderBottom: "1px solid var(--clr-surface-a20)", cursor: "pointer",
             }}>
-                <span style={{ fontSize: 14, color: "#111" }}>Ordenar por</span>
+                <span style={{ fontSize: 14, color: "var(--text-primary)" }}>Ordenar por</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 13, color: "#666" }}>Más recientes</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2.5" strokeLinecap="round">
+                    <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Más recientes</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--clr-surface-a40)" strokeWidth="2.5" strokeLinecap="round">
                         <polyline points="6 9 12 15 18 9" />
                     </svg>
                 </div>
@@ -242,11 +241,11 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                 <div key={label} style={{
                     padding: "24px 20px", minHeight: 70,
                     display: "flex", alignItems: "center", justifyContent: "space-between",
-                    borderBottom: "1px solid #ebebeb",
-                    fontSize: 14, color: "#111", opacity: 0.6, cursor: "not-allowed",
+                    borderBottom: "1px solid var(--clr-surface-a20)",
+                    fontSize: 14, color: "var(--text-primary)", opacity: 0.4, cursor: "not-allowed",
                 }}>
                     {label}
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2.5" strokeLinecap="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--clr-surface-a40)" strokeWidth="2.5" strokeLinecap="round">
                         <polyline points="6 9 12 15 18 9" />
                     </svg>
                 </div>
@@ -270,8 +269,8 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                 .cat-sidebar {
                     width: 319px;
                     flex-shrink: 0;
-                    background: white;
-                    border-right: 1px solid #ebebeb;
+                    background: var(--clr-surface-a10);
+                    border-right: 1px solid var(--clr-surface-a20);
                     align-self: flex-start;
                     position: sticky;
                     top: 0;
@@ -295,17 +294,17 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                     <div style={{
                         minHeight: 183,
                         padding: "24px 20px 20px",
-                        borderBottom: "1px solid #ebebeb",
+                        borderBottom: "1px solid var(--clr-surface-a20)",
                         display: "flex", flexDirection: "column",
                         justifyContent: "space-between",
                     }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2.2" strokeLinecap="round">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2.2" strokeLinecap="round">
                                 <line x1="4" y1="6" x2="20" y2="6"/>
                                 <line x1="4" y1="12" x2="16" y2="12"/>
                                 <line x1="4" y1="18" x2="12" y2="18"/>
                             </svg>
-                            <span style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>Filtros y Ordenar</span>
+                            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>Filtros y Ordenar</span>
                             {hasFilters && (
                                 <button onClick={clearAll} style={{
                                     marginLeft: "auto", fontSize: 12, color: "#d11119",
@@ -333,13 +332,13 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                     }}>
                         <div style={{
                             display: "inline-flex", alignItems: "center", gap: 8,
-                            background: "white", border: "1px solid #e8e8e8",
+                            background: "var(--clr-surface-a10)", border: "1px solid var(--clr-surface-a20)",
                             borderRadius: 8, padding: "7px 14px",
                         }}>
-                            <span style={{ fontSize: 18, fontWeight: 800, color: "#111", lineHeight: 1 }}>
+                            <span style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>
                                 {loading ? "—" : vehicles.length.toLocaleString()}
                             </span>
-                            <span style={{ fontSize: 13, color: "#777", fontWeight: 400 }}>
+                            <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 400 }}>
                                 {loading ? "cargando..." : vehicles.length !== 1 ? "coincidencias" : "coincidencia"}
                             </span>
                         </div>
@@ -351,9 +350,9 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                             style={{
                                 alignItems: "center", gap: 6,
                                 height: 36, padding: "0 14px", borderRadius: 8,
-                                border: "1.5px solid #e0e0e0", background: "white",
+                                border: "1.5px solid var(--clr-surface-a30)", background: "var(--clr-surface-a10)",
                                 fontSize: 13, fontWeight: 600, cursor: "pointer",
-                                fontFamily: "inherit", color: "#111",
+                                fontFamily: "inherit", color: "var(--text-primary)",
                             }}
                         >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ display: "inline", verticalAlign: "middle", marginRight: 5 }}>
@@ -369,14 +368,14 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                     {loading ? (
                         <div className="cat-grid">
                             {Array.from({ length: 8 }).map((_, i) => (
-                                <div key={i} style={{ borderRadius: 10, overflow: "hidden", background: "white", border: "1px solid #eee" }}>
+                                <div key={i} style={{ borderRadius: 10, overflow: "hidden", background: "var(--clr-surface-a10)", border: "1px solid var(--clr-surface-a20)" }}>
                                     <div style={{ paddingTop: "66%", position: "relative" }}>
-                                        <div className="skeleton" style={{ position: "absolute", inset: 0 }} />
+                                        <div className="skeleton" style={{ position: "absolute", inset: 0, background: "var(--clr-surface-a20)" }} />
                                     </div>
                                     <div style={{ padding: "12px 14px 16px" }}>
-                                        <div style={{ height: 13, borderRadius: 4, background: "#f0f0f0", marginBottom: 8 }} className="skeleton" />
-                                        <div style={{ height: 18, borderRadius: 4, background: "#f0f0f0", marginBottom: 10, width: "70%" }} className="skeleton" />
-                                        <div style={{ height: 13, borderRadius: 4, background: "#f0f0f0", width: "45%" }} className="skeleton" />
+                                        <div style={{ height: 13, borderRadius: 4, background: "var(--clr-surface-a20)", marginBottom: 8 }} />
+                                        <div style={{ height: 18, borderRadius: 4, background: "var(--clr-surface-a20)", marginBottom: 10, width: "70%" }} />
+                                        <div style={{ height: 13, borderRadius: 4, background: "var(--clr-surface-a20)", width: "45%" }} />
                                     </div>
                                 </div>
                             ))}
@@ -390,10 +389,10 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                     ) : (
                         <div style={{ textAlign: "center", padding: "80px 0" }}>
                             <div style={{ fontSize: 52, marginBottom: 16 }}>🔍</div>
-                            <h3 style={{ fontWeight: 700, color: "#111", fontSize: 22, marginBottom: 8 }}>
+                            <h3 style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 22, marginBottom: 8 }}>
                                 No encontramos vehículos
                             </h3>
-                            <p style={{ color: "#888", marginBottom: 28 }}>Probá cambiando los filtros.</p>
+                            <p style={{ color: "var(--text-muted)", marginBottom: 28 }}>Probá cambiando los filtros.</p>
                             <button onClick={clearAll} style={{
                                 background: "#d11119", color: "white", border: "none",
                                 borderRadius: 100, padding: "13px 32px",
@@ -413,19 +412,19 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                         onClick={() => setMobileFiltersOpen(false)} />
                     <div style={{
                         position: "relative", zIndex: 1,
-                        background: "white", width: 319, height: "100%",
+                        background: "var(--clr-surface-a10)", width: 319, height: "100%",
                         overflowY: "auto", flexShrink: 0,
-                        boxShadow: "4px 0 24px rgba(0,0,0,0.15)",
+                        boxShadow: "4px 0 40px rgba(0,0,0,0.5)",
                     }}>
                         {/* Drawer header */}
                         <div style={{
-                            padding: "18px 20px", borderBottom: "1px solid #ebebeb",
+                            padding: "18px 20px", borderBottom: "1px solid var(--clr-surface-a20)",
                             display: "flex", alignItems: "center", justifyContent: "space-between",
-                            position: "sticky", top: 0, background: "white", zIndex: 2,
+                            position: "sticky", top: 0, background: "var(--clr-surface-a10)", zIndex: 2,
                         }}>
-                            <span style={{ fontSize: 15, fontWeight: 700 }}>Filtros y Ordenar</span>
+                            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>Filtros y Ordenar</span>
                             <button onClick={() => setMobileFiltersOpen(false)}
-                                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, color: "#555", lineHeight: 1 }}>
+                                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, color: "var(--text-muted)", lineHeight: 1 }}>
                                 ✕
                             </button>
                         </div>

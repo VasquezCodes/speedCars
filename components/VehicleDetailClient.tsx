@@ -167,7 +167,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     ];
 
     return (
-        <div style={{ backgroundColor: "#ffffff", minHeight: "100vh" }}>
+        <div style={{ backgroundColor: "var(--primary)", minHeight: "100vh" }}>
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500;700;800&display=swap');
@@ -178,7 +178,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     margin: 0 auto;
                     padding: 60px 24px;
                     font-family: 'Manrope', sans-serif;
-                    color: #111;
+                    color: var(--text-primary);
                 }
                 .vd-grid {
                     display: grid;
@@ -193,7 +193,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     letter-spacing: -0.02em;
                     line-height: 1.1;
                     margin-bottom: 8px;
-                    color: #000;
+                    color: var(--text-primary);
                     text-transform: uppercase;
                 }
                 .vd-year {
@@ -210,7 +210,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     font-size: 32px;
                     font-weight: 600;
                     letter-spacing: -0.02em;
-                    color: #000;
+                    color: var(--text-primary);
                     margin: 24px 0;
                     display: flex;
                     align-items: flex-start;
@@ -219,7 +219,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 .vd-price span {
                     font-size: 18px;
                     font-weight: 500;
-                    color: #666;
+                    color: var(--text-muted);
                     margin-top: 6px;
                 }
                 .vd-badge-group {
@@ -232,13 +232,13 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     display: inline-flex;
                     align-items: center;
                     padding: 6px 14px;
-                    border: 1px solid #e0e0e0;
+                    border: 1px solid var(--clr-surface-a30);
                     border-radius: 40px;
                     font-size: 12px;
                     font-weight: 600;
                     letter-spacing: 0.05em;
                     text-transform: uppercase;
-                    color: #333;
+                    color: var(--text-secondary);
                 }
                 .vd-badge-accent {
                     border: 1.5px solid #fca5a5;
@@ -246,8 +246,8 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     background: rgba(254, 242, 242, 0.95);
                 }
                 .vd-badge-status {
-                    border: 1.5px solid #e0e0e0;
-                    color: #333;
+                    border: 1.5px solid var(--clr-surface-a30);
+                    color: var(--text-secondary);
                     font-weight: 800;
                     padding: 8px 16px;
                 }
@@ -259,15 +259,15 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     justify-content: space-between;
                     align-items: center;
                     padding: 20px 0;
-                    border-bottom: 1px solid #eaeaea;
+                    border-bottom: 1px solid var(--clr-surface-a20);
                 }
                 .vd-spec-label {
-                    color: #666;
+                    color: var(--text-muted);
                     font-size: 15px;
                     font-weight: 500;
                 }
                 .vd-spec-value {
-                    color: #000;
+                    color: var(--text-primary);
                     font-size: 16px;
                     font-weight: 600;
                     text-align: right;
@@ -282,11 +282,11 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 .vd-desc {
                     font-size: 16px;
                     line-height: 1.8;
-                    color: #444;
+                    color: var(--text-secondary);
                     margin-bottom: 48px;
                 }
                 .vd-btn-black {
-                    background: #000;
+                    background: var(--clr-surface-a20);
                     color: #fff;
                     border: none;
                     padding: 20px 32px;
@@ -300,12 +300,12 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     font-family: 'Outfit', sans-serif;
                 }
                 .vd-btn-black:hover {
-                    background: #222;
+                    background: var(--clr-surface-a30);
                 }
                 .vd-btn-whatsapp {
-                    background: #fff;
-                    color: #000;
-                    border: 1px solid #e0e0e0;
+                    background: var(--clr-surface-a10);
+                    color: var(--text-primary);
+                    border: 1px solid var(--clr-surface-a30);
                     padding: 20px 32px;
                     font-size: 15px;
                     font-weight: 600;
@@ -323,7 +323,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 .vd-btn-whatsapp:hover {
                     border-color: #25D366;
                     color: #25D366;
-                    background: #fafafa;
+                    background: var(--clr-surface-a20);
                 }
 
                 /* ── Mobile gallery ─────────────────────────────── */
@@ -331,7 +331,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     display: none;
                     position: relative;
                     width: 100%;
-                    background: #f2f2f2;
+                    background: var(--clr-surface-a10);
                 }
                 .vd-gallery-mobile-img {
                     width: 100%;
@@ -371,12 +371,12 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     align-items: center;
                     gap: 6px;
                     padding: 10px 0 8px;
-                    background: #fff;
+                    background: var(--primary);
                 }
                 .vd-gallery-mobile-dot {
                     height: 5px;
                     border-radius: 3px;
-                    background: #d1d5db;
+                    background: var(--clr-surface-a30);
                     transition: all 0.25s ease;
                     width: 8px;
                 }
@@ -402,7 +402,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     font-family: 'Outfit', sans-serif;
                     font-size: 26px;
                     font-weight: 800;
-                    color: #0a0a0a;
+                    color: var(--text-primary);
                     letter-spacing: -0.02em;
                     line-height: 1.05;
                 }
@@ -410,7 +410,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     font-family: 'Outfit', sans-serif;
                     font-size: 13px;
                     font-weight: 500;
-                    color: #999;
+                    color: var(--text-muted);
                     white-space: nowrap;
                     flex-shrink: 0;
                 }
@@ -419,11 +419,11 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     top: 12px;
                     right: 12px;
                     z-index: 10;
-                    background: rgba(255,255,255,0.88);
+                    background: rgba(30,28,28,0.88);
                     backdrop-filter: blur(6px);
                     border-radius: 10px;
                     padding: 6px 10px;
-                    box-shadow: 0 1px 8px rgba(0,0,0,0.12);
+                    box-shadow: 0 1px 8px rgba(0,0,0,0.4);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -438,7 +438,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 }
                 .vd-info-mobile-chips {
                     font-size: 13px;
-                    color: #666;
+                    color: var(--text-muted);
                     font-weight: 500;
                     margin-bottom: 16px;
                     line-height: 1.6;
@@ -447,7 +447,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     font-family: 'Outfit', sans-serif;
                     font-size: 30px;
                     font-weight: 700;
-                    color: #000;
+                    color: var(--text-primary);
                     letter-spacing: -0.02em;
                     margin-bottom: 12px;
                 }
@@ -456,7 +456,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     align-items: center;
                     gap: 7px;
                     font-size: 12px;
-                    color: #666;
+                    color: var(--text-muted);
                     margin-bottom: 20px;
                 }
                 .vd-info-mobile-cta {
@@ -483,7 +483,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 }
                 .vd-info-mobile-separator {
                     border: none;
-                    border-top: 1px solid #eaeaea;
+                    border-top: 1px solid var(--clr-surface-a20);
                     margin: 0 0 24px;
                 }
                 .vd-info-mobile-spec-row {
@@ -491,23 +491,23 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     justify-content: space-between;
                     align-items: center;
                     padding: 16px 0;
-                    border-bottom: 1px solid #f0f0f0;
+                    border-bottom: 1px solid var(--clr-surface-a20);
                 }
                 .vd-info-mobile-spec-label {
                     font-size: 14px;
-                    color: #777;
+                    color: var(--text-muted);
                     font-weight: 500;
                 }
                 .vd-info-mobile-spec-value {
                     font-size: 14px;
-                    color: #111;
+                    color: var(--text-primary);
                     font-weight: 600;
                     text-align: right;
                 }
                 .vd-info-mobile-desc {
                     font-size: 14px;
                     line-height: 1.75;
-                    color: #555;
+                    color: var(--text-secondary);
                     margin-top: 20px;
                 }
 
@@ -722,7 +722,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                             width: "100%",
                             aspectRatio: "4/3",
                             position: "relative",
-                            backgroundColor: "#f9f9f9",
+                            backgroundColor: "var(--clr-surface-a10)",
                             marginBottom: 16,
                             borderRadius: "16px",
                             overflow: "hidden"
@@ -779,7 +779,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                     >
                                         <Image src={img} alt="" fill style={{ objectFit: "cover" }} sizes="120px" quality={100} unoptimized />
                                         {i === activeImg && (
-                                            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "#000" }} />
+                                            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "var(--accent)" }} />
                                         )}
                                     </button>
                                 ))}
@@ -821,11 +821,11 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                     gap: 8,
                                     padding: "6px 14px",
                                     borderRadius: 40,
-                                    border: "1px solid #e0e0e0",
-                                    background: "#fff",
+                                    border: "1px solid var(--clr-surface-a30)",
+                                    background: "var(--clr-surface-a10)",
                                     fontSize: 12,
                                     fontWeight: 600,
-                                    color: "#333",
+                                    color: "var(--text-secondary)",
                                     textTransform: "uppercase"
                                 }}>
                                     <div style={{
@@ -877,7 +877,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                             </button>
                         </div>
 
-                        <p style={{ textAlign: "center", fontSize: 12, color: "#888", marginTop: 8, letterSpacing: "0.02em" }}>
+                        <p style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)", marginTop: 8, letterSpacing: "0.02em" }}>
                             Tus datos son 100% confidenciales y seguros.
                         </p>
                     </div>
@@ -900,17 +900,17 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                         overflow-y: auto;
                     }
                     .vd-apt-inner {
-                        background: #fff;
+                        background: var(--clr-surface-a10);
                         width: 100%;
                         max-width: 1000px;
                         position: relative;
                         border-radius: 16px;
-                        box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+                        box-shadow: 0 24px 64px rgba(0,0,0,0.5);
                     }
                     .vd-apt-close {
                         position: absolute; top: 16px; right: 20px;
                         background: none; border: none;
-                        font-size: 22px; color: #999;
+                        font-size: 22px; color: var(--text-muted);
                         cursor: pointer; z-index: 1;
                         line-height: 1;
                     }
@@ -959,17 +959,17 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     }}
                 >
                     <div style={{
-                        background: "#fff", width: "100%", maxWidth: 500, padding: 40, position: "relative",
-                        fontFamily: "'Manrope', sans-serif"
+                        background: "var(--clr-surface-a10)", width: "100%", maxWidth: 500, padding: 40, position: "relative",
+                        fontFamily: "'Manrope', sans-serif", borderRadius: 16
                     }}>
                         <button
                             onClick={() => setShowContactModal(false)}
-                            style={{ position: "absolute", top: 20, right: 24, background: "none", border: "none", fontSize: 24, color: "#999", cursor: "pointer" }}
+                            style={{ position: "absolute", top: 20, right: 24, background: "none", border: "none", fontSize: 24, color: "var(--text-muted)", cursor: "pointer" }}
                         >✕</button>
-                        <h2 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 28, marginBottom: 8, color: "#000" }}>
+                        <h2 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 28, marginBottom: 8, color: "var(--text-primary)" }}>
                             Solicitar Info
                         </h2>
-                        <p style={{ color: "#666", fontSize: 15, marginBottom: 32 }}>
+                        <p style={{ color: "var(--text-secondary)", fontSize: 15, marginBottom: 32 }}>
                             Dejanos tus datos y un asesor se comunicará con vos por el <strong>{vehicleTitle}</strong>.
                         </p>
                         <ContactForm
