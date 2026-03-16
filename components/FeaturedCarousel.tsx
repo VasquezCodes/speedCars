@@ -217,9 +217,9 @@ export default function FeaturedCarousel({ vehicles }: { vehicles: Vehicle[] }) 
     width: 44,
     height: 44,
     borderRadius: "50%",
-    border: `1px solid ${enabled ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.07)"}`,
-    background: enabled ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.02)",
-    color: enabled ? "#111" : "rgba(0,0,0,0.2)",
+    border: `1px solid ${enabled ? "var(--clr-surface-a30)" : "var(--clr-surface-a20)"}`,
+    background: enabled ? "var(--clr-surface-a10)" : "var(--clr-surface-a0)",
+    color: enabled ? "var(--clr-light-a0)" : "var(--clr-surface-a40)",
     cursor: enabled ? "pointer" : "default",
     display: "flex",
     alignItems: "center",
@@ -270,7 +270,7 @@ export default function FeaturedCarousel({ vehicles }: { vehicles: Vehicle[] }) 
                   height: 6,
                   borderRadius: 3,
                   border: "none",
-                  background: i === index ? "var(--text-primary, #111)" : "rgba(0,0,0,0.18)",
+                  background: i === index ? "var(--clr-light-a0)" : "var(--clr-surface-a30)",
                   cursor: "pointer",
                   padding: 0,
                   transition: "width 0.3s, background 0.3s",
@@ -285,8 +285,8 @@ export default function FeaturedCarousel({ vehicles }: { vehicles: Vehicle[] }) 
               disabled={!canPrev}
               aria-label="Anterior"
               style={btnStyle(canPrev)}
-              onMouseEnter={(e) => { if (canPrev) e.currentTarget.style.background = "rgba(0,0,0,0.1)"; }}
-              onMouseLeave={(e) => { if (canPrev) e.currentTarget.style.background = "rgba(0,0,0,0.06)"; }}
+              onMouseEnter={(e) => { if (canPrev) e.currentTarget.style.background = "var(--clr-surface-a20)"; }}
+              onMouseLeave={(e) => { if (canPrev) e.currentTarget.style.background = "var(--clr-surface-a10)"; }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
@@ -297,8 +297,8 @@ export default function FeaturedCarousel({ vehicles }: { vehicles: Vehicle[] }) 
               disabled={!canNext}
               aria-label="Siguiente"
               style={btnStyle(canNext)}
-              onMouseEnter={(e) => { if (canNext) e.currentTarget.style.background = "rgba(0,0,0,0.1)"; }}
-              onMouseLeave={(e) => { if (canNext) e.currentTarget.style.background = "rgba(0,0,0,0.06)"; }}
+              onMouseEnter={(e) => { if (canNext) e.currentTarget.style.background = "var(--clr-surface-a20)"; }}
+              onMouseLeave={(e) => { if (canNext) e.currentTarget.style.background = "var(--clr-surface-a10)"; }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6" />

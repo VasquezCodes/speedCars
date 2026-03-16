@@ -46,7 +46,7 @@ export default function BrandDivider() {
       <div style={{
         flex: 1,
         height: '1px',
-        background: 'linear-gradient(to right, transparent, var(--gray-200) 80%, var(--gray-300))'
+        background: 'linear-gradient(to right, transparent, var(--clr-surface-a30) 80%, var(--clr-surface-a40))'
       }} />
       
       {/* Contenedor central de la marca */}
@@ -67,7 +67,7 @@ export default function BrandDivider() {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '12px',
-        filter: 'grayscale(100%) opacity(0.7)' // Hace que los logos se vean grises y sutiles
+        filter: 'brightness(0) invert(1) opacity(0.55)' // Invierte a blanco para fondo oscuro
       }}>
         <Image 
           src={`/carBrands/${BRANDS[index].file}`} 
@@ -82,7 +82,7 @@ export default function BrandDivider() {
       <div style={{
         flex: 1,
         height: '1px',
-        background: 'linear-gradient(to left, transparent, var(--gray-200) 80%, var(--gray-300))'
+        background: 'linear-gradient(to left, transparent, var(--clr-surface-a30) 80%, var(--clr-surface-a40))'
       }} />
     </div>
   );

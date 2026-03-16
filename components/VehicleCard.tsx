@@ -39,25 +39,27 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <Link href={`/autos/${vehicle.slug}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
             <article
                 style={{
-                    background: "white",
-                    border: "1px solid #e6e6e6",
-                    borderRadius: 10,
+                    background: "var(--clr-surface-a10)",
+                    border: "1px solid var(--clr-surface-a20)",
+                    borderRadius: 12,
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
                     height: "100%",
                     cursor: "pointer",
-                    transition: "box-shadow 0.22s, transform 0.22s",
+                    transition: "box-shadow 0.22s, transform 0.22s, border-color 0.22s",
                 }}
                 onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = "0 6px 22px rgba(0,0,0,0.10)";
+                    e.currentTarget.style.boxShadow = "0 8px 28px rgba(0,0,0,0.5)";
                     e.currentTarget.style.transform = "translateY(-3px)";
+                    e.currentTarget.style.borderColor = "var(--clr-surface-a30)";
                     const img = e.currentTarget.querySelector(".vc-img") as HTMLElement;
                     if (img) img.style.transform = "scale(1.04)";
                 }}
                 onMouseLeave={(e) => {
                     e.currentTarget.style.boxShadow = "none";
                     e.currentTarget.style.transform = "none";
+                    e.currentTarget.style.borderColor = "var(--clr-surface-a20)";
                     const img = e.currentTarget.querySelector(".vc-img") as HTMLElement;
                     if (img) img.style.transform = "scale(1)";
                 }}
@@ -67,7 +69,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
                     position: "relative",
                     paddingTop: "66.66%", /* 3:2 */
                     overflow: "hidden",
-                    background: "#f2f2f2",
+                    background: "var(--clr-surface-a20)",
                 }}>
                     <Image
                         src={imageUrl}
@@ -86,17 +88,17 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
                         style={{
                             position: "absolute", bottom: 10, right: 10, zIndex: 2,
                             width: 32, height: 32, borderRadius: "50%",
-                            background: "white", border: "none",
+                            background: "var(--clr-surface-a10)", border: "none",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             cursor: "pointer",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
                             transition: "background 0.15s",
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = "#f5f5f5"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = "white"; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--clr-surface-a20)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "var(--clr-surface-a10)"; }}
                         aria-label="Opciones"
                     >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#555">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--clr-surface-a50)">
                             <circle cx="12" cy="5" r="1.5"/>
                             <circle cx="12" cy="12" r="1.5"/>
                             <circle cx="12" cy="19" r="1.5"/>
@@ -106,9 +108,8 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 
                 {/* ── Content ── */}
                 <div style={{ padding: "12px 14px 0 14px", flex: 1, display: "flex", flexDirection: "column" }}>
-                    {/* Title: single line — year + brand + model */}
                     <p style={{
-                        fontSize: 14, fontWeight: 600, color: "#111",
+                        fontSize: 14, fontWeight: 600, color: "var(--clr-light-a0)",
                         margin: "0 0 6px", lineHeight: 1.35,
                         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                     }}>
@@ -117,10 +118,10 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 
                     {/* Price + km */}
                     <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
-                        <span style={{ fontSize: 18, fontWeight: 800, color: "#111", letterSpacing: "-0.02em" }}>
+                        <span style={{ fontSize: 18, fontWeight: 800, color: "var(--clr-light-a0)", letterSpacing: "-0.02em" }}>
                             ${price}*
                         </span>
-                        <span style={{ fontSize: 13, color: "#888", fontWeight: 500 }}>
+                        <span style={{ fontSize: 13, color: "var(--clr-surface-a50)", fontWeight: 500 }}>
                             {km}
                         </span>
                     </div>
@@ -129,13 +130,13 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
                 {/* ── Footer ── */}
                 <div style={{
                     padding: "10px 14px 13px",
-                    borderTop: "1px solid #f0f0f0",
+                    borderTop: "1px solid var(--clr-surface-a20)",
                     marginTop: "auto",
                 }}>
-                    <p style={{ fontSize: 11, color: "#aaa", margin: "0 0 1px", lineHeight: 1.4 }}>
+                    <p style={{ fontSize: 11, color: "var(--clr-surface-a40)", margin: "0 0 1px", lineHeight: 1.4 }}>
                         Disponible en
                     </p>
-                    <p style={{ fontSize: 12, color: "#555", fontWeight: 600, margin: 0, lineHeight: 1.4 }}>
+                    <p style={{ fontSize: 12, color: "var(--clr-surface-a50)", fontWeight: 600, margin: 0, lineHeight: 1.4 }}>
                         FF Speed Cars
                     </p>
                 </div>

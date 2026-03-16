@@ -75,25 +75,34 @@ export default function Navbar() {
             background: "var(--white)"
         }}>
             {/* Top Row */}
-            <div className="container" style={{
+            <div className="container navbar-top-row" style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: "16px 24px",
+                padding: "10px 24px",
                 gap: "24px",
             }}>
                 {/* Left side: Logo & Nav */}
                 <div style={{ display: "flex", alignItems: "center", gap: "40px" }}>
                     {/* Logo */}
-                    <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+                    <Link href="/" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                         <Image
-                            src="/logoLightMode.jpeg"
+                            src="/logo-nuevo.png"
                             alt="FF Speed Cars Logo"
                             width={340}
                             height={100}
                             className="logo-img"
                             style={{ width: "auto", objectFit: "contain" }}
                             priority
+                        />
+                        <Image
+                            src="/racing-flag-2-svgrepo-com.svg"
+                            alt=""
+                            aria-hidden
+                            width={44}
+                            height={44}
+                            className="logo-flags"
+                            style={{ filter: "invert(1) opacity(0.65)", flexShrink: 0, marginBottom: "2px" }}
                         />
                     </Link>
 
@@ -328,7 +337,7 @@ export default function Navbar() {
                         }}
                         aria-label="Buscar"
                     >
-                        <Search size={22} color="#222" strokeWidth={2.5} />
+                        <Search size={22} color="var(--text-muted)" strokeWidth={2.5} />
                     </button>
                 </div>
             </div>
@@ -383,6 +392,9 @@ export default function Navbar() {
                 </div>
             )}
 
+            {/* Bottom bleed — fades navbar into the hero below */}
+            <div className="navbar-bottom-bleed" aria-hidden="true" />
+
             <style>{`
         @keyframes mobileMenuSlideDown {
             from { opacity: 0; transform: translateY(-100%); }
@@ -394,7 +406,7 @@ export default function Navbar() {
         }
         .nav-link {
             color: var(--text-secondary);
-            font-size: 15px;
+            font-size: 17px;
             font-weight: 600;
             text-decoration: none;
             padding: 8px 0;
@@ -442,37 +454,54 @@ export default function Navbar() {
             width: 100%;
             height: 44px;
             border-radius: 100px;
-            border: 2px solid var(--gray-200);
+            border: 1.5px solid var(--gray-200);
             padding: 0 54px 0 24px;
             font-size: 16px;
             color: var(--text-primary);
-            background: var(--gray-50);
+            background: var(--gray-100);
             outline: none;
             transition: all 0.2s ease;
             font-family: inherit;
         }
         .search-input:hover {
             border-color: var(--gray-300);
-            background: var(--white);
+            background: var(--gray-200);
         }
         .search-input:focus {
-            background: var(--white);
+            background: var(--gray-100);
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(209, 17, 25, 0.1);
+            box-shadow: 0 0 0 4px rgba(209, 17, 25, 0.15);
         }
         .search-input::placeholder {
-            color: var(--gray-400);
+            color: var(--text-muted);
             font-weight: 400;
         }
 
         .logo-img {
-            height: 96px;
-            margin: -12px 0;
+            height: 104px;
+            margin: -14px 0;
+        }
+
+        .logo-flags {
+            width: 44px;
+            height: 44px;
         }
 
         .navbar-container {
             position: relative;
             z-index: 50;
+            overflow: visible;
+        }
+
+        .navbar-bottom-bleed {
+            position: absolute;
+            bottom: -40px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to bottom, var(--white), transparent);
+            pointer-events: none;
+            z-index: 49;
         }
         .navbar-container .container {
             max-width: 1504px;
@@ -497,13 +526,13 @@ export default function Navbar() {
             color: var(--text-primary);
             white-space: nowrap;
             text-decoration: none;
-            background: var(--white);
+            background: var(--gray-100);
             text-align: center;
             transition: background 0.2s, border-color 0.2s;
         }
         .quick-pill:hover {
-            background: var(--gray-50);
-            border-color: var(--gray-300);
+            background: var(--gray-200);
+            border-color: var(--accent);
         }
 
         @media (max-width: 1024px) {
@@ -511,7 +540,11 @@ export default function Navbar() {
             .mobile-menu-btn { display: flex !important; }
             .mobile-location { display: flex !important; }
             .quick-pills { display: flex !important; }
-            .logo-img { height: 52px !important; margin: 0 !important; }
+            .logo-img { height: 92px !important; margin: -12px 0 !important; }
+            .logo-flags { width: 36px !important; height: 36px !important; }
+.navbar-top-row { padding: 6px 16px !important; }
+            .search-container { padding: 0 16px 8px !important; }
+            .quick-pills { padding: 0 16px 8px !important; }
         }
         @media (min-width: 1025px) {
             .mobile-menu-btn { display: none !important; }

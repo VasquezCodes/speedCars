@@ -41,7 +41,7 @@ export default async function HomePage() {
         {/* Hero */}
         <HeroSection />
 
-        <div style={{ marginTop: "40px", marginBottom: "120px", width: "100%", overflow: "hidden" }}>
+        <div style={{ marginTop: "64px", marginBottom: "120px", width: "100%", overflow: "hidden" }}>
           <BrandDivider />
         </div>
 
