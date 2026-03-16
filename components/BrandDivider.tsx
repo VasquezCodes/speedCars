@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import Image from 'next/image';
 
 const BRANDS = [
@@ -15,6 +13,8 @@ const BRANDS = [
   { name: "LEXUS", file: "lexus-svgrepo-com.svg" }
 ];
 
+import { useEffect, useState } from 'react';
+
 export default function BrandDivider() {
   const [index, setIndex] = useState(0);
   const [fade, setFade] = useState(true);
@@ -25,8 +25,8 @@ export default function BrandDivider() {
       setTimeout(() => {
         setIndex((prev) => (prev + 1) % BRANDS.length);
         setFade(true);
-      }, 500); // Tiempo de fade out
-    }, 3000); // Cambia cada 3 segundos
+      }, 500);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
@@ -48,7 +48,7 @@ export default function BrandDivider() {
         height: '1px',
         background: 'linear-gradient(to right, transparent, var(--clr-surface-a30) 80%, var(--clr-surface-a40))'
       }} />
-      
+
       {/* Contenedor central de la marca */}
       <div style={{
         padding: '0 32px',
@@ -67,14 +67,13 @@ export default function BrandDivider() {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '12px',
-        filter: 'brightness(0) invert(1) opacity(0.55)' // Invierte a blanco para fondo oscuro
       }}>
-        <Image 
-          src={`/carBrands/${BRANDS[index].file}`} 
-          alt={`${BRANDS[index].name} logo`} 
-          width={64} 
-          height={64} 
-          style={{ objectFit: 'contain' }}
+        <Image
+          src={`/carBrands/${BRANDS[index].file}`}
+          alt={`${BRANDS[index].name} logo`}
+          width={64}
+          height={64}
+          style={{ objectFit: 'contain', filter: 'brightness(0) invert(1) opacity(0.55)' }}
         />
       </div>
 

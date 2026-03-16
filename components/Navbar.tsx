@@ -56,9 +56,9 @@ export default function Navbar() {
     // Prevent scrolling when mobile menu is open
     useEffect(() => {
         if (menuOpen) {
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflowY = 'hidden';
         } else {
-            document.body.style.overflow = 'unset';
+            document.body.style.overflowY = '';
         }
     }, [menuOpen]);
 
@@ -72,7 +72,7 @@ export default function Navbar() {
 
     return (
         <header className="navbar-container" style={{
-            background: "var(--white)"
+            background: "var(--primary)"
         }}>
             {/* Top Row */}
             <div className="container navbar-top-row" style={{
@@ -454,21 +454,21 @@ export default function Navbar() {
             width: 100%;
             height: 44px;
             border-radius: 100px;
-            border: 1.5px solid var(--gray-200);
+            border: 1.5px solid var(--gray-300);
             padding: 0 54px 0 24px;
             font-size: 16px;
             color: var(--text-primary);
-            background: var(--gray-100);
+            background: var(--gray-200);
             outline: none;
             transition: all 0.2s ease;
             font-family: inherit;
         }
         .search-input:hover {
-            border-color: var(--gray-300);
-            background: var(--gray-200);
+            border-color: var(--clr-surface-a30);
+            background: var(--gray-300);
         }
         .search-input:focus {
-            background: var(--gray-100);
+            background: var(--gray-200);
             border-color: var(--accent);
             box-shadow: 0 0 0 4px rgba(209, 17, 25, 0.15);
         }
@@ -494,14 +494,7 @@ export default function Navbar() {
         }
 
         .navbar-bottom-bleed {
-            position: absolute;
-            bottom: -40px;
-            left: 0;
-            right: 0;
-            height: 40px;
-            background: linear-gradient(to bottom, var(--white), transparent);
-            pointer-events: none;
-            z-index: 49;
+            display: none;
         }
         .navbar-container .container {
             max-width: 1504px;
@@ -520,18 +513,18 @@ export default function Navbar() {
             justify-content: center;
             padding: 9px 0;
             border-radius: 100px;
-            border: 1.5px solid var(--gray-200);
+            border: 1.5px solid var(--gray-300);
             font-size: 14px;
             font-weight: 600;
             color: var(--text-primary);
             white-space: nowrap;
             text-decoration: none;
-            background: var(--gray-100);
+            background: var(--gray-200);
             text-align: center;
             transition: background 0.2s, border-color 0.2s;
         }
         .quick-pill:hover {
-            background: var(--gray-200);
+            background: var(--gray-300);
             border-color: var(--accent);
         }
 
@@ -542,7 +535,7 @@ export default function Navbar() {
             .quick-pills { display: flex !important; }
             .logo-img { height: 92px !important; margin: -12px 0 !important; }
             .logo-flags { width: 36px !important; height: 36px !important; }
-.navbar-top-row { padding: 6px 16px !important; }
+            .navbar-top-row { padding: 6px 16px !important; }
             .search-container { padding: 0 16px 8px !important; }
             .quick-pills { padding: 0 16px 8px !important; }
         }

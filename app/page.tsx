@@ -7,6 +7,7 @@ import BrandDivider from "@/components/BrandDivider";
 import FAQSection from "@/components/FAQSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import ContactSection from "@/components/ContactSection";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import FeaturedCarousel from "@/components/FeaturedCarousel";
@@ -41,12 +42,12 @@ export default async function HomePage() {
         {/* Hero */}
         <HeroSection />
 
-        <div style={{ marginTop: "64px", marginBottom: "120px", width: "100%", overflow: "hidden" }}>
+        <div className="brand-divider-wrapper" style={{ marginTop: "64px", marginBottom: "120px", width: "100%", overflow: "hidden" }}>
           <BrandDivider />
         </div>
 
         {/* Featured Vehicles */}
-        <section className="trending-section" style={{ padding: "0 0 100px", background: "var(--primary)", position: "relative" }}>
+        <section className="trending-section" style={{ padding: "0 0 100px", position: "relative" }}>
 
           <div className="container" style={{ position: "relative", zIndex: 2 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "40px", alignItems: "end", marginBottom: "80px" }}>
@@ -113,72 +114,49 @@ export default async function HomePage() {
         {/* About Us */}
         <section id="nosotros" style={{ padding: "80px 0", background: "var(--white)", borderTop: "1px solid var(--gray-200)" }}>
           <div className="container">
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "64px", alignItems: "center" }}>
-              
-              <div style={{ order: 1 }}>
+            <div className="nosotros-grid">
+
+              {/* Text */}
+              <div>
                 <h2 style={{
                   fontFamily: "var(--font-rb-rational), sans-serif",
-                  fontSize: "clamp(48px, 6vw, 84px)",
+                  fontSize: "clamp(40px, 5vw, 72px)",
                   fontWeight: 700,
                   color: "var(--text-primary)",
-                  lineHeight: 0.9,
+                  lineHeight: 0.92,
                   letterSpacing: "-0.02em",
                   textTransform: "uppercase",
-                  marginBottom: "32px",
-                  marginLeft: "-4px"
+                  marginBottom: "24px",
+                  marginLeft: "-3px"
                 }}>
                   Conoce<br />nuestra<br />historia<span style={{ color: "var(--accent)" }}>.</span>
                 </h2>
-                <div style={{ width: 40, height: 4, background: "var(--accent)", marginBottom: 32 }}></div>
+                <div style={{ width: 36, height: 3, background: "var(--accent)", marginBottom: 28 }} />
                 <p style={{
                   color: "var(--text-muted)",
-                  fontSize: "18px",
-                  lineHeight: 1.6,
-                  marginBottom: "0",
-                  maxWidth: "500px"
+                  fontSize: "16px",
+                  lineHeight: 1.7,
+                  maxWidth: "420px"
                 }}>
                   En FF Speed Cars entregamos la libertad de conducir con absoluta tranquilidad. Especialistas en vehículos meticulosamente verificados listos para exigentes conductores.
                 </p>
               </div>
-              
-              <div style={{ position: "relative", width: "100%", aspectRatio: "16/10", margin: "16px 0" }}>
-                {/* Marco fotográfico elegante */}
-                <div style={{
-                  position: "absolute",
-                  inset: 0,
-                  backgroundImage: "url('/history.png')",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  backgroundColor: "var(--gray-100)",
-                  borderRadius: "16px",
-                  boxShadow: "0 20px 40px -10px rgba(0,0,0,0.12)",
-                  border: "6px solid var(--white)"
-                }} />
-                
-                {/* Bloque decorativo estilo outline fino */}
-                <div style={{
-                  position: "absolute",
-                  bottom: "-24px",
-                  right: "-24px",
-                  width: "60%",
-                  height: "50%",
-                  border: "2px solid var(--gray-200)",
-                  borderRadius: "16px",
-                  zIndex: -1
-                }} />
 
-                {/* Detalle sutil color acento - top left */}
-                <div style={{
-                  position: "absolute",
-                  top: "-16px",
-                  left: "-16px",
-                  width: "80px",
-                  height: "80px",
-                  borderTop: "3px solid var(--accent)",
-                  borderLeft: "3px solid var(--accent)",
-                  borderTopLeftRadius: "8px",
-                  zIndex: -1
-                }} />
+              {/* Image */}
+              <div className="nosotros-img-wrap" style={{
+                position: "relative",
+                width: "100%",
+                aspectRatio: "4/3",
+                borderRadius: "12px",
+                overflow: "hidden",
+              }}>
+                <Image
+                  src="/history.png"
+                  alt="FF Speed Cars - Fort Worth, TX"
+                  fill
+                  style={{ objectFit: "cover", objectPosition: "center" }}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
               </div>
 
             </div>

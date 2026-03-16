@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 const VIDEOS = ["/hero9.mp4", "/hero3.mp4", "/hero7.mp4", "/hero6.mp4"];
 const FADE_MS = 900;
@@ -11,9 +11,29 @@ export default function HeroSection() {
     const activeIdxRef = useRef(0);
     const videoRefs = useRef<(HTMLVideoElement | null)[]>([null, null, null, null]);
 
-    const setVideoRef = (index: number) => (el: HTMLVideoElement | null) => {
-        videoRefs.current[index] = el;
-    };
+    // Stable ref callbacks — created once, never recreated on re-render.
+    // This prevents React from tearing down and re-attaching refs every render,
+    // which can interrupt iOS autoplay.
+    const videoRefCallbacks = useRef(
+        VIDEOS.map((_, index) => (el: HTMLVideoElement | null) => {
+            if (el) {
+                // Set as both DOM property AND HTML attribute — iOS Safari checks the attribute
+                el.muted = true;
+                el.setAttribute("muted", "");
+                el.setAttribute("playsinline", "");
+                el.setAttribute("webkit-playsinline", "");
+            }
+            videoRefs.current[index] = el;
+        })
+    ).current;
+
+    useEffect(() => {
+        const v = videoRefs.current[0];
+        if (!v) return;
+        // Re-assert muted before play — belt and suspenders for iOS
+        v.muted = true;
+        v.play().catch(() => {});
+    }, []);
 
     const handleEnded = useCallback(() => {
         const current = activeIdxRef.current;
@@ -21,7 +41,7 @@ export default function HeroSection() {
         const nextVideo = videoRefs.current[next];
         if (nextVideo) {
             nextVideo.currentTime = 0;
-            nextVideo.play().catch(() => { });
+            nextVideo.play().catch(() => {});
         }
         activeIdxRef.current = next;
         setActiveIdx(next);
@@ -29,15 +49,14 @@ export default function HeroSection() {
 
     return (
         <section className="hero-fs">
-            {/* Background videos */}
+            {/* Background videos — no React muted/autoPlay props intentionally;
+                attributes are set via stable ref callbacks above so iOS sees them in HTML */}
             {VIDEOS.map((src, index) => (
                 <video
                     key={src}
-                    ref={setVideoRef(index)}
+                    ref={videoRefCallbacks[index]}
                     src={src}
-                    muted
                     playsInline
-                    autoPlay={index === 0}
                     onEnded={handleEnded}
                     style={{
                         position: "absolute",
@@ -53,18 +72,18 @@ export default function HeroSection() {
                 />
             ))}
 
-            {/* Cinematic overlay — left vignette + top darkening */}
+            {/* Cinematic overlay — top fades from page bg (#121010) into video */}
             <div style={{
                 position: "absolute",
                 inset: 0,
                 zIndex: 1,
                 background: [
-                    "linear-gradient(to bottom, rgba(18,16,16,0.08) 0%, rgba(18,16,16,0.45) 55%, rgba(18,16,16,0.92) 82%, #121010 100%)",
+                    "linear-gradient(to bottom, #121010 0%, rgba(18,16,16,0.55) 12%, rgba(18,16,16,0.1) 28%, rgba(18,16,16,0.45) 58%, rgba(18,16,16,0.92) 82%, #121010 100%)",
                     "linear-gradient(to right, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 50%, transparent 75%)",
                 ].join(", "),
             }} />
 
-            {/* Bottom bleed — dissolves hero edge into page background */}
+            {/* Bottom bleed */}
             <div style={{
                 position: "absolute",
                 bottom: 0,
@@ -85,7 +104,6 @@ export default function HeroSection() {
                 flexDirection: "column",
                 justifyContent: "flex-end",
             }}>
-                {/* Centered container */}
                 <div className="hero-fs-inner">
                     <span className="hero-fs-eyebrow">FF Speed Cars · Fort Worth, TX</span>
                     <h1 className="hero-fs-headline">
