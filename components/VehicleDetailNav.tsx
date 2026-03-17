@@ -5,10 +5,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import LanguageSelector from '@/components/LanguageSelector';
 
 export default function VehicleDetailNav() {
     const router = useRouter();
     const [navSearch, setNavSearch] = useState('');
+    const { t } = useLanguage();
 
     return (
         <header style={{
@@ -44,7 +47,8 @@ export default function VehicleDetailNav() {
                     />
                 </Link>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <LanguageSelector />
                     <a href="https://www.instagram.com/ffspeedcars/" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center' }}>
                         <Image src="/ig.svg" alt="Instagram" width={22} height={22} style={{ opacity: 0.75 }} />
                     </a>
@@ -57,7 +61,7 @@ export default function VehicleDetailNav() {
                 <div style={{ position: 'relative' }}>
                     <input
                         type="text"
-                        placeholder="¿Qué tipo de auto estás buscando?"
+                        placeholder={t.nav.searchPlaceholder}
                         value={navSearch}
                         onChange={e => setNavSearch(e.target.value)}
                         onKeyDown={e => {
@@ -102,7 +106,7 @@ export default function VehicleDetailNav() {
                             background: 'none', border: 'none', cursor: 'pointer',
                             padding: 4, display: 'flex', alignItems: 'center',
                         }}
-                        aria-label="Buscar"
+                        aria-label={t.nav.buscar}
                     >
                         <Search size={20} color="var(--text-muted)" strokeWidth={2.5} />
                     </button>

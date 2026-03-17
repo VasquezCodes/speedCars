@@ -5,10 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Heart, User, Search, Menu, X, ChevronDown } from "lucide-react";
+import { MapPin, Search, Menu, X, ChevronDown } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageSelector from "@/components/LanguageSelector";
 
 export default function Navbar() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [navSearch, setNavSearch] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const [menuClosing, setMenuClosing] = useState(false);
@@ -31,7 +34,7 @@ export default function Navbar() {
 
             const hourStr = parts.find(p => p.type === 'hour')?.value;
             const currentHour = parseInt(hourStr || '0', 10);
-            const weekday = parts.find(p => p.type === 'weekday')?.value; // 'Sun', 'Mon', etc.
+            const weekday = parts.find(p => p.type === 'weekday')?.value;
 
             let open = false;
             let hoursText = "9 AM - 6 PM";
@@ -49,7 +52,7 @@ export default function Navbar() {
         };
 
         checkOpenStatus();
-        const intervalId = setInterval(checkOpenStatus, 60000); // Actualiza cada minuto
+        const intervalId = setInterval(checkOpenStatus, 60000);
         return () => clearInterval(intervalId);
     }, []);
 
@@ -81,38 +84,37 @@ export default function Navbar() {
                 justifyContent: "space-between",
                 padding: "10px 24px",
                 gap: "24px",
+                position: "relative",
             }}>
+                {/* Centered language pill — mobile only */}
+                <div className="mobile-lang-inline" style={{ position: "absolute", left: "44%", transform: "translateX(-50%)" }}>
+                    <LanguageSelector />
+                </div>
+
                 {/* Left side: Logo & Nav */}
                 <div style={{ display: "flex", alignItems: "center", gap: "40px" }}>
                     {/* Logo */}
-                    <Link href="/" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <Image
-                            src="/logo-nuevo.png"
-                            alt="FF Speed Cars Logo"
-                            width={340}
-                            height={100}
-                            className="logo-img"
-                            style={{ width: "auto", objectFit: "contain" }}
-                            priority
-                        />
-                        <Image
-                            src="/racing-flag-2-svgrepo-com.svg"
-                            alt=""
-                            aria-hidden
-                            width={44}
-                            height={44}
-                            className="logo-flags"
-                            style={{ filter: "invert(1) opacity(0.65)", flexShrink: 0, marginBottom: "2px" }}
-                        />
-                    </Link>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                        <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+                            <Image
+                                src="/logo-nuevo.png"
+                                alt="FF Speed Cars Logo"
+                                width={340}
+                                height={100}
+                                className="logo-img"
+                                style={{ width: "auto", objectFit: "contain" }}
+                                priority
+                            />
+                        </Link>
+                    </div>
 
                     {/* Desktop Nav */}
                     <nav className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "28px" }}>
-                        <NavLink href="/autos">Catálogo</NavLink>
-                        <NavLink href="/#nosotros">Nosotros</NavLink>
-                        <NavLink href="/#testimonios">Testimonios</NavLink>
-                        <NavLink href="/#faq">Preguntas</NavLink>
-                        <NavLink href="/#contacto">Contacto</NavLink>
+                        <NavLink href="/autos">{t.nav.catalog}</NavLink>
+                        <NavLink href="/#nosotros">{t.nav.about}</NavLink>
+                        <NavLink href="/#testimonios">{t.nav.testimonials}</NavLink>
+                        <NavLink href="/#faq">{t.nav.faq}</NavLink>
+                        <NavLink href="/#contacto">{t.nav.contact}</NavLink>
                     </nav>
                 </div>
 
@@ -120,6 +122,9 @@ export default function Navbar() {
                 <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
 
                     <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "28px" }}>
+                        {/* Language selector */}
+                        <LanguageSelector />
+
                         {/* Location */}
                         <div
                             className="location-wrapper"
@@ -130,7 +135,7 @@ export default function Navbar() {
                             <div className="action-item" style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", paddingBottom: "32px", marginBottom: "-32px" }}>
                                 <MapPin size={24} className="action-icon" strokeWidth={1.5} />
                                 <div style={{ display: "flex", flexDirection: "column" }}>
-                                    <span style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.1, fontWeight: 500 }}>Tu sucursal en</span>
+                                    <span style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.1, fontWeight: 500 }}>{t.nav.yourBranch}</span>
                                     <span className="action-text" style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.2 }}>Fort Worth, TX</span>
                                 </div>
                             </div>
@@ -168,7 +173,7 @@ export default function Navbar() {
                                 }} />
 
                                 <div style={{ position: "relative", zIndex: 2 }}>
-                                    <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "4px" }}>Tu sucursal en 76119:</p>
+                                    <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "4px" }}>{t.nav.yourBranch} 76119:</p>
                                     <h3 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text-primary)", margin: "0 0 4px 0", letterSpacing: "-0.02em" }}>Fort Worth</h3>
 
                                     <p style={{ fontSize: "14px", color: "var(--text-primary)", marginBottom: "16px", lineHeight: 1.5 }}>
@@ -197,7 +202,7 @@ export default function Navbar() {
                                                 fontWeight: 600,
                                                 letterSpacing: "-0.01em"
                                             }}>
-                                                {isOpenStatus ? "Abierto ahora" : "Cerrado ahora"}
+                                                {isOpenStatus ? t.nav.open : t.nav.closed}
                                             </span>
                                             <div
                                                 onClick={() => setHoursOpen(!hoursOpen)}
@@ -219,13 +224,11 @@ export default function Navbar() {
                                                 gap: "8px",
                                                 animation: "fadeInDown 0.2s ease forwards"
                                             }}>
-                                                <div>Lun-Sáb: 9 AM - 6 PM</div>
-                                                <div>Dom: 10 AM - 4 PM</div>
+                                                <div>{t.nav.weekdayHours}</div>
+                                                <div>{t.nav.sundayHours}</div>
                                             </div>
                                         )}
                                     </div>
-
-
                                 </div>
                             </div>
                         </div>
@@ -249,7 +252,7 @@ export default function Navbar() {
                         >
                             <MapPin size={16} strokeWidth={1.5} color="var(--text-secondary)" />
                             <div>
-                                <div style={{ fontSize: "10px", color: "var(--text-muted)", lineHeight: 1, fontWeight: 500 }}>Tu sucursal</div>
+                                <div style={{ fontSize: "10px", color: "var(--text-muted)", lineHeight: 1, fontWeight: 500 }}>{t.nav.yourBranchShort}</div>
                                 <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3 }}>Fort Worth</div>
                             </div>
                         </button>
@@ -267,7 +270,7 @@ export default function Navbar() {
                                 }}>
                                     {/* tip arrow */}
                                     <div style={{ position: "absolute", top: -7, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 14, height: 14, background: "var(--white)", borderRadius: 3 }} />
-                                    <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "0 0 2px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Tu sucursal en 76119</p>
+                                    <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "0 0 2px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.nav.yourBranch} 76119</p>
                                     <p style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>Fort Worth, TX</p>
                                     <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 14px", lineHeight: 1.5 }}>
                                         5047 David Strickland Rd<br />
@@ -279,7 +282,7 @@ export default function Navbar() {
                                             color: isOpenStatus ? "#1B5E20" : "#CC0000",
                                             padding: "3px 9px", borderRadius: 100, fontSize: 12, fontWeight: 600,
                                         }}>
-                                            {isOpenStatus ? "Abierto ahora" : "Cerrado ahora"}
+                                            {isOpenStatus ? t.nav.open : t.nav.closed}
                                         </span>
                                         <span style={{ color: "var(--text-secondary)" }}>{todayHours}</span>
                                     </div>
@@ -301,7 +304,7 @@ export default function Navbar() {
                             justifyContent: "center"
                         }}
                         className="mobile-menu-btn"
-                        aria-label="Menú"
+                        aria-label={t.nav.menu}
                     >
                         {menuOpen ? <X size={28} /> : <Menu size={28} />}
                     </button>
@@ -314,7 +317,7 @@ export default function Navbar() {
                     <input
                         type="text"
                         id="header-inventory-search"
-                        placeholder="¿Qué tipo de auto estás buscando?"
+                        placeholder={t.nav.searchPlaceholder}
                         className="search-input"
                         value={navSearch}
                         onChange={(e) => setNavSearch(e.target.value)}
@@ -335,7 +338,7 @@ export default function Navbar() {
                             background: "none", border: "none", cursor: "pointer", padding: 4,
                             display: "flex", alignItems: "center",
                         }}
-                        aria-label="Buscar"
+                        aria-label={t.nav.buscar}
                     >
                         <Search size={22} color="var(--text-muted)" strokeWidth={2.5} />
                     </button>
@@ -344,9 +347,9 @@ export default function Navbar() {
 
             {/* Quick-access pills — mobile only */}
             <div className="quick-pills">
-                <QuickPill href="/autos">Catálogo</QuickPill>
-                <QuickPill href="/#nosotros">Nosotros</QuickPill>
-                <QuickPill href="/#contacto">Contacto</QuickPill>
+                <QuickPill href="/autos">{t.nav.catalog}</QuickPill>
+                <QuickPill href="/#nosotros">{t.nav.about}</QuickPill>
+                <QuickPill href="/#contacto">{t.nav.contact}</QuickPill>
             </div>
 
             {/* Mobile Menu */}
@@ -364,17 +367,17 @@ export default function Navbar() {
                         ? "mobileMenuSlideUp 0.3s cubic-bezier(0.4, 0, 1, 1) forwards"
                         : "mobileMenuSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards",
                 }}>
-                    <MobileNavLink href="/autos" onClick={() => closeMenu()}>Catálogo</MobileNavLink>
-                    <MobileNavLink href="/#nosotros" onClick={() => closeMenu()}>Nosotros</MobileNavLink>
-                    <MobileNavLink href="/#testimonios" onClick={() => closeMenu()}>Testimonios</MobileNavLink>
-                    <MobileNavLink href="/#faq" onClick={() => closeMenu()}>Preguntas Frecuentes</MobileNavLink>
-                    <MobileNavLink href="/#contacto" onClick={() => closeMenu()}>Contacto</MobileNavLink>
+                    <MobileNavLink href="/autos" onClick={() => closeMenu()}>{t.nav.catalog}</MobileNavLink>
+                    <MobileNavLink href="/#nosotros" onClick={() => closeMenu()}>{t.nav.about}</MobileNavLink>
+                    <MobileNavLink href="/#testimonios" onClick={() => closeMenu()}>{t.nav.testimonials}</MobileNavLink>
+                    <MobileNavLink href="/#faq" onClick={() => closeMenu()}>{t.nav.faqFull}</MobileNavLink>
+                    <MobileNavLink href="/#contacto" onClick={() => closeMenu()}>{t.nav.contact}</MobileNavLink>
 
                     <div style={{ padding: "24px", borderTop: "1px solid var(--gray-200)", marginTop: "20px" }}>
                         <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "20px" }}>
                             <MapPin size={22} strokeWidth={1.5} color="var(--accent)" style={{ flexShrink: 0, marginTop: 2 }} />
                             <div>
-                                <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: "0 0 2px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Tu sucursal en 76119</p>
+                                <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: "0 0 2px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.nav.yourBranch} 76119</p>
                                 <p style={{ fontSize: "17px", fontWeight: 800, color: "var(--text-primary)", margin: "0 0 4px", letterSpacing: "-0.02em" }}>Fort Worth, TX</p>
                                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
                                     5047 David Strickland Rd<br />
@@ -482,10 +485,6 @@ export default function Navbar() {
             margin: -14px 0;
         }
 
-        .logo-flags {
-            width: 44px;
-            height: 44px;
-        }
 
         .navbar-container {
             position: relative;
@@ -528,13 +527,16 @@ export default function Navbar() {
             border-color: var(--accent);
         }
 
+        .mobile-lang-inline { display: none; }
+
         @media (max-width: 1024px) {
             .desktop-nav { display: none !important; }
             .mobile-menu-btn { display: flex !important; }
             .mobile-location { display: flex !important; }
+            .mobile-lang-inline { display: flex !important; }
             .quick-pills { display: flex !important; }
             .logo-img { height: 92px !important; margin: -12px 0 !important; }
-            .logo-flags { width: 36px !important; height: 36px !important; }
+
             .navbar-top-row { padding: 6px 16px !important; }
             .search-container { padding: 0 16px 8px !important; }
             .quick-pills { padding: 0 16px 8px !important; }
@@ -542,6 +544,7 @@ export default function Navbar() {
         @media (min-width: 1025px) {
             .mobile-menu-btn { display: none !important; }
             .mobile-location { display: none !important; }
+            .mobile-lang-inline { display: none !important; }
         }
       `}</style>
         </header>

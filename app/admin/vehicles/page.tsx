@@ -740,10 +740,11 @@ export default function AdminVehiclesPage() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removeImage(idx)}
-                                                                className="absolute top-3 right-3 w-10 h-10 bg-black/80 backdrop-blur-md text-white rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 shadow-xl"
-                                                                style={{ border: "none", cursor: "pointer" }}
+                                                                style={{ position: "absolute", top: 12, right: 12, width: 36, height: 36, background: "rgba(0,0,0,0.75)", border: "none", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", zIndex: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.3)", transition: "background 0.15s" }}
+                                                                onMouseEnter={(e) => { e.currentTarget.style.background = "#dc2626"; }}
+                                                                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.75)"; }}
                                                             >
-                                                                <Trash2 size={16} />
+                                                                <Trash2 size={15} />
                                                             </button>
                                                         </div>
                                                     ))}

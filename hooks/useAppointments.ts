@@ -6,8 +6,6 @@ import {
   query,
   where,
   getDocs,
-  addDoc,
-  serverTimestamp,
 } from "firebase/firestore";
 import { format } from "date-fns";
 import { db } from "@/lib/firebase/client";
@@ -114,18 +112,24 @@ export function useAppointments(): UseAppointmentsReturn {
       vehicleId?: string,
       vehicleName?: string,
     ): Promise<void> => {
-      await addDoc(collection(db, "appointments"), {
-        date: format(data.date, "yyyy-MM-dd"),
-        time: data.time,
-        name: data.name,
-        phone: data.phone,
-        email: data.email,
-        notes: data.notes ?? "",
-        referrerId,
-        ...(vehicleId ? { vehicleId } : {}),
-        ...(vehicleName ? { vehicleName } : {}),
-        createdAt: serverTimestamp(),
+      const res = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: format(data.date, "yyyy-MM-dd"),
+          time: data.time,
+          name: data.name,
+          phone: data.phone,
+          email: data.email,
+          notes: data.notes ?? "",
+          referrerId,
+          vehicleId,
+          vehicleName,
+        }),
       });
+      if (!res.ok) {
+        throw new Error("Error al agendar el turno");
+      }
     },
     []
   );

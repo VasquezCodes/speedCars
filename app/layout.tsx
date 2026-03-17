@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sileo";
 import "sileo/styles.css";
 import ReferralCapture from "@/components/ReferralCapture";
+import Providers from "@/app/providers";
 
 const lato = localFont({
   src: [
@@ -51,9 +52,11 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${lato.variable} ${carmaxSharp.variable} ${rbRational.variable}`}>
       <body>
-        <Toaster position="top-center" theme="dark" />
-        <ReferralCapture />
-        {children}
+        <Providers>
+          <Toaster position="top-center" theme="dark" />
+          <ReferralCapture />
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -3,43 +3,19 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import VehicleCard, { Vehicle } from "@/components/VehicleCard";
 import { useSearchParams } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
 
-/* ─── Constants ─────────────────────────────────────────── */
+/* ─── Static values (DB filter keys — language-independent) ─ */
 
-const VEHICLE_TYPES = [
-    { label: "SUVs",          value: "SUV",          asset: "/assetsSpeedCars/asset 0.svg" },
-    { label: "Pickups",       value: "Pickup",        asset: "/assetsSpeedCars/asset 1.svg" },
-    { label: "Sedanes",       value: "Sedán",         asset: "/assetsSpeedCars/asset 2.svg" },
-    { label: "Hatchbacks",    value: "Hatchback",     asset: "/assetsSpeedCars/asset 3.svg" },
-    { label: "Coupés",        value: "Coupé",         asset: "/assetsSpeedCars/asset 4.svg" },
-    { label: "Minivans",      value: "Minivan",       asset: "/assetsSpeedCars/asset 5.svg" },
-    { label: "Deportivos",    value: "Deportivo",     asset: "/assetsSpeedCars/asset 6.svg" },
-    { label: "Convertibles",  value: "Convertible",   asset: "/assetsSpeedCars/asset 7.svg" },
-    { label: "Eléctricos",    value: "Eléctrico",     asset: "/assetsSpeedCars/asset 8.svg" },
-    { label: "4x4",           value: "4x4",           asset: "/assetsSpeedCars/asset 9.svg" },
-    { label: "Utilitarios",   value: "Utilitario",    asset: "/assetsSpeedCars/asset 10.svg" },
-];
+const VEHICLE_TYPE_VALUES  = ["SUV","Pickup","Sedán","Hatchback","Coupé","Minivan","Deportivo","Convertible","Eléctrico","4x4","Utilitario"];
+const VEHICLE_TYPE_ASSETS  = Array.from({ length: 11 }, (_, i) => `/assetsSpeedCars/asset ${i}.svg`);
+const FUEL_TYPE_VALUES     = ["Nafta", "Diesel", "Híbrido", "Eléctrico", "GNC"];
+const PRICE_VALUES         = ["10000", "20000", "30000", "50000", "80000"];
+const MILEAGE_VALUES       = ["20000", "50000", "100000", "150000"];
 
 const BRANDS = [
     "Toyota","Ford","Chevrolet","Honda","Volkswagen",
     "Renault","Fiat","Nissan","Hyundai","Peugeot","Citroën",
-];
-
-const FUEL_TYPES = ["Nafta", "Diesel", "Híbrido", "Eléctrico", "GNC"];
-
-const PRICE_RANGES = [
-    { label: "Hasta $10.000",  value: "10000" },
-    { label: "Hasta $20.000",  value: "20000" },
-    { label: "Hasta $30.000",  value: "30000" },
-    { label: "Hasta $50.000",  value: "50000" },
-    { label: "Hasta $80.000",  value: "80000" },
-];
-
-const MILEAGE_RANGES = [
-    { label: "Hasta 20.000 km",  value: "20000" },
-    { label: "Hasta 50.000 km",  value: "50000" },
-    { label: "Hasta 100.000 km", value: "100000" },
-    { label: "Hasta 150.000 km", value: "150000" },
 ];
 
 /* ─── Sub-components ─────────────────────────────────────── */
@@ -114,6 +90,15 @@ interface CatalogContentProps {
 
 export default function CatalogContent({ searchParams }: CatalogContentProps) {
     const urlParams = useSearchParams();
+    const { t } = useLanguage();
+    const c = t.catalog;
+
+    const VEHICLE_TYPES = VEHICLE_TYPE_VALUES.map((value, i) => ({
+        value, label: c.vehicleTypeLabels[i] as string, asset: VEHICLE_TYPE_ASSETS[i],
+    }));
+    const FUEL_TYPES    = FUEL_TYPE_VALUES.map((value, i) => ({ value, label: c.fuelTypeLabels[i] as string }));
+    const PRICE_RANGES  = PRICE_VALUES.map((value, i)    => ({ value, label: c.priceLabels[i] as string }));
+    const MILEAGE_RANGES = MILEAGE_VALUES.map((value, i) => ({ value, label: c.mileageLabels[i] as string }));
 
     const [vehicles, setVehicles]       = useState<Vehicle[]>([]);
     const [loading, setLoading]         = useState(true);
@@ -187,9 +172,9 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 borderBottom: "1px solid var(--clr-surface-a20)", cursor: "pointer",
             }}>
-                <span style={{ fontSize: 14, color: "var(--text-primary)" }}>Ordenar por</span>
+                <span style={{ fontSize: 14, color: "var(--text-primary)" }}>{c.sortBy}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Más recientes</span>
+                    <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{c.mostRecent}</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--clr-surface-a40)" strokeWidth="2.5" strokeLinecap="round">
                         <polyline points="6 9 12 15 18 9" />
                     </svg>
@@ -197,7 +182,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
             </div>
 
             {/* Body Type */}
-            <FilterSection title="Tipo de carrocería" open={openSections.bodyType} onToggle={() => toggleSection("bodyType")}>
+            <FilterSection title={c.bodyType} open={openSections.bodyType} onToggle={() => toggleSection("bodyType")}>
                 {VEHICLE_TYPES.map((vt) => (
                     <CheckItem key={vt.value} label={vt.label} checked={type === vt.value}
                         onChange={() => setType(type === vt.value ? "" : vt.value)} />
@@ -205,7 +190,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
             </FilterSection>
 
             {/* Price */}
-            <FilterSection title="Precio" open={openSections.price} onToggle={() => toggleSection("price")}>
+            <FilterSection title={c.price} open={openSections.price} onToggle={() => toggleSection("price")}>
                 {PRICE_RANGES.map((r) => (
                     <CheckItem key={r.value} label={r.label} checked={maxPrice === r.value}
                         onChange={() => setMaxPrice(maxPrice === r.value ? "" : r.value)} />
@@ -213,7 +198,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
             </FilterSection>
 
             {/* Brand */}
-            <FilterSection title="Marca y Modelo" open={openSections.brand} onToggle={() => toggleSection("brand")}>
+            <FilterSection title={c.brandModel} open={openSections.brand} onToggle={() => toggleSection("brand")}>
                 {BRANDS.map((b) => (
                     <CheckItem key={b} label={b} checked={brand === b}
                         onChange={() => setBrand(brand === b ? "" : b)} />
@@ -221,7 +206,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
             </FilterSection>
 
             {/* Mileage */}
-            <FilterSection title="Kilometraje" open={openSections.mileage} onToggle={() => toggleSection("mileage")}>
+            <FilterSection title={c.mileage} open={openSections.mileage} onToggle={() => toggleSection("mileage")}>
                 {MILEAGE_RANGES.map((r) => (
                     <CheckItem key={r.value} label={r.label} checked={maxMileage === r.value}
                         onChange={() => setMaxMileage(maxMileage === r.value ? "" : r.value)} />
@@ -229,15 +214,15 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
             </FilterSection>
 
             {/* Fuel Type */}
-            <FilterSection title="Combustible" open={openSections.fuel} onToggle={() => toggleSection("fuel")}>
+            <FilterSection title={c.fuel} open={openSections.fuel} onToggle={() => toggleSection("fuel")}>
                 {FUEL_TYPES.map((f) => (
-                    <CheckItem key={f} label={f} checked={fuelTypes.includes(f)}
-                        onChange={() => toggleFuel(f)} />
+                    <CheckItem key={f.value} label={f.label} checked={fuelTypes.includes(f.value)}
+                        onChange={() => toggleFuel(f.value)} />
                 ))}
             </FilterSection>
 
-            {/* Extra stubs matching CarMax's list */}
-            {["Características", "Color exterior", "Color interior"].map((label) => (
+            {/* Extra stubs */}
+            {(c.extraFilters as readonly string[]).map((label) => (
                 <div key={label} style={{
                     padding: "24px 20px", minHeight: 70,
                     display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -304,14 +289,14 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                                 <line x1="4" y1="12" x2="16" y2="12"/>
                                 <line x1="4" y1="18" x2="12" y2="18"/>
                             </svg>
-                            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>Filtros y Ordenar</span>
+                            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{c.filtersTitle}</span>
                             {hasFilters && (
                                 <button onClick={clearAll} style={{
                                     marginLeft: "auto", fontSize: 12, color: "#d11119",
                                     background: "none", border: "none", cursor: "pointer",
                                     fontFamily: "inherit", fontWeight: 600,
                                 }}>
-                                    Limpiar todo
+                                    {c.clearAll}
                                 </button>
                             )}
                         </div>
@@ -339,7 +324,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                                 {loading ? "—" : vehicles.length.toLocaleString()}
                             </span>
                             <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 400 }}>
-                                {loading ? "cargando..." : vehicles.length !== 1 ? "coincidencias" : "coincidencia"}
+                                {loading ? c.loading : vehicles.length !== 1 ? c.matches : c.match}
                             </span>
                         </div>
 
@@ -360,7 +345,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                                 <line x1="4" y1="12" x2="16" y2="12"/>
                                 <line x1="4" y1="18" x2="12" y2="18"/>
                             </svg>
-                            Filtros{filterCount > 0 ? ` (${filterCount})` : ""}
+                            {c.filters}{filterCount > 0 ? ` (${filterCount})` : ""}
                         </button>
                     </div>
 
@@ -390,15 +375,15 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                         <div style={{ textAlign: "center", padding: "80px 0" }}>
                             <div style={{ fontSize: 52, marginBottom: 16 }}>🔍</div>
                             <h3 style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 22, marginBottom: 8 }}>
-                                No encontramos vehículos
+                                {c.noVehicles}
                             </h3>
-                            <p style={{ color: "var(--text-muted)", marginBottom: 28 }}>Probá cambiando los filtros.</p>
+                            <p style={{ color: "var(--text-muted)", marginBottom: 28 }}>{c.tryFilters}</p>
                             <button onClick={clearAll} style={{
                                 background: "#d11119", color: "white", border: "none",
                                 borderRadius: 100, padding: "13px 32px",
                                 fontSize: 14, fontWeight: 700, cursor: "pointer",
                             }}>
-                                Ver todos los vehículos
+                                {c.viewAll}
                             </button>
                         </div>
                     )}
@@ -422,7 +407,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                             display: "flex", alignItems: "center", justifyContent: "space-between",
                             position: "sticky", top: 0, background: "var(--clr-surface-a10)", zIndex: 2,
                         }}>
-                            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>Filtros y Ordenar</span>
+                            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{c.filtersTitle}</span>
                             <button onClick={() => setMobileFiltersOpen(false)}
                                 style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, color: "var(--text-muted)", lineHeight: 1 }}>
                                 ✕
@@ -435,7 +420,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                                 border: "none", borderRadius: 10, padding: 14,
                                 fontSize: 15, fontWeight: 700, cursor: "pointer",
                             }}>
-                                Ver {vehicles.length} resultados
+                                {c.viewResults} {vehicles.length} {c.results}
                             </button>
                         </div>
                     </div>

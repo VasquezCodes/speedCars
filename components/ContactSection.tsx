@@ -1,25 +1,25 @@
 "use client";
 
-import { Mail, MessageCircle, MapPin, Clock } from "lucide-react";
+import { Mail, MapPin, Clock } from "lucide-react";
 import { sileo } from "sileo";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function ContactSection() {
-  const phone = process.env.NEXT_PUBLIC_DEALER_PHONE || "5491112345678";
-  // Opcional: configurar email
+  const { t } = useLanguage();
   const email = "ffspeedcarsllc@gmail.com";
 
   return (
-    <section 
-      id="contacto" 
-      style={{ 
-        padding: "80px 0", 
-        background: "var(--white)", 
-        borderTop: "1px solid var(--gray-200)" 
+    <section
+      id="contacto"
+      style={{
+        padding: "80px 0",
+        background: "var(--white)",
+        borderTop: "1px solid var(--gray-200)"
       }}
     >
       <div className="container">
-        
-        {/* Título de la sección */}
+
+        {/* Section title */}
         <div style={{ marginBottom: "64px", textAlign: "center" }}>
           <h2 style={{
             fontFamily: "var(--font-rb-rational), sans-serif",
@@ -31,7 +31,7 @@ export default function ContactSection() {
             textTransform: "uppercase",
             marginBottom: "16px"
           }}>
-            Habla <span style={{ color: "var(--accent)" }}>con<br />nosotros.</span>
+            {t.contact.title1} <span style={{ color: "var(--accent)" }}>{t.contact.title2.replace('\n', '\n')}</span>
           </h2>
           <p style={{
             color: "var(--text-muted)",
@@ -41,12 +41,11 @@ export default function ContactSection() {
             margin: "0 auto",
             fontFamily: "var(--font-lato), sans-serif"
           }}>
-            Estamos listos para asesorarte en la búsqueda de tu próximo vehículo ideal. 
-            Envíanos un mensaje y te responderemos a la brevedad.
+            {t.contact.subtitle}
           </p>
         </div>
 
-        {/* Cajas de contacto usando Grid moderno */}
+        {/* Contact card */}
         <div style={{
           display: "grid",
           gridTemplateColumns: "1fr",
@@ -54,15 +53,13 @@ export default function ContactSection() {
           maxWidth: "400px",
           margin: "0 auto"
         }}>
-          
-          {/* Card Email (Única opción activa) */}
-          <div  
+          <div
             onClick={() => {
               if (navigator?.clipboard) {
                 navigator.clipboard.writeText(email);
-                sileo.success({ 
-                  title: "¡Correo copiado!", 
-                  description: "Contacta por gmail o tu app preferida",
+                sileo.success({
+                  title: t.contact.copied,
+                  description: t.contact.copiedDesc,
                   duration: 3500
                 });
               }
@@ -90,10 +87,10 @@ export default function ContactSection() {
               e.currentTarget.style.borderColor = "var(--gray-200)";
             }}
           >
-            <div style={{ 
-              width: "48px", 
-              height: "48px", 
-              background: "rgba(255,51,51,0.1)", 
+            <div style={{
+              width: "48px",
+              height: "48px",
+              background: "rgba(255,51,51,0.1)",
               borderRadius: "50%",
               display: "flex",
               alignItems: "center",
@@ -112,21 +109,20 @@ export default function ContactSection() {
                 letterSpacing: "0.1em",
                 marginBottom: "8px"
               }}>
-                Escribir
+                {t.contact.emailLabel}
               </h3>
               <p style={{
                 color: "var(--text-muted)",
                 fontSize: "16px",
                 fontFamily: "var(--font-lato), sans-serif"
               }}>
-                Vía Correo Electrónico
+                {t.contact.emailDesc}
               </p>
             </div>
           </div>
-
         </div>
-        
-        {/* Info extra minimalista abajo */}
+
+        {/* Extra info */}
         <div style={{
           display: "flex",
           justifyContent: "center",
@@ -136,10 +132,10 @@ export default function ContactSection() {
           padding: "0 20px"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--text-muted)", fontSize: "14px", letterSpacing: "0.02em" }}>
-             <MapPin size={16} strokeWidth={2.5} /> 5047 David Strickland Rd, Ste 137, Fort Worth, TX
+            <MapPin size={16} strokeWidth={2.5} /> 5047 David Strickland Rd, Ste 137, Fort Worth, TX
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--text-muted)", fontSize: "14px", letterSpacing: "0.02em" }}>
-             <Clock size={16} strokeWidth={2.5} /> Lun - Sáb: 9 AM - 6 PM | Dom: 10 AM - 4 PM
+            <Clock size={16} strokeWidth={2.5} /> {t.contact.weekdayHours} | {t.contact.sundayHours}
           </div>
         </div>
 

@@ -2,22 +2,21 @@
 
 import Link from "next/link";
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 const VIDEOS = ["/hero9.mp4", "/hero3.mp4", "/hero7.mp4", "/hero6.mp4"];
 const FADE_MS = 900;
 
 export default function HeroSection() {
+    const { t } = useLanguage();
     const [activeIdx, setActiveIdx] = useState(0);
     const activeIdxRef = useRef(0);
     const videoRefs = useRef<(HTMLVideoElement | null)[]>([null, null, null, null]);
 
     // Stable ref callbacks — created once, never recreated on re-render.
-    // This prevents React from tearing down and re-attaching refs every render,
-    // which can interrupt iOS autoplay.
     const videoRefCallbacks = useRef(
         VIDEOS.map((_, index) => (el: HTMLVideoElement | null) => {
             if (el) {
-                // Set as both DOM property AND HTML attribute — iOS Safari checks the attribute
                 el.muted = true;
                 el.setAttribute("muted", "");
                 el.setAttribute("playsinline", "");
@@ -30,7 +29,6 @@ export default function HeroSection() {
     useEffect(() => {
         const v = videoRefs.current[0];
         if (!v) return;
-        // Re-assert muted before play — belt and suspenders for iOS
         v.muted = true;
         v.play().catch(() => {});
     }, []);
@@ -49,8 +47,7 @@ export default function HeroSection() {
 
     return (
         <section className="hero-fs">
-            {/* Background videos — no React muted/autoPlay props intentionally;
-                attributes are set via stable ref callbacks above so iOS sees them in HTML */}
+            {/* Background videos */}
             {VIDEOS.map((src, index) => (
                 <video
                     key={src}
@@ -72,14 +69,14 @@ export default function HeroSection() {
                 />
             ))}
 
-            {/* Cinematic overlay — top fades from page bg (#121010) into video */}
+            {/* Cinematic overlay */}
             <div style={{
                 position: "absolute",
                 inset: 0,
                 zIndex: 1,
                 background: [
-                    "linear-gradient(to bottom, #121010 0%, rgba(18,16,16,0.55) 12%, rgba(18,16,16,0.1) 28%, rgba(18,16,16,0.45) 58%, rgba(18,16,16,0.92) 82%, #121010 100%)",
-                    "linear-gradient(to right, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 50%, transparent 75%)",
+                    "linear-gradient(to bottom, #121010 0%, rgba(18,16,16,0.45) 12%, rgba(18,16,16,0.05) 28%, rgba(18,16,16,0.3) 58%, rgba(18,16,16,0.85) 82%, #121010 100%)",
+                    "linear-gradient(to right, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 50%, transparent 75%)",
                 ].join(", "),
             }} />
 
@@ -90,7 +87,7 @@ export default function HeroSection() {
                 left: 0,
                 right: 0,
                 height: "38%",
-                background: "linear-gradient(to bottom, transparent 0%, rgba(18,16,16,0.55) 45%, rgba(18,16,16,0.92) 75%, #121010 100%)",
+                background: "linear-gradient(to bottom, transparent 0%, rgba(18,16,16,0.4) 45%, rgba(18,16,16,0.85) 75%, #121010 100%)",
                 zIndex: 2,
                 pointerEvents: "none",
             }} />
@@ -105,17 +102,17 @@ export default function HeroSection() {
                 justifyContent: "flex-end",
             }}>
                 <div className="hero-fs-inner">
-                    <span className="hero-fs-eyebrow">FF Speed Cars · Fort Worth, TX</span>
+                    <span className="hero-fs-eyebrow">{t.hero.eyebrow}</span>
                     <h1 className="hero-fs-headline">
-                        Tu Auto<br />
-                        <span style={{ color: "var(--accent)" }}>Hoy.</span>
+                        {t.hero.headline1}<br />
+                        <span style={{ color: "var(--accent)" }}>{t.hero.headline2}</span>
                     </h1>
                     <div className="hero-fs-rule" />
                     <p className="hero-fs-subtitle">
-                        Calidad, precio y transparencia para que te lleves el vehículo de tus sueños con total confianza.
+                        {t.hero.subtitle}
                     </p>
                     <Link href="/autos" className="hero-fs-cta">
-                        Ver catálogo
+                        {t.hero.cta}
                     </Link>
                 </div>
             </div>

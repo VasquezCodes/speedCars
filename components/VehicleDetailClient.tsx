@@ -7,6 +7,7 @@ import { CalendarCheck, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-r
 import { Vehicle } from '@/types/vehicle';
 import { AppointmentForm } from '@/components/AppointmentForm';
 import { StatusBadge, FeaturedBadge } from '@/components/StatusBadge';
+import { useLanguage } from '@/context/LanguageContext';
 
 const COLOR_MAP: Record<string, { hex: string, border: string }> = {
     "Blanco": { hex: "#FFFFFF", border: "#e5e7eb" },
@@ -66,7 +67,22 @@ const getBrandLogo = (brand: string) => {
     return map[normalize] || `${normalize.replace(/\s+/g, '-')}-svgrepo-com.svg`;
 };
 
+const FUEL_EN: Record<string, string> = {
+    'Nafta': 'Gasoline', 'Diesel': 'Diesel', 'Híbrido': 'Hybrid',
+    'Eléctrico': 'Electric', 'GNC': 'CNG',
+};
+const TRANSMISSION_EN: Record<string, string> = {
+    'Automático': 'Automatic', 'Manual': 'Manual',
+};
+const COLOR_EN: Record<string, string> = {
+    'Blanco': 'White', 'Negro': 'Black', 'Gris Plata': 'Silver',
+    'Gris Oscuro': 'Dark Gray', 'Rojo': 'Red', 'Azul': 'Blue',
+    'Beige': 'Beige', 'Marrón': 'Brown', 'Verde': 'Green',
+};
+
 export default function VehicleDetailClient({ vehicle }: Props) {
+    const { lang, t } = useLanguage();
+    const vd = t.vehicleDetail;
     const [activeImg, setActiveImg] = useState(0);
     const [showContactModal, setShowContactModal] = useState(false);
     const [showAppointmentModal, setShowAppointmentModal] = useState(false);
@@ -95,9 +111,15 @@ export default function VehicleDetailClient({ vehicle }: Props) {
         currency: "USD",
         maximumFractionDigits: 0,
     }).format(vehicle.price);
-    const mileageFormatted = vehicle.mileage === 0
-        ? "0 km — Nuevo"
-        : new Intl.NumberFormat("es-AR").format(vehicle.mileage) + " km";
+    const mileageFormatted = (() => {
+        if (lang === 'en') {
+            if (vehicle.mileage === 0) return vd.mileageNew;
+            const miles = Math.round(vehicle.mileage * 0.621371);
+            return `${miles.toLocaleString("en-US")} mi`;
+        }
+        if (vehicle.mileage === 0) return vd.mileageNew;
+        return `${vehicle.mileage.toLocaleString("es-AR")} km`;
+    })();
 
     function handlePrevImg() {
         setActiveImg(i => (i === 0 ? images.length - 1 : i - 1));
@@ -155,15 +177,25 @@ export default function VehicleDetailClient({ vehicle }: Props) {
 
         const phone = process.env.NEXT_PUBLIC_DEALER_PHONE || "5491112345678";
         const text = encodeURIComponent(
-            `Hola! Me interesa el ${vehicleTitle} ${vehicle.year} a ${priceFormatted}. ¿Podés darme más información?`
+            `${vd.whatsappGreeting} ${vehicleTitle} ${vehicle.year} a ${priceFormatted}. ${vd.whatsappQuestion}`
         );
         window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
     }
 
+    const fuelDisplay = vehicle.fuelType
+        ? (lang === 'en' ? (FUEL_EN[vehicle.fuelType] ?? vehicle.fuelType) : vehicle.fuelType)
+        : "—";
+    const transmissionDisplay = vehicle.transmission
+        ? (lang === 'en' ? (TRANSMISSION_EN[vehicle.transmission] ?? vehicle.transmission) : vehicle.transmission)
+        : "—";
+    const colorDisplay = vehicle.color
+        ? (lang === 'en' ? (COLOR_EN[vehicle.color] ?? vehicle.color) : vehicle.color)
+        : null;
+
     const specRows = [
-        { label: "Kilometraje", value: mileageFormatted },
-        { label: "Combustible", value: vehicle.fuelType || "—" },
-        { label: "Transmisión", value: vehicle.transmission || "—" },
+        { label: vd.mileage, value: mileageFormatted },
+        { label: vd.fuel, value: fuelDisplay },
+        { label: vd.transmission, value: transmissionDisplay },
     ];
 
     return (
@@ -589,7 +621,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     {/* Back arrow overlay */}
                     <Link
                         href="/autos"
-                        aria-label="Volver al catálogo"
+                        aria-label={vd.backToCatalog}
                         style={{
                             position: "absolute", top: 12, left: 12, zIndex: 10,
                             display: "flex", alignItems: "center", justifyContent: "center",
@@ -640,8 +672,8 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 {/* Chips row */}
                 <div className="vd-info-mobile-chips">
                     {mileageFormatted}
-                    {vehicle.fuelType ? ` · ${vehicle.fuelType}` : ""}
-                    {vehicle.transmission ? ` · ${vehicle.transmission}` : ""}
+                    {fuelDisplay !== "—" ? ` · ${fuelDisplay}` : ""}
+                    {transmissionDisplay !== "—" ? ` · ${transmissionDisplay}` : ""}
                 </div>
 
                 {/* Price */}
@@ -665,7 +697,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     onClick={() => setShowAppointmentModal(true)}
                 >
                     <CalendarCheck size={19} />
-                    Agendar visita
+                    {vd.scheduleVisit}
                 </button>
 
                 <hr className="vd-info-mobile-separator" />
@@ -679,11 +711,11 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 ))}
 
                 {/* Color */}
-                {vehicle.color && (
+                {colorDisplay && (
                     <div className="vd-info-mobile-spec-row">
                         <span className="vd-info-mobile-spec-label">Color</span>
                         <span className="vd-info-mobile-spec-value" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            {COLOR_MAP[vehicle.color] && (
+                            {vehicle.color && COLOR_MAP[vehicle.color] && (
                                 <span style={{
                                     display: "inline-block",
                                     width: 14, height: 14,
@@ -693,7 +725,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                     boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.06)"
                                 }} />
                             )}
-                            {vehicle.color}
+                            {colorDisplay}
                         </span>
                     </div>
                 )}
@@ -701,7 +733,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 {/* Type */}
                 {vehicle.type && (
                     <div className="vd-info-mobile-spec-row">
-                        <span className="vd-info-mobile-spec-label">Tipo</span>
+                        <span className="vd-info-mobile-spec-label">{vd.type}</span>
                         <span className="vd-info-mobile-spec-value">{vehicle.type}</span>
                     </div>
                 )}
@@ -740,7 +772,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                             {/* Back arrow overlay */}
                             <Link
                                 href="/autos"
-                                aria-label="Volver al catálogo"
+                                aria-label={vd.backToCatalog}
                                 style={{
                                     position: "absolute", top: 14, left: 14, zIndex: 10,
                                     display: "flex", alignItems: "center", justifyContent: "center",
@@ -836,11 +868,11 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                         border: `1px solid ${COLOR_MAP[vehicle.color].border}`,
                                         boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.05)"
                                     }} />
-                                    {vehicle.color}
+                                    {colorDisplay}
                                 </div>
                             )}
                             {vehicle.type && <span className="vd-badge">{vehicle.type}</span>}
-                            {vehicle.mileage === 0 && <span className="vd-badge" style={{ borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.05)" }}>0 km</span>}
+                            {vehicle.mileage === 0 && <span className="vd-badge" style={{ borderColor: "#10b981", color: "#10b981", background: "rgba(16,185,129,0.05)" }}>{vd.newBadge}</span>}
                         </div>
 
                         <div className="vd-specs">
@@ -873,12 +905,12 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                 onMouseLeave={e => (e.currentTarget.style.background = "var(--accent)")}
                             >
                                 <CalendarCheck size={18} />
-                                Agendar visita
+                                {vd.scheduleVisit}
                             </button>
                         </div>
 
                         <p style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)", marginTop: 8, letterSpacing: "0.02em" }}>
-                            Tus datos son 100% confidenciales y seguros.
+                            {vd.dataPrivacy}
                         </p>
                     </div>
                 </div>
@@ -967,10 +999,10 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                             style={{ position: "absolute", top: 20, right: 24, background: "none", border: "none", fontSize: 24, color: "var(--text-muted)", cursor: "pointer" }}
                         >✕</button>
                         <h2 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 28, marginBottom: 8, color: "var(--text-primary)" }}>
-                            Solicitar Info
+                            {vd.requestInfo}
                         </h2>
                         <p style={{ color: "var(--text-secondary)", fontSize: 15, marginBottom: 32 }}>
-                            Dejanos tus datos y un asesor se comunicará con vos por el <strong>{vehicleTitle}</strong>.
+                            {vd.requestInfoDesc} <strong>{vehicleTitle}</strong>.
                         </p>
                         <ContactForm
                             vehicleSlug={vehicle.slug}

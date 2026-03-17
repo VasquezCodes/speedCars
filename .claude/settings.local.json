@@ -32,7 +32,19 @@
       "Bash(npx tsc:*)",
       "Bash(npx next:*)",
       "Bash(grep -r \"NEXT_PUBLIC_URL\\\\|process\\\\.env\\\\.\" d:/autosdealer-app/app --include=*.ts --include=*.tsx -l)",
-      "Bash(grep -r \"NEXT_PUBLIC_URL\\\\|NEXT_PUBLIC_\" d:/autosdealer-app --include=*.ts --include=*.tsx --include=.env* --include=*.env -h)"
+      "Bash(grep -r \"NEXT_PUBLIC_URL\\\\|NEXT_PUBLIC_\" d:/autosdealer-app --include=*.ts --include=*.tsx --include=.env* --include=*.env -h)",
+      "Bash(find /d/autosdealer-app/lib -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
+      "Bash(grep -E \"^/d/autosdealer-app/[^/]+\\(/[^/]+\\)?\\(/[^/]+\\)?$\")",
+      "Bash(find /d/autosdealer-app/lib/i18n -type f -name *.ts -o -name *.tsx -o -name *.json)",
+      "Bash(find /d/autosdealer-app/context -type f -name *.ts -o -name *.tsx)",
+      "Read(//d/autosdealer-app/**)",
+      "Bash(find /d/autosdealer-app -type f -name *form* -o -name *Form*)",
+      "Bash(find /d/autosdealer-app/app -name *.ts -o -name *.tsx)",
+      "Bash(find D:/autosdealer-app/components/admin -name *.tsx)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }

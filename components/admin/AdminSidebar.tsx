@@ -4,12 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Car, Users, UserCog, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Car, Users, UserCog, LogOut, Menu, X, CalendarDays } from "lucide-react";
 
 const NAV_ITEMS = [
     { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/vehicles", label: "Vehículos", icon: Car },
     { href: "/admin/sellers", label: "Vendedores", icon: UserCog },
+    { href: "/admin/appointments", label: "Turnos", icon: CalendarDays },
     { href: "/admin/referrals", label: "Referidos", icon: Users },
 ];
 

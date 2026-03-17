@@ -13,19 +13,23 @@ import type {
 
 function formatTimestamp(ts: AnyTimestamp | null | undefined): string {
   if (!ts) return "—";
+  const fmt = (d: Date) => new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+  }).format(d);
   try {
+    // ISO string
+    if (typeof ts === "string") {
+      const d = new Date(ts);
+      return isNaN(d.getTime()) ? "—" : fmt(d);
+    }
     // Firestore client Timestamp object
     if (typeof (ts as { toDate?: unknown }).toDate === "function") {
-      return new Intl.DateTimeFormat("es-AR", {
-        day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
-      }).format((ts as { toDate: () => Date }).toDate());
+      return fmt((ts as { toDate: () => Date }).toDate());
     }
     // Admin SDK Timestamp serialized to JSON → { _seconds, _nanoseconds }
     const seconds = (ts as SerializedTimestamp)._seconds;
     if (typeof seconds === "number") {
-      return new Intl.DateTimeFormat("es-AR", {
-        day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
-      }).format(new Date(seconds * 1000));
+      return fmt(new Date(seconds * 1000));
     }
     return "—";
   } catch {
@@ -78,7 +82,7 @@ export default function AdminReferralsPage() {
   const referredAppointments = data?.recentAppointments.filter((a) => a.referrerId).length ?? 0;
 
   const TABS = [
-    { key: "stats", label: "Por Asesor" },
+    { key: "stats", label: "Por Vendedor" },
     { key: "activity", label: "Vistas Recientes" },
     { key: "appointments", label: "Turnos con Referido" },
   ] as const;
@@ -91,7 +95,7 @@ export default function AdminReferralsPage() {
           Referidos
         </h1>
         <p style={{ color: "#666", fontSize: 15 }}>
-          Funnel completo por asesor — vistas de vehículos y turnos generados desde el parámetro{" "}
+          Funnel completo por vendedor — vistas de vehículos y turnos generados desde el parámetro{" "}
           <code style={{ background: "#f4f4f5", padding: "2px 6px", borderRadius: 4, fontSize: 13 }}>?ref=</code>
         </p>
       </div>
@@ -105,7 +109,7 @@ export default function AdminReferralsPage() {
             icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
           },
           {
-            label: "Asesores Activos",
+            label: "Vendedores Activos",
             value: loading ? null : totalReferrers,
             icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
           },
@@ -165,7 +169,7 @@ export default function AdminReferralsPage() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#fafafa" }}>
-                  {["Asesor / Referido", "Vistas", "Vehículos Únicos", "Turnos", "Conversión", "Última Actividad"].map((h) => (
+                  {["Vendedor / Referido", "Vistas", "Vehículos Únicos", "Turnos", "Conversión", "Última Actividad"].map((h) => (
                     <th key={h} style={{ padding: "16px 24px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: "0.05em", textTransform: "uppercase", borderBottom: "1px solid #eaeaea" }}>
                       {h}
                     </th>
@@ -262,7 +266,7 @@ export default function AdminReferralsPage() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#fafafa" }}>
-                  {["Vehículo", "Asesor", "Fecha y Hora"].map((h) => (
+                  {["Vehículo", "Vendedor", "Fecha y Hora"].map((h) => (
                     <th key={h} style={{ padding: "16px 24px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: "0.05em", textTransform: "uppercase", borderBottom: "1px solid #eaeaea" }}>{h}</th>
                   ))}
                 </tr>
@@ -314,7 +318,7 @@ export default function AdminReferralsPage() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#fafafa" }}>
-                  {["Cliente", "Vehículo", "Fecha / Hora", "Contacto", "Asesor", "Reservado"].map((h) => (
+                  {["Cliente", "Vehículo", "Fecha / Hora", "Contacto", "Vendedor", "Reservado"].map((h) => (
                     <th key={h} style={{ padding: "16px 24px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: "0.05em", textTransform: "uppercase", borderBottom: "1px solid #eaeaea" }}>{h}</th>
                   ))}
                 </tr>

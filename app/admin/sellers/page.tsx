@@ -31,7 +31,7 @@ export default function AdminSellersPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
 
-  const [form, setForm] = useState({ name: "", username: "", password: "" });
+  const [form, setForm] = useState({ name: "", username: "", password: "", email: "" });
 
   const fetchSellers = async () => {
     setLoading(true);
@@ -69,7 +69,7 @@ export default function AdminSellersPage() {
           title: "Vendedor creado",
           description: `${form.name} fue agregado al equipo.`,
         });
-        setForm({ name: "", username: "", password: "" });
+        setForm({ name: "", username: "", password: "", email: "" });
         setShowForm(false);
         await fetchSellers();
       }
@@ -132,6 +132,7 @@ export default function AdminSellersPage() {
                 { label: "Nombre completo", key: "name", placeholder: "Juan García", type: "text", required: true },
                 { label: "Usuario (para login)", key: "username", placeholder: "juangarcia", type: "text", required: true },
                 { label: "Contraseña", key: "password", placeholder: "Mínimo 6 caracteres", type: "password", required: true },
+                { label: "Email (notificaciones de turnos)", key: "email", placeholder: "vendedor@ejemplo.com", type: "email", required: false },
               ].map((field) => (
                 <div key={field.key}>
                   <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -188,7 +189,7 @@ export default function AdminSellersPage() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#fafafa" }}>
-                {["Vendedor", "Usuario", "Estado", "Creado", ""].map((h) => (
+                {["Vendedor", "Usuario", "Email", "Estado", "Creado", ""].map((h) => (
                   <th key={h} style={{ padding: "16px 24px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#888", letterSpacing: "0.05em", textTransform: "uppercase", borderBottom: "1px solid #eaeaea" }}>{h}</th>
                 ))}
               </tr>
@@ -205,6 +206,9 @@ export default function AdminSellersPage() {
                     </td>
                     <td style={{ padding: "16px 24px" }}>
                       <div className="skeleton" style={{ width: 80, height: 22, borderRadius: 4 }} />
+                    </td>
+                    <td style={{ padding: "16px 24px" }}>
+                      <div className="skeleton" style={{ width: 140, height: 14 }} />
                     </td>
                     <td style={{ padding: "16px 24px" }}>
                       <div className="skeleton" style={{ width: 60, height: 22, borderRadius: 20 }} />
@@ -239,6 +243,9 @@ export default function AdminSellersPage() {
                     </td>
                     <td style={{ padding: "16px 24px", fontSize: 13, color: "#666" }}>
                       <code style={{ background: "#f4f4f5", padding: "2px 8px", borderRadius: 4 }}>{seller.username}</code>
+                    </td>
+                    <td style={{ padding: "16px 24px", fontSize: 13, color: "#666" }}>
+                      {seller.email ?? <span style={{ color: "#ccc" }}>—</span>}
                     </td>
                     <td style={{ padding: "16px 24px" }}>
                       <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 20, background: seller.isActive ? "#f0fdf4" : "#fef2f2", color: seller.isActive ? "#16a34a" : "#dc2626", fontSize: 12, fontWeight: 700 }}>
@@ -287,7 +294,7 @@ export default function AdminSellersPage() {
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan={5} style={{ padding: 48, textAlign: "center", color: "#888", fontSize: 14 }}>Aún no hay vendedores. Creá el primero.</td></tr>
+                <tr><td colSpan={6} style={{ padding: 48, textAlign: "center", color: "#888", fontSize: 14 }}>Aún no hay vendedores. Creá el primero.</td></tr>
               )}
             </tbody>
           </table>

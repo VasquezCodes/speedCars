@@ -15,6 +15,8 @@ export interface AvailableSlot {
   isBooked: boolean;
 }
 
+export type AppointmentStatus = "pendiente" | "confirmado" | "cancelado" | "completado";
+
 export interface AppointmentDocument {
   date: string;
   time: string;
@@ -25,5 +27,14 @@ export interface AppointmentDocument {
   referrerId: string;
   vehicleId?: string;
   vehicleName?: string;
-  createdAt: Timestamp;
+  sellerName?: string | null;
+  sellerEmail?: string | null;
+  status?: AppointmentStatus;
+  createdAt: Timestamp | string;
+}
+
+export interface AdminAppointment extends Omit<AppointmentDocument, "createdAt"> {
+  id: string;
+  status: AppointmentStatus;
+  createdAt: string;
 }

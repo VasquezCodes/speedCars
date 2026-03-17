@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 const STORY_IMAGES = [
   "/clientesSatisfechos/Black & Red Modern Animated Car Rental Story Ad  .PNG",
@@ -27,6 +28,7 @@ const STORY_IMAGES = [
 ];
 
 export default function TestimonialsSection() {
+  const { t } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
 
@@ -34,12 +36,10 @@ export default function TestimonialsSection() {
     setIsClient(true);
   }, []);
 
-  // Auto-rotación del carrusel
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev === STORY_IMAGES.length - 1 ? 0 : prev + 1));
     }, 3500);
-    
     return () => clearInterval(interval);
   }, []);
 
@@ -59,7 +59,7 @@ export default function TestimonialsSection() {
       overflow: "hidden"
     }}>
 
-      {/* Elemento decorativo de fondo */}
+      {/* Decorative background text */}
       <div style={{
         position: "absolute",
         top: "-150px",
@@ -74,12 +74,12 @@ export default function TestimonialsSection() {
         letterSpacing: "-0.05em",
         whiteSpace: "nowrap"
       }}>
-        Satisfacción
+        {t.testimonials.bgText}
       </div>
 
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
 
-        {/* Cabecera de sección */}
+        {/* Section header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "80px" }}>
           <div>
             <h2 style={{
@@ -91,7 +91,7 @@ export default function TestimonialsSection() {
               letterSpacing: "-0.02em",
               textTransform: "uppercase"
             }}>
-              Clientes<br /><span style={{ color: "var(--accent)" }}>Satisfechos.</span>
+              {t.testimonials.title1}<br /><span style={{ color: "var(--accent)" }}>{t.testimonials.title2}</span>
             </h2>
             <div style={{ width: 40, height: 4, background: "var(--accent)", marginTop: "24px" }}></div>
           </div>
@@ -99,6 +99,7 @@ export default function TestimonialsSection() {
           <div style={{ display: "flex", gap: "16px" }}>
             <button
               onClick={prevSlide}
+              aria-label={t.testimonials.prevLabel}
               style={{
                 width: "48px",
                 height: "48px",
@@ -125,6 +126,7 @@ export default function TestimonialsSection() {
             </button>
             <button
               onClick={nextSlide}
+              aria-label={t.testimonials.nextLabel}
               style={{
                 width: "48px",
                 height: "48px",
@@ -152,25 +154,21 @@ export default function TestimonialsSection() {
           </div>
         </div>
 
-        {/* Carrusel de historias (solo imágenes) */}
+        {/* Story carousel */}
         <div style={{ position: "relative", width: "100%", overflow: "visible" }}>
-
           <div style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: "24px",
             perspective: "1000px",
-            height: "600px" // Altura contenida para las stories
+            height: "600px"
           }}>
-
             {STORY_IMAGES.map((imgUrl, index) => {
-              // Calculamos distancia relativa al centro para hacer efecto 3D coverflow
               const offset = index - currentIndex;
               const isCenter = offset === 0;
               const absOffset = Math.abs(offset);
 
-              // Solo mostramos los cercanos para evitar problemas de rendering
               if (absOffset > 2) return null;
 
               return (
@@ -200,7 +198,6 @@ export default function TestimonialsSection() {
                     border: isCenter ? "2px solid rgba(255,255,255,0.1)" : "1px solid transparent",
                     overflow: "hidden"
                   }}>
-                    {/* Elemento overlay para oscurecer los inactivos */}
                     {!isCenter && (
                       <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.4)" }} />
                     )}
@@ -209,7 +206,6 @@ export default function TestimonialsSection() {
               );
             })}
           </div>
-
         </div>
 
         {/* Dots */}
@@ -227,7 +223,7 @@ export default function TestimonialsSection() {
                 cursor: "pointer",
                 transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
               }}
-              aria-label={`Ir a la imagen ${index + 1}`}
+              aria-label={`${t.testimonials.goTo} ${index + 1}`}
             />
           ))}
         </div>

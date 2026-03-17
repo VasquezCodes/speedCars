@@ -1,5 +1,7 @@
 'use client';
 
+import { useLanguage } from '@/context/LanguageContext';
+
 export type BadgeStatus = 'Disponible' | 'Reservado' | 'Vendido' | 'Retirado';
 export type BadgeVariant = 'overlay' | 'inline';
 
@@ -91,8 +93,10 @@ const STATUS_CONFIG: Record<string, {
 // ─── Components ───────────────────────────────────────────────────────────────
 
 export function StatusBadge({ status, variant = 'inline', style }: StatusBadgeProps) {
+  const { t } = useLanguage();
   const config = STATUS_CONFIG[status];
   if (!config) return null;
+  const label = (t.statusLabels as Record<string, string>)[status] ?? config.label;
 
   if (variant === 'overlay') {
     return (
@@ -115,7 +119,6 @@ export function StatusBadge({ status, variant = 'inline', style }: StatusBadgePr
         lineHeight: 1,
         ...style,
       }}>
-        {/* colored dot */}
         <span style={{
           width: 7,
           height: 7,
@@ -124,16 +127,14 @@ export function StatusBadge({ status, variant = 'inline', style }: StatusBadgePr
           flexShrink: 0,
           boxShadow: `0 0 0 2px ${config.overlay.dot}33`,
         }} />
-        {/* icon */}
         <span style={{ opacity: 0.85, display: 'flex', alignItems: 'center' }}>
           {config.icon}
         </span>
-        {config.label}
+        {label}
       </div>
     );
   }
 
-  // inline variant
   return (
     <div style={{
       display: 'inline-flex',
@@ -156,12 +157,15 @@ export function StatusBadge({ status, variant = 'inline', style }: StatusBadgePr
       <span style={{ display: 'flex', alignItems: 'center', opacity: 0.9 }}>
         {config.icon}
       </span>
-      {config.label}
+      {label}
     </div>
   );
 }
 
 export function FeaturedBadge({ variant = 'inline', style }: FeaturedBadgeProps) {
+  const { t } = useLanguage();
+  const label = t.featuredLabel;
+
   if (variant === 'overlay') {
     return (
       <div style={{
@@ -186,12 +190,11 @@ export function FeaturedBadge({ variant = 'inline', style }: FeaturedBadgeProps)
         <span style={{ display: 'flex', alignItems: 'center', color: '#f87171' }}>
           <IconDestacado />
         </span>
-        Destacado
+        {label}
       </div>
     );
   }
 
-  // inline variant
   return (
     <div style={{
       display: 'inline-flex',
@@ -212,7 +215,7 @@ export function FeaturedBadge({ variant = 'inline', style }: FeaturedBadgeProps)
       <span style={{ display: 'flex', alignItems: 'center', opacity: 0.85 }}>
         <IconDestacado />
       </span>
-      Destacado
+      {label}
     </div>
   );
 }

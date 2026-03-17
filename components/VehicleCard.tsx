@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 export interface Vehicle {
     id: string;
@@ -24,14 +25,16 @@ export interface Vehicle {
 }
 
 export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+    const { lang, t } = useLanguage();
+
     const price = new Intl.NumberFormat("es-AR", {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(vehicle.price);
 
-    const km = vehicle.mileage === 0
-        ? "0 km"
-        : `${Math.round(vehicle.mileage / 1000)}K km`;
+    const mileageDisplay = lang === 'en'
+        ? `${Math.round(vehicle.mileage * 0.621371).toLocaleString("en-US")} mi`
+        : `${vehicle.mileage.toLocaleString("es-AR")} km`;
 
     const imageUrl = vehicle.images?.[0] || "/placeholder-car.jpg";
 
@@ -122,7 +125,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
                             ${price}*
                         </span>
                         <span style={{ fontSize: 13, color: "var(--clr-surface-a50)", fontWeight: 500 }}>
-                            {km}
+                            {mileageDisplay}
                         </span>
                     </div>
                 </div>
@@ -134,7 +137,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
                     marginTop: "auto",
                 }}>
                     <p style={{ fontSize: 11, color: "var(--clr-surface-a40)", margin: "0 0 1px", lineHeight: 1.4 }}>
-                        Disponible en
+                        {t.catalog.availableAt}
                     </p>
                     <p style={{ fontSize: 12, color: "var(--clr-surface-a50)", fontWeight: 600, margin: 0, lineHeight: 1.4 }}>
                         FF Speed Cars

@@ -25,6 +25,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       id: doc.id,
       username: doc.data().username as string,
       name: doc.data().name as string,
+      email: (doc.data().email as string | undefined) ?? undefined,
       isActive: (doc.data().isActive as boolean) ?? true,
       createdAt: doc.data().createdAt as Timestamp,
     }));
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
   try {
     const body = (await request.json()) as CreateSellerBody;
-    const { name, username, password } = body;
+    const { name, username, password, email } = body;
 
     if (!name || !username || !password) {
       return NextResponse.json({ error: "Nombre, usuario y contraseña son requeridos" }, { status: 400 });
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const docRef = await adminDb.collection("sellers").add({
       username: cleanUsername,
       name: name.trim(),
+      ...(email ? { email: email.trim().toLowerCase() } : {}),
       passwordHash,
       isActive: true,
       createdAt: new Date(),

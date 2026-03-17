@@ -4,6 +4,7 @@ import type { AnyTimestamp } from "./referral";
 export interface SellerDocument {
   username: string;
   name: string;
+  email?: string;
   passwordHash: string;
   isActive: boolean;
   createdAt: AnyTimestamp;
@@ -12,6 +13,7 @@ export interface SellerDocument {
 /** Seller with document ID — used in admin panel. */
 export interface SellerRecord extends Omit<SellerDocument, "passwordHash"> {
   id: string;
+  email?: string;
 }
 
 /** Payload encoded in the seller JWT session token. */
@@ -26,6 +28,7 @@ export interface CreateSellerBody {
   name: string;
   username: string;
   password: string;
+  email?: string;
 }
 
 /** Body expected by POST /api/seller/login */
