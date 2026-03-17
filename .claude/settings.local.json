@@ -40,7 +40,9 @@
       "Read(//d/autosdealer-app/**)",
       "Bash(find /d/autosdealer-app -type f -name *form* -o -name *Form*)",
       "Bash(find /d/autosdealer-app/app -name *.ts -o -name *.tsx)",
-      "Bash(find D:/autosdealer-app/components/admin -name *.tsx)"
+      "Bash(find D:/autosdealer-app/components/admin -name *.tsx)",
+      "Bash(ls d:/autosdealer-app/app/favicon*)",
+      "Bash(ls d:/autosdealer-app/public/*.png)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -36,6 +36,10 @@ export const metadata: Metadata = {
   },
   description:
     "Encontrá el auto de tus sueños. Catálogo de vehículos nuevos y usados con los mejores precios. Contactate con nuestros asesores.",
+  icons: {
+    icon: "/logo-nuevo.png",
+    apple: "/logo-nuevo.png",
+  },
   openGraph: {
     title: "AutosDealer — Tu concesionaria de confianza",
     description:
