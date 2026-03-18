@@ -13,8 +13,8 @@ export default function ContactSection() {
       id="contacto"
       style={{
         padding: "80px 0",
-        background: "var(--white)",
-        borderTop: "1px solid var(--gray-200)"
+        background: "var(--clr-dark-a0)",
+        borderTop: "1px solid var(--clr-surface-a20)"
       }}
     >
       <div className="container">
@@ -67,8 +67,8 @@ export default function ContactSection() {
             style={{
               cursor: "pointer",
               padding: "40px",
-              background: "var(--gray-50)",
-              border: "1px solid var(--gray-200)",
+              background: "var(--clr-surface-a10)",
+              border: "1px solid var(--clr-surface-a20)",
               borderRadius: "var(--radius-lg)",
               textDecoration: "none",
               display: "flex",
@@ -84,7 +84,7 @@ export default function ContactSection() {
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
               e.currentTarget.style.boxShadow = "none";
-              e.currentTarget.style.borderColor = "var(--gray-200)";
+              e.currentTarget.style.borderColor = "var(--clr-surface-a20)";
             }}
           >
             <div style={{

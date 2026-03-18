@@ -14,32 +14,53 @@ async function isAuthenticated(request: NextRequest) {
     }
 }
 
+function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+}
+
 export async function GET(request: NextRequest) {
     const isAuth = await isAuthenticated(request);
     if (!isAuth) {
         return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
     try {
-        const vehiclesSnap = await adminDb
-            .collection("vehicles")
-            .where("isAvailable", "==", true)
-            .count()
-            .get();
+        const today = todayStr();
 
-        // Recientes (ultimos 5 agregados o disponibles)
-        const recentVehiclesSnap = await adminDb
-            .collection("vehicles")
-            .limit(5)
-            .get();
+        // Parallel fetches
+        const [
+            vehiclesCountSnap,
+            recentVehiclesSnap,
+            appointmentsSnap,
+            sellersSnap,
+        ] = await Promise.all([
+            adminDb.collection("vehicles").where("isAvailable", "==", true).count().get(),
+            adminDb.collection("vehicles").limit(5).get(),
+            adminDb.collection("appointments").orderBy("date", "desc").limit(100).get(),
+            adminDb.collection("sellers").where("isActive", "==", true).count().get(),
+        ]);
 
         const recentVehicles = recentVehiclesSnap.docs.map((doc) => ({
             ...doc.data(),
             id: doc.id,
         }));
 
+        // Process appointments
+        const appointments = appointmentsSnap.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        })) as Array<{ id: string; date: string; time: string; name: string; vehicleName?: string; sellerName?: string; status: string; createdAt?: string }>;
+
+        const todayAppointments = appointments.filter((a) => a.date === today);
+        const pendingAppointments = appointments.filter((a) => a.status === "pendiente");
+        const recentAppointments = appointments.slice(0, 5);
+
         return NextResponse.json({
-            totalVehicles: vehiclesSnap.data().count,
+            totalVehicles: vehiclesCountSnap.data().count,
             recentVehicles,
+            todayAppointmentsCount: todayAppointments.length,
+            pendingAppointmentsCount: pendingAppointments.length,
+            recentAppointments,
+            totalActiveSellers: sellersSnap.data().count,
         });
     } catch (error) {
         console.error("Stats error:", error);

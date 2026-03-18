@@ -9,8 +9,8 @@ export default function Footer() {
 
   return (
     <footer style={{
-      background: "var(--white)",
-      borderTop: "1px solid var(--gray-200)",
+      background: "var(--clr-dark-a0)",
+      borderTop: "1px solid var(--clr-surface-a20)",
       padding: "32px 0 16px",
       position: "relative",
       overflow: "hidden"
@@ -69,7 +69,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div style={{
-          borderTop: "1px solid var(--gray-200)",
+          borderTop: "1px solid var(--clr-surface-a20)",
           paddingTop: "16px",
           display: "flex",
           justifyContent: "space-between",
@@ -79,7 +79,7 @@ export default function Footer() {
         }}>
           <p style={{
             fontSize: "12px",
-            color: "var(--gray-300)",
+            color: "var(--clr-surface-a50)",
             letterSpacing: "0.05em",
             fontFamily: "var(--font-rb-rational)"
           }}>
@@ -89,7 +89,7 @@ export default function Footer() {
             display: "flex",
             gap: "24px",
             fontSize: "12px",
-            color: "var(--gray-300)",
+            color: "var(--clr-surface-a50)",
             letterSpacing: "0.05em"
           }}>
             <span>FORT WORTH, TEXAS</span>

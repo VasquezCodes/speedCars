@@ -54,7 +54,7 @@ export default function TestimonialsSection() {
   return (
     <section id="testimonios" style={{
       padding: "160px 0",
-      background: "var(--primary)",
+      background: "var(--clr-dark-a0)",
       position: "relative",
       overflow: "hidden"
     }}>
@@ -86,7 +86,7 @@ export default function TestimonialsSection() {
               fontFamily: "var(--font-rb-rational), sans-serif",
               fontSize: "clamp(32px, 4vw, 56px)",
               fontWeight: 700,
-              color: "var(--black)",
+              color: "var(--text-primary)",
               lineHeight: 1,
               letterSpacing: "-0.02em",
               textTransform: "uppercase"
@@ -106,7 +106,7 @@ export default function TestimonialsSection() {
                 borderRadius: "50%",
                 background: "transparent",
                 border: "1px solid rgba(255,255,255,0.2)",
-                color: "var(--white)",
+                color: "var(--text-primary)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -114,7 +114,7 @@ export default function TestimonialsSection() {
                 transition: "all 0.3s ease"
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "var(--white)";
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.8)";
                 e.currentTarget.style.transform = "translateX(-4px)";
               }}
               onMouseLeave={(e) => {
@@ -133,7 +133,7 @@ export default function TestimonialsSection() {
                 borderRadius: "50%",
                 background: "transparent",
                 border: "1px solid rgba(255,255,255,0.2)",
-                color: "var(--white)",
+                color: "var(--text-primary)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -141,7 +141,7 @@ export default function TestimonialsSection() {
                 transition: "all 0.3s ease"
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "var(--white)";
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.8)";
                 e.currentTarget.style.transform = "translateX(4px)";
               }}
               onMouseLeave={(e) => {

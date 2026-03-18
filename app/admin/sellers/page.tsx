@@ -86,23 +86,24 @@ export default function AdminSellersPage() {
   const handleDelete = async (id: string) => {
     const seller = sellers.find((s) => s.id === id);
     setDeletingId(id);
-    await new Promise((resolve) => setTimeout(resolve, 280));
-    try {
-      await fetch(`/api/admin/sellers/${id}`, { method: "DELETE" });
+    setDeleteConfirm(null);
+
+    const doDelete = async () => {
+      const r = await fetch(`/api/admin/sellers/${id}`, { method: "DELETE" });
+      if (!r.ok) throw new Error("Error al eliminar");
       setSellers((prev) => prev.filter((s) => s.id !== id));
-      setDeleteConfirm(null);
-      sileo.success({
-        title: "Vendedor eliminado",
-        description: seller ? `${seller.name} y sus datos fueron eliminados.` : "El vendedor fue eliminado.",
-      });
-    } catch {
-      sileo.error({
-        title: "Error al eliminar",
-        description: "No se pudo eliminar el vendedor.",
-      });
-    } finally {
-      setDeletingId(null);
-    }
+    };
+
+    const promise = doDelete();
+
+    sileo.promise(promise, {
+      loading: { title: "Eliminando...", description: seller ? `Eliminando a ${seller.name}` : undefined },
+      success: { title: "Vendedor eliminado", description: seller ? `${seller.name} fue eliminado del equipo.` : "El vendedor fue eliminado." },
+      error: { title: "Error al eliminar", description: "No se pudo eliminar el vendedor." },
+    });
+
+    await promise.catch(() => null);
+    setDeletingId(null);
   };
 
   return (
@@ -228,9 +229,8 @@ export default function AdminSellersPage() {
                     style={{
                       borderBottom: i < sellers.length - 1 ? "1px solid #eaeaea" : "none",
                       animation: deletingId === seller.id
-                        ? "slideOutRow 0.28s ease forwards"
-                        : "fadeInRow 0.3s ease both",
-                      animationDelay: deletingId === seller.id ? "0ms" : `${i * 40}ms`,
+                        ? "slideOutRow 0.28s ease 0ms forwards"
+                        : `fadeInRow 0.3s ease ${i * 40}ms both`,
                     }}
                   >
                     <td style={{ padding: "16px 24px" }}>
@@ -254,27 +254,17 @@ export default function AdminSellersPage() {
                     </td>
                     <td style={{ padding: "16px 24px", fontSize: 13, color: "#888" }}>{formatDate(seller.createdAt)}</td>
                     <td style={{ padding: "16px 24px" }}>
-                      {deleteConfirm === seller.id ? (
+                      {deletingId === seller.id ? null : deleteConfirm === seller.id ? (
                         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                           <span style={{ fontSize: 12, color: "#666" }}>¿Confirmar?</span>
                           <button
                             onClick={() => handleDelete(seller.id)}
-                            disabled={!!deletingId}
                             style={{
                               padding: "4px 10px", borderRadius: 6, background: "#dc2626", color: "#fff",
-                              border: "none", cursor: deletingId ? "not-allowed" : "pointer",
+                              border: "none", cursor: "pointer",
                               fontSize: 12, fontWeight: 600, fontFamily: "inherit",
-                              display: "flex", alignItems: "center", gap: 5,
-                              opacity: deletingId ? 0.7 : 1,
                             }}
                           >
-                            {deletingId === seller.id && (
-                              <span style={{
-                                display: "inline-block", width: 10, height: 10, borderRadius: "50%",
-                                border: "1.5px solid rgba(255,255,255,0.4)", borderTopColor: "#fff",
-                                animation: "sellerSpin 0.6s linear infinite",
-                              }} />
-                            )}
                             Sí
                           </button>
                           <button onClick={() => setDeleteConfirm(null)} style={{ padding: "4px 10px", borderRadius: 6, background: "#f4f4f5", color: "#666", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit" }}>No</button>

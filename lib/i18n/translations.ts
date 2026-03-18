@@ -40,16 +40,17 @@ export const translations = {
       titleLine2: 'nuestra',
       titleLine3: 'historia',
       description:
-        'En FF Speed Cars entregamos la libertad de conducir con absoluta tranquilidad. Especialistas en vehículos meticulosamente verificados listos para exigentes conductores.',
-      mission: {
+        'FF Speed Cars nació de algo muy sencillo: las ganas de hacer las cosas bien. Desde el inicio entendimos que muchas personas querían comprar un carro, pero no siempre se sentían seguras en el proceso, por eso creamos un espacio basado en la confianza, la honestidad y la buena atención. Detrás de FF Speed Cars hay personas con años de experiencia en el mundo automotriz y el compromiso de ayudar a cada cliente a encontrar el vehículo ideal según su necesidad y presupuesto. Hoy seguimos creciendo gracias a la confianza de nuestros clientes, manteniendo nuestra esencia: hacer las cosas bien y brindar una experiencia clara, sencilla y segura.',
+      cardsTitle: 'Nuestro Compromiso',
+      card1: {
         title: 'Misión',
         text: 'Brindar a nuestros clientes vehículos de calidad a precios accesibles, ofreciendo un servicio honesto, transparente y personalizado. Nos enfocamos en ayudar a cada persona a encontrar el automóvil que mejor se adapte a sus necesidades, haciendo que el proceso de compra sea fácil, confiable y satisfactorio.',
       },
-      vision: {
+      card2: {
         title: 'Visión',
         text: 'Ser una de las ventas de vehículos más confiables y recomendadas en la comunidad, destacándonos por nuestra integridad, excelente atención al cliente y por ofrecer opciones de vehículos que generen confianza y seguridad en cada compra.',
       },
-      purpose: {
+      card3: {
         title: 'Propósito',
         text: 'Nuestro propósito es ayudar a las personas y familias a cumplir el sueño de tener su propio vehículo, creando relaciones de confianza con nuestros clientes y aportando valor a nuestra comunidad a través de un servicio responsable y transparente.',
       },
@@ -99,6 +100,22 @@ export const translations = {
         {
           q: '¿Cómo puedo ver los vehículos disponibles?',
           a: 'Puedes visitarnos en nuestro local o ver nuestro inventario en nuestras redes sociales, donde publicamos constantemente nuevos vehículos disponibles.',
+        },
+        {
+          q: '¿Los vehículos tienen título limpio?',
+          a: 'Sí, todos nuestros vehículos cuentan con título limpio y ofrecemos información transparente en cada compra.',
+        },
+        {
+          q: '¿Aceptan vehículo como parte de pago (trade-in)?',
+          a: 'Actualmente no aceptamos vehículos como parte de pago, pero podemos orientarte en el proceso si lo necesitas.',
+        },
+        {
+          q: '¿Qué incluye el precio del vehículo?',
+          a: 'El precio corresponde únicamente al vehículo. Placas, impuestos u otros cargos adicionales no están incluidos.',
+        },
+        {
+          q: '¿Puedo llevar un mecánico a revisar el vehículo?',
+          a: 'Sí, puedes traer tu mecánico de confianza o revisar el vehículo antes de la compra sin problema.',
         },
       ],
     },
@@ -162,6 +179,40 @@ export const translations = {
       whatsappGreeting: 'Hola! Me interesa el',
       whatsappQuestion: '¿Podés darme más información?',
     },
+    appointment: {
+      eyebrow: 'Agendar visita',
+      headline1: 'Reserva',
+      headline2: 'tu',
+      headlineAccent: 'cita',
+      step1: '01 — Seleccioná el día',
+      step2: '02 — Seleccioná el horario',
+      step3: '03 — Tus datos',
+      noDate: 'Elegí una fecha para ver los horarios',
+      fieldName: 'Nombre completo',
+      fieldPhone: 'Teléfono / WhatsApp',
+      fieldEmail: 'Email',
+      fieldNotes: 'Comentarios',
+      fieldNotesOptional: '(opcional)',
+      notesPlaceholder: '¿Algún modelo de interés? ¿Auto para parte de pago?',
+      selectedAppointment: 'Cita seleccionada',
+      confirm: 'Confirmar cita',
+      confirming: 'Agendando…',
+      footerNote: 'Sin cargo ni compromiso · Confirmación por email',
+      next: 'Siguiente',
+      back: 'Volver',
+      dateSelectedNote: 'seleccionada',
+      noDateNote: 'Elegí una fecha para continuar',
+      noTimeNote: 'Elegí un horario para continuar',
+      yourAppointment: 'Tu cita',
+      timeUnit: 'hs',
+      validationDate: 'Seleccioná una fecha',
+      validationDateInvalid: 'Fecha inválida',
+      validationTime: 'Seleccioná un horario disponible',
+      validationName: 'Ingresá tu nombre completo',
+      validationPhone: 'Ingresá un número válido',
+      validationPhoneFormat: 'Solo números y +()-',
+      validationEmail: 'Email inválido',
+    },
     footer: {
       description:
         'Calidad, precio y transparencia para que te lleves el vehículo de tus sueños con total confianza.',
@@ -211,16 +262,17 @@ export const translations = {
       titleLine2: 'Story',
       titleLine3: '',
       description:
-        'At FF Speed Cars we deliver the freedom to drive with complete peace of mind. Specialists in meticulously verified vehicles ready for discerning drivers.',
-      mission: {
+        'FF Speed Cars was born from something very simple: the desire to do things right. From the start, we understood that many people wanted to buy a car but didn\'t always feel confident in the process — so we created a space built on trust, honesty, and great service. Behind FF Speed Cars are people with years of experience in the automotive world and a commitment to helping every customer find the ideal vehicle for their needs and budget. Today we keep growing thanks to the trust of our customers, staying true to our essence: doing things right and providing a clear, simple, and secure experience.',
+      cardsTitle: 'Our Commitment',
+      card1: {
         title: 'Mission',
         text: 'To provide our customers with quality vehicles at affordable prices, offering honest, transparent, and personalized service. We focus on helping each person find the car that best fits their needs, making the buying process easy, reliable, and satisfying.',
       },
-      vision: {
+      card2: {
         title: 'Vision',
         text: 'To be one of the most trusted and recommended vehicle dealerships in the community, standing out for our integrity, excellent customer service, and offering vehicle options that inspire confidence and security in every purchase.',
       },
-      purpose: {
+      card3: {
         title: 'Purpose',
         text: 'Our purpose is to help individuals and families achieve the dream of owning their own vehicle, building trust-based relationships with our customers and adding value to our community through responsible and transparent service.',
       },
@@ -271,6 +323,22 @@ export const translations = {
           q: 'How can I see available vehicles?',
           a: 'You can visit us at our dealership or see our inventory on our social media, where we constantly post new available vehicles.',
         },
+        {
+          q: 'Do the vehicles have a clean title?',
+          a: 'Yes, all our vehicles have a clean title and we provide transparent information with every purchase.',
+        },
+        {
+          q: 'Do you accept trade-ins?',
+          a: 'We do not currently accept vehicles as trade-ins, but we can guide you through the process if needed.',
+        },
+        {
+          q: 'What does the vehicle price include?',
+          a: 'The price corresponds to the vehicle only. Tags, taxes, and any additional fees are not included.',
+        },
+        {
+          q: 'Can I bring a mechanic to inspect the vehicle?',
+          a: 'Yes, you are welcome to bring your trusted mechanic or have the vehicle inspected before purchase.',
+        },
       ],
     },
     contact: {
@@ -309,7 +377,7 @@ export const translations = {
       vehicleTypeLabels: ['SUVs', 'Pickups', 'Sedans', 'Hatchbacks', 'Coupes', 'Minivans', 'Sports Cars', 'Convertibles', 'Electric', '4x4', 'Utility'],
       fuelTypeLabels: ['Gasoline', 'Diesel', 'Hybrid', 'Electric', 'CNG'],
       priceLabels: ['Up to $10,000', 'Up to $20,000', 'Up to $30,000', 'Up to $50,000', 'Up to $80,000'],
-      mileageLabels: ['Up to 20,000 km', 'Up to 50,000 km', 'Up to 100,000 km', 'Up to 150,000 km'],
+      mileageLabels: ['Up to 12,000 mi', 'Up to 31,000 mi', 'Up to 62,000 mi', 'Up to 93,000 mi'],
     },
     statusLabels: {
       Disponible: 'Available',
@@ -332,6 +400,40 @@ export const translations = {
       requestInfoDesc: 'Leave your details and an advisor will contact you about the',
       whatsappGreeting: "Hi! I'm interested in the",
       whatsappQuestion: 'Can you give me more information?',
+    },
+    appointment: {
+      eyebrow: 'Schedule a visit',
+      headline1: 'Book',
+      headline2: 'your',
+      headlineAccent: 'appointment',
+      step1: '01 — Pick a day',
+      step2: '02 — Pick a time',
+      step3: '03 — Your details',
+      noDate: 'Select a date to see available times',
+      fieldName: 'Full name',
+      fieldPhone: 'Phone / WhatsApp',
+      fieldEmail: 'Email',
+      fieldNotes: 'Comments',
+      fieldNotesOptional: '(optional)',
+      notesPlaceholder: 'Any model of interest? Trade-in?',
+      selectedAppointment: 'Selected appointment',
+      confirm: 'Confirm appointment',
+      confirming: 'Scheduling…',
+      footerNote: 'No charge or commitment · Email confirmation',
+      next: 'Next',
+      back: 'Back',
+      dateSelectedNote: 'selected',
+      noDateNote: 'Select a date to continue',
+      noTimeNote: 'Select a time to continue',
+      yourAppointment: 'Your appointment',
+      timeUnit: '',
+      validationDate: 'Select a date',
+      validationDateInvalid: 'Invalid date',
+      validationTime: 'Select an available time',
+      validationName: 'Enter your full name',
+      validationPhone: 'Enter a valid number',
+      validationPhoneFormat: 'Numbers and +()- only',
+      validationEmail: 'Invalid email',
     },
     footer: {
       description:

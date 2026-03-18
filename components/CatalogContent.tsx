@@ -38,12 +38,11 @@ function FilterSection({
                 onClick={onToggle}
                 style={{
                     width: "100%",
-                    padding: "24px 20px",
+                    padding: "14px 20px",
                     display: "flex", alignItems: "center", justifyContent: "space-between",
                     background: "none", border: "none", cursor: "pointer",
                     fontSize: 14, fontWeight: 400, color: "var(--text-primary)",
                     fontFamily: "inherit", textAlign: "left",
-                    minHeight: 70,
                 }}
             >
                 {title}
@@ -60,7 +59,7 @@ function FilterSection({
 
 function CheckItem({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
     return (
-        <label style={{
+        <label onClick={onChange} style={{
             display: "flex", alignItems: "center", gap: 10,
             padding: "5px 0", cursor: "pointer", fontSize: 13.5, color: "var(--text-secondary)",
         }}>
@@ -168,7 +167,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
         <>
             {/* Sort by */}
             <div style={{
-                padding: "24px 20px", minHeight: 70,
+                padding: "14px 20px",
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 borderBottom: "1px solid var(--clr-surface-a20)", cursor: "pointer",
             }}>
@@ -221,20 +220,6 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                 ))}
             </FilterSection>
 
-            {/* Extra stubs */}
-            {(c.extraFilters as readonly string[]).map((label) => (
-                <div key={label} style={{
-                    padding: "24px 20px", minHeight: 70,
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                    borderBottom: "1px solid var(--clr-surface-a20)",
-                    fontSize: 14, color: "var(--text-primary)", opacity: 0.4, cursor: "not-allowed",
-                }}>
-                    {label}
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--clr-surface-a40)" strokeWidth="2.5" strokeLinecap="round">
-                        <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                </div>
-            ))}
         </>
     );
 
@@ -275,32 +260,27 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                 {/* ── SIDEBAR 319px ── */}
                 <nav className="cat-sidebar">
 
-                    {/* Sidebar header — 183px tall */}
+                    {/* Sidebar header */}
                     <div style={{
-                        minHeight: 183,
-                        padding: "24px 20px 20px",
+                        padding: "16px 20px",
                         borderBottom: "1px solid var(--clr-surface-a20)",
-                        display: "flex", flexDirection: "column",
-                        justifyContent: "space-between",
+                        display: "flex", alignItems: "center", gap: 8,
                     }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2.2" strokeLinecap="round">
-                                <line x1="4" y1="6" x2="20" y2="6"/>
-                                <line x1="4" y1="12" x2="16" y2="12"/>
-                                <line x1="4" y1="18" x2="12" y2="18"/>
-                            </svg>
-                            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{c.filtersTitle}</span>
-                            {hasFilters && (
-                                <button onClick={clearAll} style={{
-                                    marginLeft: "auto", fontSize: 12, color: "#d11119",
-                                    background: "none", border: "none", cursor: "pointer",
-                                    fontFamily: "inherit", fontWeight: 600,
-                                }}>
-                                    {c.clearAll}
-                                </button>
-                            )}
-                        </div>
-
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2.2" strokeLinecap="round">
+                            <line x1="4" y1="6" x2="20" y2="6"/>
+                            <line x1="4" y1="12" x2="16" y2="12"/>
+                            <line x1="4" y1="18" x2="12" y2="18"/>
+                        </svg>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{c.filtersTitle}</span>
+                        {hasFilters && (
+                            <button onClick={clearAll} style={{
+                                marginLeft: "auto", fontSize: 12, color: "#d11119",
+                                background: "none", border: "none", cursor: "pointer",
+                                fontFamily: "inherit", fontWeight: 600,
+                            }}>
+                                {c.clearAll}
+                            </button>
+                        )}
                     </div>
 
                     {/* Filter sections — each row 70px collapsed */}

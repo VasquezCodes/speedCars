@@ -71,6 +71,9 @@ export async function GET(request: NextRequest) {
             } as any;
         });
 
+        // Exclude retired vehicles from the public catalog
+        vehicles = vehicles.filter((v) => v.status !== "Retirado");
+
         if (brand) vehicles = vehicles.filter((v) => v.brand === brand);
         if (type) vehicles = vehicles.filter((v) => v.type === type);
         if (featured === "true") vehicles = vehicles.filter((v) => v.isFeatured);

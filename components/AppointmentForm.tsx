@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, isBefore, startOfDay } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 import { Loader2Icon, ChevronLeft, ChevronRight } from "lucide-react";
 import { sileo } from "sileo";
 
@@ -19,26 +19,53 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { useAppointments } from "@/hooks/useAppointments";
+import { useLanguage } from "@/context/LanguageContext";
 import type { AppointmentFormData } from "@/types/appointment";
 
-// ─── Zod Schema ───────────────────────────────────────────────────────────────
+function formatTimeAmPm(time: string): string {
+  const h = parseInt(time.split(":")[0], 10);
+  const suffix = h < 12 ? "AM" : "PM";
+  const display = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${display}:00 ${suffix}`;
+}
 
-const appointmentSchema = z.object({
-  date: z.date({
-    required_error: "Seleccioná una fecha",
-    invalid_type_error: "Fecha inválida",
-  }),
-  time: z.string().min(1, "Seleccioná un horario disponible"),
-  name: z.string().min(2, "Ingresá tu nombre completo"),
-  phone: z
-    .string()
-    .min(7, "Ingresá un número válido")
-    .regex(/^[0-9\s\-\+\(\)]+$/, "Solo números y +()-"),
-  email: z.string().email("Email inválido"),
-  notes: z.string().max(300).optional(),
-});
+// ─── Zod Schema builder ───────────────────────────────────────────────────────
 
-type AppointmentFormSchema = z.infer<typeof appointmentSchema>;
+type AptT = {
+  validationDate: string;
+  validationDateInvalid: string;
+  validationTime: string;
+  validationName: string;
+  validationPhone: string;
+  validationPhoneFormat: string;
+  validationEmail: string;
+};
+
+function buildSchema(apt: AptT) {
+  return z.object({
+    date: z.date({
+      required_error: apt.validationDate,
+      invalid_type_error: apt.validationDateInvalid,
+    }),
+    time: z.string().min(1, apt.validationTime),
+    name: z.string().min(2, apt.validationName),
+    phone: z
+      .string()
+      .min(7, apt.validationPhone)
+      .regex(/^[0-9\s\-\+\(\)]+$/, apt.validationPhoneFormat),
+    email: z.string().email(apt.validationEmail),
+    notes: z.string().max(300).optional(),
+  });
+}
+
+type AppointmentFormSchema = {
+  date: Date;
+  time: string;
+  name: string;
+  phone: string;
+  email: string;
+  notes?: string;
+};
 
 interface AppointmentFormProps {
   referrerId?: string;
@@ -393,6 +420,11 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [mobileStep, setMobileStep] = React.useState<1 | 2 | 3>(1);
   const { slots, isLoadingSlots, fetchSlots, createAppointment } = useAppointments();
+  const { lang, t } = useLanguage();
+  const apt = t.appointment;
+  const dateLocale = lang === "en" ? enUS : es;
+
+  const appointmentSchema = React.useMemo(() => buildSchema(apt), [apt]);
 
   const form = useForm<AppointmentFormSchema>({
     resolver: zodResolver(appointmentSchema),
@@ -422,15 +454,17 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
       await createAppointment(payload, referrerId, vehicleId, vehicleName);
       onSuccess?.();
       sileo.success({
-        title: "¡Turno confirmado!",
-        description: `Tu visita quedó agendada para el ${format(values.date, "EEEE d 'de' MMMM", { locale: es })} a las ${values.time} hs.`,
+        title: lang === "en" ? "Appointment confirmed!" : "¡Cita confirmada!",
+        description: lang === "en"
+          ? `Your visit is scheduled for ${format(values.date, "EEEE, MMMM d", { locale: enUS })} at ${formatTimeAmPm(values.time)}.`
+          : `Tu cita quedó agendada para el ${format(values.date, "EEEE d 'de' MMMM", { locale: es })} a las ${formatTimeAmPm(values.time)}.`,
       });
       form.reset();
       setMobileStep(1);
     } catch {
       sileo.error({
-        title: "Error al agendar",
-        description: "No pudimos registrar tu turno. Intentá de nuevo.",
+        title: lang === "en" ? "Booking error" : "Error al agendar",
+        description: lang === "en" ? "We couldn't book your appointment. Please try again." : "No pudimos registrar tu cita. Intentá de nuevo.",
       });
     } finally {
       setIsSubmitting(false);
@@ -441,7 +475,10 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
   const now = new Date();
   const calendarStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const calendarEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0);
-  const formattedDate = selectedDate ? format(selectedDate, "EEE d 'de' MMM", { locale: es }) : null;
+  const datePillPattern = lang === "en" ? "EEE, MMM d" : "EEE d 'de' MMM";
+  const dateLongPattern = lang === "en" ? "EEEE, MMMM d" : "EEEE d 'de' MMMM";
+  const formattedDate = selectedDate ? format(selectedDate, datePillPattern, { locale: dateLocale }) : null;
+  const displayTime = (time: string) => formatTimeAmPm(time);
 
   return (
     <>
@@ -453,15 +490,15 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
           {/* ══════════════ DESKTOP 2-column ══════════════ */}
           <div className="apt-grid">
             <div className="apt-left">
-              <p className="apt-eyebrow">Agendar visita</p>
-              <h2 className="apt-headline">Reserva<br />tu <span>turno</span></h2>
+              <p className="apt-eyebrow">{apt.eyebrow}</p>
+              <h2 className="apt-headline">{apt.headline1}<br />{apt.headline2} <span>{apt.headlineAccent}</span></h2>
 
-              <div className="apt-step-label">01 — Seleccioná el día</div>
+              <div className="apt-step-label">{apt.step1}</div>
               <FormField control={form.control} name="date" render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <div className="apt-cal-wrap">
-                      <Calendar mode="single" locale={es} selected={field.value} onSelect={field.onChange}
+                      <Calendar mode="single" locale={dateLocale} selected={field.value} onSelect={field.onChange}
                         disabled={(date) => isBefore(startOfDay(date), today)}
                         showOutsideDays={false} startMonth={calendarStart} endMonth={calendarEnd} />
                     </div>
@@ -471,10 +508,10 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
               )} />
 
               <div className="apt-time-section">
-                <div className="apt-step-label">02 — Seleccioná el horario</div>
+                <div className="apt-step-label">{apt.step2}</div>
                 <FormField control={form.control} name="time" render={({ field }) => (
                   <FormItem><FormControl><div>
-                    {!selectedDate ? <p className="apt-no-date">Elegí una fecha para ver los horarios</p>
+                    {!selectedDate ? <p className="apt-no-date">{apt.noDate}</p>
                       : isLoadingSlots ? (
                         <div className="apt-loading-grid">
                           {Array.from({ length: 9 }).map((_, i) => <div key={i} className="apt-slot-skel" style={{ animationDelay: `${i * 80}ms` }} />)}
@@ -486,7 +523,7 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
                               onClick={() => field.onChange(slot.time)}
                               className={cn("apt-slot", slot.isBooked && "apt-slot--booked", field.value === slot.time && "apt-slot--selected")}
                               style={{ animationDelay: `${i * 45}ms` }}>
-                              {slot.time}
+                              {displayTime(slot.time)}
                             </button>
                           ))}
                         </div>
@@ -499,42 +536,42 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
             </div>
 
             <div className="apt-right">
-              <div className="apt-right-step-label">03 — Tus datos</div>
+              <div className="apt-right-step-label">{apt.step3}</div>
               <FormField control={form.control} name="name" render={({ field }) => (
-                <FormItem className="apt-field"><label className="apt-field-label">Nombre completo</label>
+                <FormItem className="apt-field"><label className="apt-field-label">{apt.fieldName}</label>
                   <FormControl><input className="apt-input" placeholder="Juan García" autoComplete="name" {...field} /></FormControl>
                   <FormMessage className="apt-field-error" /></FormItem>
               )} />
               <FormField control={form.control} name="phone" render={({ field }) => (
-                <FormItem className="apt-field"><label className="apt-field-label">Teléfono / WhatsApp</label>
+                <FormItem className="apt-field"><label className="apt-field-label">{apt.fieldPhone}</label>
                   <FormControl><input className="apt-input" type="tel" placeholder="+54 9 11 1234-5678" autoComplete="tel" {...field} /></FormControl>
                   <FormMessage className="apt-field-error" /></FormItem>
               )} />
               <FormField control={form.control} name="email" render={({ field }) => (
-                <FormItem className="apt-field"><label className="apt-field-label">Email</label>
+                <FormItem className="apt-field"><label className="apt-field-label">{apt.fieldEmail}</label>
                   <FormControl><input className="apt-input" type="email" placeholder="juan@email.com" autoComplete="email" {...field} /></FormControl>
                   <FormMessage className="apt-field-error" /></FormItem>
               )} />
               <FormField control={form.control} name="notes" render={({ field }) => (
                 <FormItem className="apt-field">
-                  <label className="apt-field-label">Comentarios <span style={{ fontWeight: 400, opacity: 0.6 }}>(opcional)</span></label>
-                  <FormControl><textarea className="apt-input apt-textarea" rows={3} placeholder="¿Algún modelo de interés? ¿Auto para parte de pago?" {...field} /></FormControl>
+                  <label className="apt-field-label">{apt.fieldNotes} <span style={{ fontWeight: 400, opacity: 0.6 }}>{apt.fieldNotesOptional}</span></label>
+                  <FormControl><textarea className="apt-input apt-textarea" rows={3} placeholder={apt.notesPlaceholder} {...field} /></FormControl>
                   <FormMessage className="apt-field-error" /></FormItem>
               )} />
               {selectedDate && selectedTime && (
                 <div className="apt-summary">
-                  <p className="apt-summary-label">Turno seleccionado</p>
+                  <p className="apt-summary-label">{apt.selectedAppointment}</p>
                   <p className="apt-summary-value">
-                    {format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
+                    {format(selectedDate, dateLongPattern, { locale: dateLocale })}
                     <span style={{ color: "#d11119", margin: "0 6px" }}>·</span>
-                    {selectedTime} hs
+                    {displayTime(selectedTime)}
                   </p>
                 </div>
               )}
               <button type="submit" disabled={isSubmitting} className="apt-submit">
-                {isSubmitting ? <><Loader2Icon size={16} className="animate-spin" />Agendando…</> : "Confirmar turno"}
+                {isSubmitting ? <><Loader2Icon size={16} className="animate-spin" />{apt.confirming}</> : apt.confirm}
               </button>
-              <p className="apt-footer-note">Sin cargo ni compromiso · Confirmación por email</p>
+              <p className="apt-footer-note">{apt.footerNote}</p>
             </div>
           </div>
 
@@ -557,7 +594,7 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
                 onClick={() => setMobileStep(s => (s - 1) as 1 | 2 | 3)}
               >
                 <ChevronLeft size={18} strokeWidth={2.5} />
-                Volver
+                {apt.back}
               </button>
 
               <div className="apt-mwiz-steps">
@@ -583,13 +620,13 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
               {/* STEP 1 — Date */}
               {mobileStep === 1 && (
                 <div className="apt-mwiz-step1">
-                  <p className="apt-eyebrow" style={{ marginBottom: 8 }}>Agendar visita</p>
-                  <div className="apt-mwiz-title">Reserva<br />tu <span>turno</span></div>
-                  <div className="apt-step-label" style={{ marginBottom: 6 }}>01 — Seleccioná el día</div>
+                  <p className="apt-eyebrow" style={{ marginBottom: 8 }}>{apt.eyebrow}</p>
+                  <div className="apt-mwiz-title">{apt.headline1}<br />{apt.headline2} <span>{apt.headlineAccent}</span></div>
+                  <div className="apt-step-label" style={{ marginBottom: 6 }}>{apt.step1}</div>
                   <FormField control={form.control} name="date" render={({ field }) => (
                     <FormItem><FormControl>
                       <div className="apt-cal-wrap">
-                        <Calendar mode="single" locale={es} selected={field.value} onSelect={field.onChange}
+                        <Calendar mode="single" locale={dateLocale} selected={field.value} onSelect={field.onChange}
                           disabled={(date) => isBefore(startOfDay(date), today)}
                           showOutsideDays={false} startMonth={calendarStart} endMonth={calendarEnd} />
                       </div>
@@ -601,7 +638,7 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
               {/* STEP 2 — Time */}
               {mobileStep === 2 && (
                 <div className="apt-mwiz-step2">
-                  <div className="apt-step-label" style={{ marginBottom: 14 }}>02 — Seleccioná el horario</div>
+                  <div className="apt-step-label" style={{ marginBottom: 14 }}>{apt.step2}</div>
                   {formattedDate && (
                     <div className="apt-mwiz-date-pill">
                       <span style={{ fontSize: 16 }}>📅</span>
@@ -621,7 +658,7 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
                               onClick={() => field.onChange(slot.time)}
                               className={cn("apt-slot", slot.isBooked && "apt-slot--booked", field.value === slot.time && "apt-slot--selected")}
                               style={{ animationDelay: `${i * 45}ms` }}>
-                              {slot.time}
+                              {displayTime(slot.time)}
                             </button>
                           ))}
                         </div>
@@ -636,36 +673,36 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
               {/* STEP 3 — Details */}
               {mobileStep === 3 && (
                 <div className="apt-mwiz-step3">
-                  <div className="apt-right-step-label" style={{ marginBottom: 16 }}>03 — Tus datos</div>
+                  <div className="apt-right-step-label" style={{ marginBottom: 16 }}>{apt.step3}</div>
                   {selectedDate && selectedTime && (
                     <div className="apt-mwiz-booking-card">
-                      <div className="apt-mwiz-booking-card-label">Tu turno</div>
+                      <div className="apt-mwiz-booking-card-label">{apt.yourAppointment}</div>
                       <div className="apt-mwiz-booking-card-value">
-                        {format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
+                        {format(selectedDate, dateLongPattern, { locale: dateLocale })}
                         <span style={{ color: "#d11119", margin: "0 5px" }}>·</span>
-                        {selectedTime} hs
+                        {displayTime(selectedTime)}
                       </div>
                     </div>
                   )}
                   <FormField control={form.control} name="name" render={({ field }) => (
-                    <FormItem className="apt-field"><label className="apt-field-label">Nombre completo</label>
+                    <FormItem className="apt-field"><label className="apt-field-label">{apt.fieldName}</label>
                       <FormControl><input className="apt-input" placeholder="Juan García" autoComplete="name" {...field} /></FormControl>
                       <FormMessage className="apt-field-error" /></FormItem>
                   )} />
                   <FormField control={form.control} name="phone" render={({ field }) => (
-                    <FormItem className="apt-field"><label className="apt-field-label">Teléfono / WhatsApp</label>
+                    <FormItem className="apt-field"><label className="apt-field-label">{apt.fieldPhone}</label>
                       <FormControl><input className="apt-input" type="tel" placeholder="+54 9 11 1234-5678" autoComplete="tel" {...field} /></FormControl>
                       <FormMessage className="apt-field-error" /></FormItem>
                   )} />
                   <FormField control={form.control} name="email" render={({ field }) => (
-                    <FormItem className="apt-field"><label className="apt-field-label">Email</label>
+                    <FormItem className="apt-field"><label className="apt-field-label">{apt.fieldEmail}</label>
                       <FormControl><input className="apt-input" type="email" placeholder="juan@email.com" autoComplete="email" {...field} /></FormControl>
                       <FormMessage className="apt-field-error" /></FormItem>
                   )} />
                   <FormField control={form.control} name="notes" render={({ field }) => (
                     <FormItem className="apt-field">
-                      <label className="apt-field-label">Comentarios <span style={{ fontWeight: 400, opacity: 0.6 }}>(opcional)</span></label>
-                      <FormControl><textarea className="apt-input apt-textarea" rows={3} placeholder="¿Algún modelo de interés?" {...field} /></FormControl>
+                      <label className="apt-field-label">{apt.fieldNotes} <span style={{ fontWeight: 400, opacity: 0.6 }}>{apt.fieldNotesOptional}</span></label>
+                      <FormControl><textarea className="apt-input apt-textarea" rows={3} placeholder={apt.notesPlaceholder} {...field} /></FormControl>
                       <FormMessage className="apt-field-error" /></FormItem>
                   )} />
                 </div>
@@ -677,10 +714,10 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
               <div className="apt-mwiz-footer apt-mwiz-footer-dark">
                 <button type="button" className="apt-mwiz-btn apt-mwiz-btn-white" disabled={!selectedDate}
                   onClick={() => setMobileStep(2)}>
-                  Siguiente <ChevronRight size={18} strokeWidth={2.5} />
+                  {apt.next} <ChevronRight size={18} strokeWidth={2.5} />
                 </button>
                 <p className="apt-mwiz-note apt-mwiz-note-dark">
-                  {selectedDate ? `${formattedDate} seleccionado` : "Elegí una fecha para continuar"}
+                  {selectedDate ? `${formattedDate} ${apt.dateSelectedNote}` : apt.noDateNote}
                 </p>
               </div>
             )}
@@ -689,10 +726,10 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
               <div className="apt-mwiz-footer apt-mwiz-footer-dark">
                 <button type="button" className="apt-mwiz-btn apt-mwiz-btn-white" disabled={!selectedTime}
                   onClick={() => setMobileStep(3)}>
-                  Siguiente <ChevronRight size={18} strokeWidth={2.5} />
+                  {apt.next} <ChevronRight size={18} strokeWidth={2.5} />
                 </button>
                 <p className="apt-mwiz-note apt-mwiz-note-dark">
-                  {selectedTime ? `${selectedTime} hs seleccionado` : "Elegí un horario para continuar"}
+                  {selectedTime ? `${displayTime(selectedTime)} ${apt.dateSelectedNote}` : apt.noTimeNote}
                 </p>
               </div>
             )}
@@ -700,9 +737,9 @@ export function AppointmentForm({ referrerId, vehicleId, vehicleName, onSuccess 
             {mobileStep === 3 && (
               <div className="apt-mwiz-footer apt-mwiz-footer-light">
                 <button type="submit" disabled={isSubmitting} className="apt-mwiz-btn apt-mwiz-btn-dark">
-                  {isSubmitting ? <><Loader2Icon size={16} className="animate-spin" />Agendando…</> : "Confirmar turno"}
+                  {isSubmitting ? <><Loader2Icon size={16} className="animate-spin" />{apt.confirming}</> : apt.confirm}
                 </button>
-                <p className="apt-mwiz-note apt-mwiz-note-light">Sin cargo ni compromiso · Confirmación por email</p>
+                <p className="apt-mwiz-note apt-mwiz-note-light">{apt.footerNote}</p>
               </div>
             )}
 

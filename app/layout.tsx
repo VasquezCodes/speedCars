@@ -31,19 +31,19 @@ const rbRational = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "AutosDealer — Tu concesionaria de confianza",
-    template: "%s | AutosDealer",
+    default: "FF Speed Cars — Fort Worth, TX",
+    template: "%s | FF Speed Cars",
   },
   description:
-    "Encontrá el auto de tus sueños. Catálogo de vehículos nuevos y usados con los mejores precios. Contactate con nuestros asesores.",
+    "Encuentra tu próximo vehículo en FF Speed Cars, Fort Worth TX. Autos usados de calidad, precios transparentes y atención personalizada.",
   icons: {
-    icon: "/logo-nuevo.png",
+    icon: "/favicon.svg",
     apple: "/logo-nuevo.png",
   },
   openGraph: {
-    title: "AutosDealer — Tu concesionaria de confianza",
+    title: "FF Speed Cars — Fort Worth, TX",
     description:
-      "Encontrá el auto de tus sueños. Catálogo de vehículos nuevos y usados.",
+      "Autos usados de calidad en Fort Worth, TX. Precios transparentes, título limpio y atención personalizada.",
     type: "website",
   },
 };

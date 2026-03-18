@@ -42,7 +42,15 @@
       "Bash(find /d/autosdealer-app/app -name *.ts -o -name *.tsx)",
       "Bash(find D:/autosdealer-app/components/admin -name *.tsx)",
       "Bash(ls d:/autosdealer-app/app/favicon*)",
-      "Bash(ls d:/autosdealer-app/public/*.png)"
+      "Bash(ls d:/autosdealer-app/public/*.png)",
+      "Bash(ls d:/autosdealer-app/public/*.png d:/autosdealer-app/public/*.svg d:/autosdealer-app/public/*.ico)",
+      "Bash(find d:/autosdealer-app -type f \\\\\\(-name *.json -o -name *.ts -o -name *.js \\\\\\) -path *test* -o -path *seed* -o -path *fixture*)",
+      "Bash(find D:/autosdealer-app/app/api/admin -name *.ts -o -name *.tsx)",
+      "Bash(xargs grep:*)",
+      "mcp__plugin_firebase_firebase__firestore_list_collections",
+      "Bash(ls d:/autosdealer-app/.env*)",
+      "Bash(node scripts/clear-test-data.mjs)",
+      "Bash(find D:/autosdealer-app -name *.ts -path */api/vehicles*)"
     ]
   },
   "enableAllProjectMcpServers": true,

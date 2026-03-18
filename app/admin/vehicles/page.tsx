@@ -68,6 +68,7 @@ export default function AdminVehiclesPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [brandIsOther, setBrandIsOther] = useState(false);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+    const [mileageUnit, setMileageUnit] = useState<"km" | "mi">("km");
 
     useEffect(() => {
         fetchVehicles();
@@ -152,12 +153,14 @@ export default function AdminVehiclesPage() {
     const handleEdit = (v: Vehicle) => {
         setForm(v);
         setBrandIsOther(!!v.brand && !POPULAR_BRANDS.includes(v.brand));
+        setMileageUnit("km");
         setShowForm(true);
     };
 
     const openNewForm = () => {
         setForm(emptyForm);
         setBrandIsOther(false);
+        setMileageUnit("km");
         setShowForm(true);
     };
 
@@ -505,7 +508,62 @@ export default function AdminVehiclesPage() {
                                             {renderInput("model", "Modelo", "text", "Ej: Sentra")}
                                             {renderInput("year", "Año", "number", "2024")}
                                             {renderInput("price", "Precio ($)", "number", "0")}
-                                            {renderInput("mileage", "Kilometraje (km)", "number", "0")}
+                                            {/* Mileage with KM/MI toggle */}
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                                <label style={{ fontSize: 13, fontWeight: 500, color: "#6b7280", marginLeft: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                                    Kilometraje
+                                                </label>
+                                                <div style={{ display: "flex", gap: 8 }}>
+                                                    <input
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        placeholder="0"
+                                                        value={
+                                                            mileageUnit === "mi"
+                                                                ? (form.mileage ? Math.round(form.mileage * 0.621371).toLocaleString("en-US") : "")
+                                                                : (form.mileage ? form.mileage.toLocaleString("en-US") : "")
+                                                        }
+                                                        onChange={(e) => {
+                                                            const raw = parseInt(e.target.value.replace(/[^0-9]/g, ""), 10) || 0;
+                                                            setForm(f => ({
+                                                                ...f,
+                                                                mileage: mileageUnit === "mi" ? Math.round(raw / 0.621371) : raw,
+                                                            }));
+                                                        }}
+                                                        style={{ flex: 1, padding: "14px 20px", borderRadius: 16, background: "#fff", border: "1px solid #eceef1", outline: "none", fontSize: 15, color: "#111827", fontFamily: "inherit", boxSizing: "border-box" as const }}
+                                                    />
+                                                    {/* Unit toggle */}
+                                                    <div style={{ display: "flex", borderRadius: 12, border: "1px solid #eceef1", overflow: "hidden", flexShrink: 0 }}>
+                                                        {(["km", "mi"] as const).map((unit) => (
+                                                            <button
+                                                                key={unit}
+                                                                type="button"
+                                                                onClick={() => setMileageUnit(unit)}
+                                                                style={{
+                                                                    padding: "0 16px", border: "none", cursor: "pointer",
+                                                                    fontFamily: "inherit", fontSize: 13, fontWeight: 700,
+                                                                    textTransform: "uppercase" as const,
+                                                                    background: mileageUnit === unit ? "#111827" : "#f9fafb",
+                                                                    color: mileageUnit === unit ? "#fff" : "#6b7280",
+                                                                    transition: "background 0.15s, color 0.15s",
+                                                                }}
+                                                            >
+                                                                {unit}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                {form.mileage > 0 && mileageUnit === "mi" && (
+                                                    <span style={{ fontSize: 11, color: "#9ca3af", marginLeft: 4 }}>
+                                                        = {form.mileage.toLocaleString("en-US")} km guardados
+                                                    </span>
+                                                )}
+                                                {form.mileage > 0 && mileageUnit === "km" && (
+                                                    <span style={{ fontSize: 11, color: "#9ca3af", marginLeft: 4 }}>
+                                                        ≈ {Math.round(form.mileage * 0.621371).toLocaleString("en-US")} mi
+                                                    </span>
+                                                )}
+                                            </div>
                                             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                                                 <label style={{ fontSize: 13, fontWeight: 500, color: "#6b7280", marginLeft: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Color Exterior</label>
                                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 16, padding: "16px", background: "#f9fafb", borderRadius: 24, border: "1px solid #f3f4f6" }}>

@@ -13,8 +13,8 @@ import type { AppointmentFormData, AvailableSlot } from "@/types/appointment";
 
 const FORT_WORTH_TZ = "America/Chicago";
 
-const WEEKDAY_HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17];
-const SUNDAY_HOURS = [10, 11, 12, 13, 14, 15];
+const WEEKDAY_HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+const SUNDAY_HOURS = [10, 11, 12, 13, 14, 15, 16];
 
 /** Returns the current date string (YYYY-MM-DD) in Fort Worth local time */
 function todayInFortWorth(): string {

@@ -13,7 +13,7 @@ export default function FAQSection() {
   };
 
   return (
-    <section id="faq" style={{ padding: "120px 0", background: "var(--white)", borderTop: "1px solid var(--gray-200)" }}>
+    <section id="faq" style={{ padding: "120px 0", background: "var(--clr-dark-a0)", borderTop: "1px solid var(--clr-surface-a20)" }}>
       <div className="container" style={{ maxWidth: "800px" }}>
 
         <div style={{ textAlign: "center", marginBottom: "80px" }}>
@@ -31,11 +31,11 @@ export default function FAQSection() {
           <div style={{ width: 40, height: 4, background: "var(--accent)", margin: "24px auto 0" }}></div>
         </div>
 
-        <div style={{ borderTop: "1px solid var(--gray-300)" }}>
+        <div style={{ borderTop: "1px solid var(--clr-surface-a20)" }}>
           {t.faq.items.map((item, index) => {
             const isOpen = openIndex === index;
             return (
-              <div key={index} style={{ borderBottom: "1px solid var(--gray-300)" }}>
+              <div key={index} style={{ borderBottom: "1px solid var(--clr-surface-a20)" }}>
                 <button
                   onClick={() => toggle(index)}
                   style={{
@@ -92,7 +92,7 @@ export default function FAQSection() {
         <div style={{
           marginTop: "80px",
           padding: "32px",
-          background: "var(--gray-100)",
+          background: "var(--clr-surface-a10)",
           borderRadius: "8px",
           borderLeft: "4px solid var(--accent)"
         }}>

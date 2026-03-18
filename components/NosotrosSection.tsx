@@ -7,10 +7,10 @@ export default function NosotrosSection() {
     const { t } = useLanguage();
     const { nosotros } = t;
 
-    const cards = [nosotros.mission, nosotros.vision, nosotros.purpose];
+    const cards = [nosotros.card1, nosotros.card2, nosotros.card3];
 
     return (
-        <section id="nosotros" style={{ padding: "80px 0", background: "var(--white)", borderTop: "1px solid var(--gray-200)" }}>
+        <section id="nosotros" style={{ padding: "80px 0", background: "var(--clr-dark-a0)", borderTop: "1px solid var(--clr-surface-a20)" }}>
             <div className="container">
                 <div className="nosotros-grid">
 
@@ -36,7 +36,7 @@ export default function NosotrosSection() {
                             color: "var(--text-muted)",
                             fontSize: "16px",
                             lineHeight: 1.7,
-                            maxWidth: "420px"
+                            maxWidth: "460px"
                         }}>
                             {nosotros.description}
                         </p>
@@ -61,8 +61,12 @@ export default function NosotrosSection() {
 
                 </div>
 
-                {/* Mission / Vision / Purpose */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "40px", marginTop: "80px", borderTop: "1px solid var(--gray-200)", paddingTop: "64px" }}>
+                {/* Cards */}
+                <div style={{ marginTop: "80px", borderTop: "1px solid var(--clr-surface-a20)", paddingTop: "64px" }}>
+                <p style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--accent)", marginBottom: "40px" }}>
+                    {nosotros.cardsTitle}
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "40px" }}>
                     {cards.map((item, index) => (
                         <div key={index} style={{ paddingRight: "20px" }}>
                             <h3 style={{ fontSize: "18px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "12px" }}>
@@ -74,6 +78,7 @@ export default function NosotrosSection() {
                             </p>
                         </div>
                     ))}
+                </div>
                 </div>
 
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminAppointment, AppointmentStatus } from "@/types/appointment";
 
@@ -37,8 +37,15 @@ const STATUS_STYLE: Record<AppointmentStatus, { bg: string; color: string }> = {
 
 const ALL_STATUSES: AppointmentStatus[] = ["pendiente", "confirmado", "cancelado", "completado"];
 
-const WEEKDAY_SLOTS = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"];
-const SUNDAY_SLOTS  = ["10:00","11:00","12:00","13:00","14:00","15:00"];
+const WEEKDAY_SLOTS = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"];
+const SUNDAY_SLOTS  = ["10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
+
+function formatTimeAmPm(time: string): string {
+  const h = parseInt(time.split(":")[0], 10);
+  const suffix = h < 12 ? "AM" : "PM";
+  const display = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${display}:00 ${suffix}`;
+}
 
 function getSlotsForDate(dateStr: string): string[] {
   const dow = new Date(dateStr + "T12:00:00").getDay();
@@ -60,6 +67,45 @@ function friendlyDay(dateStr: string): string {
   if (dateStr === yesterday) return "Ayer";
   const [y, m, d] = dateStr.split("-");
   return `${d}/${m}/${y}`;
+}
+
+// ─── CopyButton ─────────────────────────────────────────────────────────────
+
+function CopyButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, [value]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      title={copied ? "¡Copiado!" : `Copiar ${value}`}
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: 20, height: 20, border: "none", background: "none",
+        cursor: "pointer", padding: 0, color: copied ? "#22c55e" : "#bbb",
+        transition: "color 0.2s", flexShrink: 0,
+      }}
+      onMouseEnter={(e) => { if (!copied) e.currentTarget.style.color = "#666"; }}
+      onMouseLeave={(e) => { if (!copied) e.currentTarget.style.color = "#bbb"; }}
+    >
+      {copied ? (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      )}
+    </button>
+  );
 }
 
 // ─── StatusBadge ────────────────────────────────────────────────────────────
@@ -368,9 +414,15 @@ export default function AdminAppointmentsPage() {
                         >
                           {/* Cliente */}
                           <td style={{ padding: "16px 24px" }}>
-                            <p style={{ fontWeight: 600, fontSize: 14, color: "#111", marginBottom: 2 }}>{appt.name}</p>
-                            <p style={{ fontSize: 12, color: "#aaa" }}>{appt.phone}</p>
-                            <p style={{ fontSize: 12, color: "#aaa" }}>{appt.email}</p>
+                            <p style={{ fontWeight: 600, fontSize: 14, color: "#111", marginBottom: 4 }}>{appt.name}</p>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                              <p style={{ fontSize: 12, color: "#aaa", margin: 0 }}>{appt.phone}</p>
+                              <CopyButton value={appt.phone} />
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                              <p style={{ fontSize: 12, color: "#aaa", margin: 0 }}>{appt.email}</p>
+                              <CopyButton value={appt.email} />
+                            </div>
                           </td>
                           {/* Vehículo */}
                           <td style={{ padding: "16px 24px", fontSize: 13, color: appt.vehicleName ? "#111" : "#bbb" }}>
@@ -381,7 +433,7 @@ export default function AdminAppointmentsPage() {
                             <p style={{ fontWeight: 600, fontSize: 14, color: past && appt.status === "pendiente" ? "#f59e0b" : "#111" }}>
                               {formatDate(appt.date)}
                             </p>
-                            <p style={{ fontSize: 13, color: "#888" }}>{appt.time} hs</p>
+                            <p style={{ fontSize: 13, color: "#888" }}>{formatTimeAmPm(appt.time)}</p>
                           </td>
                           {/* Vendedor */}
                           <td style={{ padding: "16px 24px" }}>
@@ -494,10 +546,9 @@ export default function AdminAppointmentsPage() {
                 >
                   {/* Time */}
                   <div style={{ width: 56, flexShrink: 0, paddingTop: 2 }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: slotPast ? "#bbb" : "#111" }}>
-                      {time}
+                    <span style={{ fontSize: 13, fontWeight: 700, color: slotPast ? "#bbb" : "#111", whiteSpace: "nowrap" }}>
+                      {formatTimeAmPm(time)}
                     </span>
-                    <span style={{ fontSize: 11, color: "#aaa", display: "block" }}>hs</span>
                   </div>
 
                   {/* Occupancy bar */}
@@ -528,7 +579,10 @@ export default function AdminAppointmentsPage() {
                                 <p style={{ fontSize: 12, color: "#888", margin: "2px 0 0" }}>{appt.vehicleName}</p>
                               )}
                             </div>
-                            <p style={{ fontSize: 12, color: "#888", margin: 0, whiteSpace: "nowrap" }}>{appt.phone}</p>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                              <p style={{ fontSize: 12, color: "#888", margin: 0, whiteSpace: "nowrap" }}>{appt.phone}</p>
+                              <CopyButton value={appt.phone} />
+                            </div>
                             {appt.sellerName && (
                               <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 20, background: "#0a0a0a", color: "#fff", fontSize: 11, fontWeight: 700 }}>
                                 {appt.sellerName}
