@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { adminDb } from "@/lib/firebase/admin";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -20,7 +22,9 @@ async function getFeaturedVehicles(): Promise<Vehicle[]> {
       .limit(20)
       .get();
 
-    const all = snap.docs.map((d) => ({ ...d.data(), id: d.id } as Vehicle));
+    const all = snap.docs
+      .map((d) => ({ ...d.data(), id: d.id } as Vehicle))
+      .filter((v) => v.status !== "Retirado" && v.status !== "Vendido");
     const featured = all.filter((v) => v.isFeatured);
     return (featured.length > 0 ? featured : all).slice(0, 6);
   } catch (error) {

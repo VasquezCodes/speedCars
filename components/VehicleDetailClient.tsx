@@ -91,6 +91,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     const touchStartX = useRef<number | null>(null);
     const trackRef = useRef<HTMLDivElement>(null);
     const isDragging = useRef(false);
+    const isAnimating = useRef(false);
 
     useEffect(() => {
         const code = getCookie("referral");
@@ -123,7 +124,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     }
 
     function handleTouchStart(e: React.TouchEvent) {
-        if (images.length < 2) return;
+        if (images.length < 2 || isAnimating.current) return;
         touchStartX.current = e.touches[0].clientX;
         isDragging.current = true;
         if (trackRef.current) trackRef.current.style.transition = 'none';
@@ -139,16 +140,19 @@ export default function VehicleDetailClient({ vehicle }: Props) {
         isDragging.current = false;
         const track = trackRef.current;
         if (Math.abs(delta) > 50) {
+            isAnimating.current = true;
             const targetPct = delta > 0 ? '-66.666%' : '0%';
+            const imagesLen = images.length;
             track.style.transition = 'transform 0.28s ease-out';
             track.style.transform = `translateX(${targetPct})`;
             setTimeout(() => {
                 track.style.transition = 'none';
                 track.style.transform = 'translateX(-33.333%)';
                 setActiveImg(i => delta > 0
-                    ? (i === images.length - 1 ? 0 : i + 1)
-                    : (i === 0 ? images.length - 1 : i - 1)
+                    ? (i === imagesLen - 1 ? 0 : i + 1)
+                    : (i === 0 ? imagesLen - 1 : i - 1)
                 );
+                isAnimating.current = false;
             }, 280);
         } else {
             track.style.transition = 'transform 0.2s ease-out';
