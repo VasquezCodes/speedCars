@@ -36,7 +36,7 @@ const emptyForm: Vehicle = {
     mileage: 0,
     condition: "Usado",
     transmission: "Automático",
-    fuelType: "Nafta",
+    fuelType: "Gasolina",
     bodyStyle: "Sedán",
     color: "Blanco",
     description: "",

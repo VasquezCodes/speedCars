@@ -77,7 +77,7 @@ export default function AdminReferralsPage() {
   });
 
   const totalViews = data?.stats.reduce((s, r) => s + r.totalViews, 0) ?? 0;
-  const totalReferrers = data?.stats.filter((r) => r.referrerId !== "(orgánico)").length ?? 0;
+  const totalReferrers = data?.totalActiveSellers ?? 0;
   const totalAppointments = data?.stats.reduce((s, r) => s + r.totalAppointments, 0) ?? 0;
   const referredAppointments = data?.recentAppointments.filter((a) => a.referrerId).length ?? 0;
 

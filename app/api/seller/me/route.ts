@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import type { QuerySnapshot } from "firebase-admin/firestore";
 import { verifySellerToken, SELLER_COOKIE_NAME } from "@/lib/seller-auth";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -15,53 +16,72 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "Sesión inválida o expirada" }, { status: 401 });
     }
 
-    const [viewsSnap, appointmentsSnap] = await Promise.all([
-      adminDb.collection("pageViews").where("referrerId", "==", session.sellerId).orderBy("createdAt", "desc").get(),
-      adminDb.collection("appointments").where("referrerId", "==", session.sellerId).orderBy("date", "desc").get(),
-    ]);
+    const sellerId = sellerDoc.id;
 
-    const uniqueVehicles = new Set(viewsSnap.docs.map((d) => d.data().vehicleId as string)).size;
+    // Queries may fail if Firestore indexes are missing — don't block seller info
+    let viewsSnap: QuerySnapshot | null = null;
+    let appointmentsSnap: QuerySnapshot | null = null;
+    try {
+      [viewsSnap, appointmentsSnap] = await Promise.all([
+        adminDb.collection("pageViews").where("referrerId", "==", sellerId).orderBy("createdAt", "desc").get(),
+        adminDb.collection("appointments").where("referrerId", "==", sellerId).orderBy("date", "desc").get(),
+      ]);
+    } catch (queryErr) {
+      console.error("Seller me — query error (missing index?):", queryErr);
+    }
 
-    const appointments = appointmentsSnap.docs.map((doc) => {
-      const d = doc.data();
-      return {
-        id: doc.id,
-        name: d.name ?? "",
-        phone: d.phone ?? "",
-        email: d.email ?? "",
-        date: d.date ?? "",
-        time: d.time ?? "",
-        vehicleName: d.vehicleName ?? null,
-        status: d.status ?? "pendiente",
-        notes: d.notes ?? "",
-        createdAt: typeof d.createdAt === "string"
-          ? d.createdAt
-          : d.createdAt?._seconds
-          ? new Date(d.createdAt._seconds * 1000).toISOString()
-          : new Date().toISOString(),
-      };
-    });
+    const uniqueVehicles = viewsSnap
+      ? new Set(viewsSnap.docs.map((d) => d.data().vehicleId as string)).size
+      : 0;
+
+    const appointments = appointmentsSnap
+      ? appointmentsSnap.docs.map((doc) => {
+          const d = doc.data();
+          return {
+            id: doc.id,
+            name: d.name ?? "",
+            phone: d.phone ?? "",
+            email: d.email ?? "",
+            date: d.date ?? "",
+            time: d.time ?? "",
+            vehicleName: d.vehicleName ?? null,
+            status: d.status ?? "pendiente",
+            notes: d.notes ?? "",
+            createdAt: typeof d.createdAt === "string"
+              ? d.createdAt
+              : d.createdAt?._seconds
+              ? new Date(d.createdAt._seconds * 1000).toISOString()
+              : new Date().toISOString(),
+          };
+        })
+      : [];
 
     // Recent page views with vehicle info (last 20)
-    const recentViews = viewsSnap.docs.slice(0, 20).map((doc) => {
-      const d = doc.data();
-      return {
-        id: doc.id,
-        vehicleId: d.vehicleId ?? "",
-        vehicleName: d.vehicleName ?? null,
-        createdAt: typeof d.createdAt === "string"
-          ? d.createdAt
-          : d.createdAt?._seconds
-          ? new Date(d.createdAt._seconds * 1000).toISOString()
-          : new Date().toISOString(),
-      };
-    });
+    const recentViews = viewsSnap
+      ? viewsSnap.docs.slice(0, 20).map((doc) => {
+          const d = doc.data();
+          return {
+            id: doc.id,
+            vehicleId: d.vehicleId ?? "",
+            vehicleName: d.vehicleName ?? null,
+            createdAt: typeof d.createdAt === "string"
+              ? d.createdAt
+              : d.createdAt?._seconds
+              ? new Date(d.createdAt._seconds * 1000).toISOString()
+              : new Date().toISOString(),
+          };
+        })
+      : [];
 
     return NextResponse.json({
-      seller: session,
+      seller: {
+        sellerId,
+        username: session.username,
+        name: session.name,
+      },
       stats: {
-        totalViews: viewsSnap.size,
-        totalAppointments: appointmentsSnap.size,
+        totalViews: viewsSnap?.size ?? 0,
+        totalAppointments: appointmentsSnap?.size ?? 0,
         uniqueVehicles,
       },
       appointments,

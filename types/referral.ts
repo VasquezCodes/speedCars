@@ -75,4 +75,5 @@ export interface ReferralsApiResponse {
   stats: ReferralStats[];
   recentViews: PageViewRecord[];
   recentAppointments: AppointmentRecord[];
+  totalActiveSellers: number;
 }

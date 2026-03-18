@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
-import { CalendarCheck, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { CalendarCheck, ChevronLeft, ChevronRight, CheckCircle2, Maximize2, X } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
 import { AppointmentForm } from '@/components/AppointmentForm';
 import { StatusBadge, FeaturedBadge } from '@/components/StatusBadge';
@@ -67,9 +67,14 @@ const getBrandLogo = (brand: string) => {
     return map[normalize] || `${normalize.replace(/\s+/g, '-')}-svgrepo-com.svg`;
 };
 
+const FUEL_ES: Record<string, string> = {
+    'Nafta': 'Gasolina',
+};
 const FUEL_EN: Record<string, string> = {
-    'Nafta': 'Gasoline', 'Diesel': 'Diesel', 'Híbrido': 'Hybrid',
-    'Eléctrico': 'Electric', 'GNC': 'CNG',
+    'Nafta': 'Gasoline', 'Gasolina': 'Gasoline',
+    'Diesel': 'Diesel', 'Diésel': 'Diesel',
+    'Híbrido': 'Hybrid', 'Eléctrico': 'Electric',
+    'GNC': 'CNG', 'GLP': 'LPG',
 };
 const TRANSMISSION_EN: Record<string, string> = {
     'Automático': 'Automatic', 'Manual': 'Manual',
@@ -88,10 +93,16 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     const [showAppointmentModal, setShowAppointmentModal] = useState(false);
     const [logoError, setLogoError] = useState(false);
     const [referrerId, setReferrerId] = useState<string | undefined>(undefined);
-    const touchStartX = useRef<number | null>(null);
-    const trackRef = useRef<HTMLDivElement>(null);
-    const isDragging = useRef(false);
-    const isAnimating = useRef(false);
+    const [showLightbox, setShowLightbox] = useState(false);
+    const [lightboxIdx, setLightboxIdx] = useState(0);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const scrolling = useRef(false);
+    const touchStartX = useRef(0);
+    const thumbStripRef = useRef<HTMLDivElement>(null);
+    const thumbDragging = useRef(false);
+    const thumbDragStartX = useRef(0);
+    const thumbScrollStart = useRef(0);
+    const thumbDragMoved = useRef(false);
 
     useEffect(() => {
         const code = getCookie("referral");
@@ -101,11 +112,43 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     useEffect(() => {
         setLogoError(false);
         setActiveImg(0);
+        if (scrollRef.current) scrollRef.current.scrollLeft = 0;
     }, [vehicle.slug]);
 
-    const brandLogo = getBrandLogo(vehicle.brand);
-
     const images = vehicle.images?.length ? vehicle.images : ["/placeholder-car.jpg"];
+
+    useEffect(() => {
+        if (!showLightbox) return;
+        document.body.style.overflow = "hidden";
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setShowLightbox(false);
+            if (e.key === "ArrowRight") setLightboxIdx(i => (i + 1) % images.length);
+            if (e.key === "ArrowLeft") setLightboxIdx(i => (i - 1 + images.length) % images.length);
+        };
+        window.addEventListener("keydown", handler);
+        return () => {
+            document.body.style.overflow = "";
+            window.removeEventListener("keydown", handler);
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showLightbox, images.length]);
+
+    const brandLogo = getBrandLogo(vehicle.brand);
+    // Auto-scroll thumbstrip to keep active thumb visible
+    useEffect(() => {
+        const strip = thumbStripRef.current;
+        if (!strip) return;
+        const thumb = strip.children[activeImg] as HTMLElement;
+        if (!thumb) return;
+        const stripRect = strip.getBoundingClientRect();
+        const thumbRect = thumb.getBoundingClientRect();
+        if (thumbRect.left < stripRect.left + 40) {
+            strip.scrollBy({ left: thumbRect.left - stripRect.left - 40, behavior: "smooth" });
+        } else if (thumbRect.right > stripRect.right - 40) {
+            strip.scrollBy({ left: thumbRect.right - stripRect.right + 40, behavior: "smooth" });
+        }
+    }, [activeImg]);
+
     const vehicleTitle = `${vehicle.brand} ${vehicle.model}`;
     const priceFormatted = new Intl.NumberFormat("es-AR", {
         style: "currency",
@@ -116,49 +159,49 @@ export default function VehicleDetailClient({ vehicle }: Props) {
         ? vd.mileageNew
         : `${vehicle.mileage.toLocaleString("en-US")} mi`;
 
+    function scrollToImg(index: number) {
+        if (!scrollRef.current) return;
+        const el = scrollRef.current;
+        scrolling.current = true;
+        el.scrollTo({ left: index * el.clientWidth, behavior: "smooth" });
+        setActiveImg(index);
+        setTimeout(() => { scrolling.current = false; }, 400);
+    }
+
     function handlePrevImg() {
-        setActiveImg(i => (i === 0 ? images.length - 1 : i - 1));
+        const next = activeImg === 0 ? images.length - 1 : activeImg - 1;
+        scrollToImg(next);
     }
     function handleNextImg() {
-        setActiveImg(i => (i === images.length - 1 ? 0 : i + 1));
+        const next = activeImg === images.length - 1 ? 0 : activeImg + 1;
+        scrollToImg(next);
+    }
+
+    function handleScroll() {
+        if (scrolling.current || !scrollRef.current) return;
+        const el = scrollRef.current;
+        const index = Math.round(el.scrollLeft / el.clientWidth);
+        if (index !== activeImg) setActiveImg(index);
     }
 
     function handleTouchStart(e: React.TouchEvent) {
-        if (images.length < 2 || isAnimating.current) return;
         touchStartX.current = e.touches[0].clientX;
-        isDragging.current = true;
-        if (trackRef.current) trackRef.current.style.transition = 'none';
     }
-    function handleTouchMove(e: React.TouchEvent) {
-        if (!isDragging.current || touchStartX.current === null || !trackRef.current) return;
-        const delta = e.touches[0].clientX - touchStartX.current;
-        trackRef.current.style.transform = `translateX(calc(-33.333% + ${delta}px))`;
-    }
+
     function handleTouchEnd(e: React.TouchEvent) {
-        if (!isDragging.current || touchStartX.current === null || !trackRef.current) return;
         const delta = touchStartX.current - e.changedTouches[0].clientX;
-        isDragging.current = false;
-        const track = trackRef.current;
-        if (Math.abs(delta) > 50) {
-            isAnimating.current = true;
-            const targetPct = delta > 0 ? '-66.666%' : '0%';
-            const imagesLen = images.length;
-            track.style.transition = 'transform 0.28s ease-out';
-            track.style.transform = `translateX(${targetPct})`;
-            setTimeout(() => {
-                track.style.transition = 'none';
-                track.style.transform = 'translateX(-33.333%)';
-                setActiveImg(i => delta > 0
-                    ? (i === imagesLen - 1 ? 0 : i + 1)
-                    : (i === 0 ? imagesLen - 1 : i - 1)
-                );
-                isAnimating.current = false;
-            }, 280);
+        if (Math.abs(delta) > 40) {
+            if (delta > 0) {
+                const next = Math.min(activeImg + 1, images.length - 1);
+                scrollToImg(next);
+            } else {
+                const next = Math.max(activeImg - 1, 0);
+                scrollToImg(next);
+            }
         } else {
-            track.style.transition = 'transform 0.2s ease-out';
-            track.style.transform = 'translateX(-33.333%)';
+            // snap back to current image
+            scrollToImg(activeImg);
         }
-        touchStartX.current = null;
     }
 
     async function handleWhatsApp() {
@@ -180,8 +223,31 @@ export default function VehicleDetailClient({ vehicle }: Props) {
         window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
     }
 
+    function handleThumbMouseDown(e: React.MouseEvent) {
+        if (!thumbStripRef.current) return;
+        thumbDragging.current = true;
+        thumbDragMoved.current = false;
+        thumbDragStartX.current = e.pageX;
+        thumbScrollStart.current = thumbStripRef.current.scrollLeft;
+        thumbStripRef.current.style.cursor = "grabbing";
+    }
+    function handleThumbMouseMove(e: React.MouseEvent) {
+        if (!thumbDragging.current || !thumbStripRef.current) return;
+        const delta = e.pageX - thumbDragStartX.current;
+        if (Math.abs(delta) > 4) thumbDragMoved.current = true;
+        thumbStripRef.current.scrollLeft = thumbScrollStart.current - delta;
+    }
+    function handleThumbMouseUp() {
+        if (!thumbStripRef.current) return;
+        thumbDragging.current = false;
+        thumbStripRef.current.style.cursor = "grab";
+    }
+    function scrollThumbStrip(dir: "left" | "right") {
+        thumbStripRef.current?.scrollBy({ left: dir === "right" ? 200 : -200, behavior: "smooth" });
+    }
+
     const fuelDisplay = vehicle.fuelType
-        ? (lang === 'en' ? (FUEL_EN[vehicle.fuelType] ?? vehicle.fuelType) : vehicle.fuelType)
+        ? (lang === 'en' ? (FUEL_EN[vehicle.fuelType] ?? vehicle.fuelType) : (FUEL_ES[vehicle.fuelType] ?? vehicle.fuelType))
         : "—";
     const transmissionDisplay = vehicle.transmission
         ? (lang === 'en' ? (TRANSMISSION_EN[vehicle.transmission] ?? vehicle.transmission) : vehicle.transmission)
@@ -215,6 +281,9 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     grid-template-columns: 1.2fr 1fr;
                     gap: 80px;
                     align-items: start;
+                }
+                .vd-grid > * {
+                    min-width: 0;
                 }
                 .vd-title {
                     font-family: 'Outfit', sans-serif;
@@ -368,6 +437,9 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     aspect-ratio: 4/3;
                     position: relative;
                     overflow: hidden;
+                }
+                .vd-gallery-mobile-img::-webkit-scrollbar {
+                    display: none;
                 }
                 .vd-gallery-mobile-arrow {
                     position: absolute;
@@ -541,6 +613,99 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     margin-top: 20px;
                 }
 
+                /* ── Thumbstrip ─────────────────────────────────── */
+                .vd-thumbstrip-wrap {
+                    position: relative;
+                    margin-top: 14px;
+                }
+                .vd-thumbstrip-wrap::before,
+                .vd-thumbstrip-wrap::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    bottom: 8px;
+                    width: 48px;
+                    z-index: 2;
+                    pointer-events: none;
+                }
+                .vd-thumbstrip-wrap::before {
+                    left: 0;
+                    background: linear-gradient(to right, var(--primary), transparent);
+                }
+                .vd-thumbstrip-wrap::after {
+                    right: 0;
+                    background: linear-gradient(to left, var(--primary), transparent);
+                }
+                .vd-thumbstrip-arrow {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-65%);
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    background: rgba(18,18,18,0.9);
+                    border: 1px solid rgba(255,255,255,0.18);
+                    color: #fff;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 3;
+                    opacity: 0;
+                    transition: opacity 0.18s, background 0.18s, transform 0.18s;
+                    backdrop-filter: blur(6px);
+                    padding: 0;
+                }
+                .vd-thumbstrip-arrow-left { left: 2px; }
+                .vd-thumbstrip-arrow-right { right: 2px; }
+                .vd-thumbstrip-wrap:hover .vd-thumbstrip-arrow { opacity: 1; }
+                .vd-thumbstrip-arrow:hover {
+                    background: rgba(40,40,40,0.98);
+                    transform: translateY(-65%) scale(1.12);
+                }
+                .vd-thumbstrip {
+                    display: flex;
+                    gap: 8px;
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    scrollbar-width: none;
+                    padding: 4px 2px 10px;
+                    scroll-behavior: smooth;
+                    cursor: grab;
+                    user-select: none;
+                }
+                .vd-thumbstrip::-webkit-scrollbar { display: none; }
+                .vd-thumbstrip-item {
+                    flex-shrink: 0;
+                    width: 92px;
+                    height: 69px;
+                    position: relative;
+                    border-radius: 7px;
+                    overflow: hidden;
+                    border: 2px solid transparent;
+                    opacity: 0.45;
+                    cursor: pointer;
+                    background: none;
+                    padding: 0;
+                    transition: opacity 0.2s, border-color 0.2s, transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+                    outline: none;
+                }
+                .vd-thumbstrip-item:hover {
+                    opacity: 0.75;
+                    transform: scale(1.05);
+                }
+                .vd-thumbstrip-item.active {
+                    opacity: 1;
+                    border-color: var(--accent, #d11119);
+                    transform: scale(1.04);
+                }
+                .vd-thumbstrip-item img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+
                 /* ── Desktop gallery ────────────────────────────── */
                 .vd-gallery-desktop {
                     display: block;
@@ -573,41 +738,212 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                         display: none !important;
                     }
                 }
+
+                /* ── Lightbox ───────────────────────────────────── */
+                @keyframes vd-lb-in {
+                    from { opacity: 0; }
+                    to   { opacity: 1; }
+                }
+                @keyframes vd-lb-img-in {
+                    from { opacity: 0; transform: scale(0.96); }
+                    to   { opacity: 1; transform: scale(1); }
+                }
+                .vd-lb-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0,0,0,0.96);
+                    z-index: 10001;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: vd-lb-in 0.2s ease;
+                }
+                .vd-lb-img-wrap {
+                    position: relative;
+                    max-width: min(92vw, 1400px);
+                    max-height: 88vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: vd-lb-img-in 0.25s cubic-bezier(0.16,1,0.3,1);
+                }
+                .vd-lb-img-wrap img {
+                    max-width: min(92vw, 1400px);
+                    max-height: 88vh;
+                    width: auto;
+                    height: auto;
+                    object-fit: contain;
+                    display: block;
+                    user-select: none;
+                    -webkit-user-drag: none;
+                }
+                .vd-lb-close {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.1);
+                    border: 1px solid rgba(255,255,255,0.15);
+                    color: #fff;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background 0.2s, transform 0.15s;
+                    z-index: 1;
+                    backdrop-filter: blur(8px);
+                }
+                .vd-lb-close:hover {
+                    background: rgba(255,255,255,0.2);
+                    transform: scale(1.08);
+                }
+                .vd-lb-arrow {
+                    position: fixed;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 52px;
+                    height: 52px;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.08);
+                    border: 1px solid rgba(255,255,255,0.12);
+                    color: #fff;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background 0.2s, transform 0.15s;
+                    z-index: 1;
+                    backdrop-filter: blur(8px);
+                }
+                .vd-lb-arrow:hover {
+                    background: rgba(255,255,255,0.18);
+                    transform: translateY(-50%) scale(1.06);
+                }
+                .vd-lb-arrow-left  { left: 20px; }
+                .vd-lb-arrow-right { right: 20px; }
+                .vd-lb-counter {
+                    position: fixed;
+                    bottom: 28px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 13px;
+                    font-weight: 500;
+                    letter-spacing: 0.12em;
+                    color: rgba(255,255,255,0.45);
+                }
+                .vd-lb-thumbs {
+                    position: fixed;
+                    bottom: 52px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    display: flex;
+                    gap: 8px;
+                    max-width: 90vw;
+                    overflow-x: auto;
+                    padding: 4px;
+                    scrollbar-width: none;
+                }
+                .vd-lb-thumbs::-webkit-scrollbar { display: none; }
+                .vd-lb-thumb {
+                    flex-shrink: 0;
+                    width: 52px;
+                    height: 38px;
+                    border-radius: 5px;
+                    overflow: hidden;
+                    opacity: 0.4;
+                    border: 1.5px solid transparent;
+                    cursor: pointer;
+                    transition: opacity 0.2s, border-color 0.2s, transform 0.15s;
+                    background: none;
+                    padding: 0;
+                    position: relative;
+                }
+                .vd-lb-thumb:hover { opacity: 0.7; transform: scale(1.05); }
+                .vd-lb-thumb.active {
+                    opacity: 1;
+                    border-color: var(--accent, #d11119);
+                }
+                .vd-lb-thumb img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }
+                /* Expand button on desktop main image */
+                .vd-expand-btn {
+                    position: absolute;
+                    bottom: 14px;
+                    right: 14px;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 8px;
+                    background: rgba(0,0,0,0.5);
+                    border: 1px solid rgba(255,255,255,0.15);
+                    color: #fff;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0;
+                    transition: opacity 0.2s, background 0.2s;
+                    z-index: 5;
+                    backdrop-filter: blur(4px);
+                }
+                .vd-gallery-desktop:hover .vd-expand-btn {
+                    opacity: 1;
+                }
+                .vd-expand-btn:hover {
+                    background: rgba(0,0,0,0.75);
+                }
+                /* Expand button on mobile */
+                .vd-expand-btn-mobile {
+                    position: absolute;
+                    bottom: 12px;
+                    right: 12px;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 7px;
+                    background: rgba(0,0,0,0.5);
+                    border: 1px solid rgba(255,255,255,0.15);
+                    color: #fff;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                    backdrop-filter: blur(4px);
+                }
                 `}} />
 
             {/* ── MOBILE GALLERY ─────────────────────────────────────────────── */}
             <div className="vd-gallery-mobile">
-                {/* Outer wrapper: clips the sliding track */}
-                <div
-                    className="vd-gallery-mobile-img"
-                    style={{ overflow: "hidden" }}
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                >
-                    {/* Sliding track: 3 images (prev | current | next) */}
+                {/* Scroll-snap image strip */}
+                <div style={{ position: "relative" }}>
                     <div
-                        ref={trackRef}
+                        ref={scrollRef}
+                        className="vd-gallery-mobile-img"
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
                         style={{
                             display: "flex",
-                            width: "300%",
-                            height: "100%",
-                            transform: "translateX(-33.333%)",
-                            willChange: "transform",
+                            overflow: "hidden",
+                            touchAction: "pan-y",
                         }}
                     >
-                        {[
-                            images[(activeImg - 1 + images.length) % images.length],
-                            images[activeImg],
-                            images[(activeImg + 1) % images.length],
-                        ].map((src, i) => (
-                            <div key={i} style={{ width: "33.333%", height: "100%", position: "relative", flexShrink: 0 }}>
+                        {images.map((src, i) => (
+                            <div key={src + i} style={{
+                                flexShrink: 0, width: "100%", height: "100%",
+                                position: "relative",
+                            }}>
                                 <Image
                                     src={src}
                                     alt={vehicleTitle}
                                     fill
                                     style={{ objectFit: "cover" }}
-                                    priority={i === 1}
+                                    priority={i === 0}
                                     sizes="100vw"
                                     quality={100}
                                     unoptimized
@@ -639,6 +975,15 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                             <StatusBadge status={vehicle.status} variant="overlay" />
                         </div>
                     )}
+
+                    {/* Mobile expand button */}
+                    <button
+                        className="vd-expand-btn-mobile"
+                        onClick={() => { setLightboxIdx(activeImg); setShowLightbox(true); }}
+                        aria-label="Ver imagen ampliada"
+                    >
+                        <Maximize2 size={13} strokeWidth={2} />
+                    </button>
                 </div>
 
                 {/* Dot indicators */}
@@ -748,15 +1093,19 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     {/* Left: Gallery (Desktop) */}
                     <div className="vd-gallery-desktop">
                         {/* Main image */}
-                        <div style={{
-                            width: "100%",
-                            aspectRatio: "4/3",
-                            position: "relative",
-                            backgroundColor: "var(--clr-surface-a10)",
-                            marginBottom: 16,
-                            borderRadius: "16px",
-                            overflow: "hidden"
-                        }}>
+                        <div
+                            style={{
+                                width: "100%",
+                                aspectRatio: "4/3",
+                                position: "relative",
+                                backgroundColor: "var(--clr-surface-a10)",
+                                marginBottom: 16,
+                                borderRadius: "16px",
+                                overflow: "hidden",
+                                cursor: "zoom-in",
+                            }}
+                            onClick={() => { setLightboxIdx(activeImg); setShowLightbox(true); }}
+                        >
                             <Image
                                 src={images[activeImg]}
                                 alt={vehicleTitle}
@@ -767,6 +1116,14 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                 quality={100}
                                 unoptimized
                             />
+                            {/* Expand icon */}
+                            <button
+                                className="vd-expand-btn"
+                                onClick={(e) => { e.stopPropagation(); setLightboxIdx(activeImg); setShowLightbox(true); }}
+                                aria-label="Ver imagen ampliada"
+                            >
+                                <Maximize2 size={15} strokeWidth={2} />
+                            </button>
                             {/* Back arrow overlay */}
                             <Link
                                 href="/autos"
@@ -788,31 +1145,44 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                             </Link>
                         </div>
 
-                        {/* Thumbnails */}
+                        {/* Filmstrip thumbnails */}
                         {images.length > 1 && (
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 16 }}>
-                                {images.map((img, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setActiveImg(i)}
-                                        className={`vd-thumb ${i === activeImg ? 'active' : ''}`}
-                                        style={{
-                                            aspectRatio: "4/3",
-                                            position: "relative",
-                                            cursor: "pointer",
-                                            background: "none",
-                                            padding: 0,
-                                            border: "none",
-                                            borderRadius: "8px",
-                                            overflow: "hidden"
-                                        }}
-                                    >
-                                        <Image src={img} alt="" fill style={{ objectFit: "cover" }} sizes="120px" quality={100} unoptimized />
-                                        {i === activeImg && (
-                                            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "var(--accent)" }} />
-                                        )}
-                                    </button>
-                                ))}
+                            <div className="vd-thumbstrip-wrap">
+                                <button
+                                    className="vd-thumbstrip-arrow vd-thumbstrip-arrow-left"
+                                    onClick={() => scrollThumbStrip("left")}
+                                    aria-label="Desplazar miniaturas a la izquierda"
+                                >
+                                    <ChevronLeft size={13} strokeWidth={2.5} />
+                                </button>
+                                <div
+                                    className="vd-thumbstrip"
+                                    ref={thumbStripRef}
+                                    onMouseDown={handleThumbMouseDown}
+                                    onMouseMove={handleThumbMouseMove}
+                                    onMouseUp={handleThumbMouseUp}
+                                    onMouseLeave={handleThumbMouseUp}
+                                >
+                                    {images.map((img, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => { if (!thumbDragMoved.current) setActiveImg(i); }}
+                                            className={`vd-thumbstrip-item${i === activeImg ? ' active' : ''}`}
+                                            aria-label={`Imagen ${i + 1}`}
+                                            draggable={false}
+                                        >
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={img} alt="" draggable={false} />
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    className="vd-thumbstrip-arrow vd-thumbstrip-arrow-right"
+                                    onClick={() => scrollThumbStrip("right")}
+                                    aria-label="Desplazar miniaturas a la derecha"
+                                >
+                                    <ChevronRight size={13} strokeWidth={2.5} />
+                                </button>
                             </div>
                         )}
                     </div>
@@ -824,7 +1194,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                 <img
                                     src={`/carBrands/${brandLogo}`}
                                     alt={`${vehicle.brand} logo`}
-                                    style={{ height: 48, width: "auto", objectFit: "contain", opacity: 0.9 }}
+                                    style={{ height: 48, width: "auto", objectFit: "contain", opacity: 0.85, filter: "brightness(0) invert(1)" }}
                                     onError={() => setLogoError(true)}
                                 />
                             </div>
@@ -977,6 +1347,81 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     </div>
                 </div>
                 </>
+            )}
+
+            {/* ── LIGHTBOX ───────────────────────────────────────────────────── */}
+            {showLightbox && (
+                <div
+                    className="vd-lb-overlay"
+                    onClick={() => setShowLightbox(false)}
+                >
+                    {/* Close */}
+                    <button
+                        className="vd-lb-close"
+                        onClick={() => setShowLightbox(false)}
+                        aria-label="Cerrar"
+                    >
+                        <X size={18} strokeWidth={2} />
+                    </button>
+
+                    {/* Prev */}
+                    {images.length > 1 && (
+                        <button
+                            className="vd-lb-arrow vd-lb-arrow-left"
+                            onClick={(e) => { e.stopPropagation(); setLightboxIdx(i => (i - 1 + images.length) % images.length); }}
+                            aria-label="Imagen anterior"
+                        >
+                            <ChevronLeft size={22} strokeWidth={2} />
+                        </button>
+                    )}
+
+                    {/* Image */}
+                    <div
+                        className="vd-lb-img-wrap"
+                        onClick={(e) => e.stopPropagation()}
+                        key={lightboxIdx}
+                    >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={images[lightboxIdx]}
+                            alt={`${vehicleTitle} — imagen ${lightboxIdx + 1}`}
+                            draggable={false}
+                        />
+                    </div>
+
+                    {/* Next */}
+                    {images.length > 1 && (
+                        <button
+                            className="vd-lb-arrow vd-lb-arrow-right"
+                            onClick={(e) => { e.stopPropagation(); setLightboxIdx(i => (i + 1) % images.length); }}
+                            aria-label="Siguiente imagen"
+                        >
+                            <ChevronRight size={22} strokeWidth={2} />
+                        </button>
+                    )}
+
+                    {/* Thumbnails strip */}
+                    {images.length > 1 && (
+                        <div className="vd-lb-thumbs" onClick={(e) => e.stopPropagation()}>
+                            {images.map((src, i) => (
+                                <button
+                                    key={i}
+                                    className={`vd-lb-thumb${i === lightboxIdx ? " active" : ""}`}
+                                    onClick={() => setLightboxIdx(i)}
+                                    aria-label={`Ir a imagen ${i + 1}`}
+                                >
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={src} alt="" />
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Counter */}
+                    <div className="vd-lb-counter" onClick={(e) => e.stopPropagation()}>
+                        {lightboxIdx + 1} / {images.length}
+                    </div>
+                </div>
             )}
 
             {/* ── CONTACT MODAL ──────────────────────────────────────────────── */}

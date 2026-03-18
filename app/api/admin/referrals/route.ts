@@ -35,8 +35,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Build map: sellerId -> { id, name }
     const sellerById = new Map<string, { id: string; name: string }>();
+    let activeSellersCount = 0;
     for (const doc of sellersSnap.docs) {
       sellerById.set(doc.id, { id: doc.id, name: doc.data().name as string });
+      if (doc.data().isActive === true) activeSellersCount++;
     }
 
     const recentViews: PageViewRecord[] = viewsSnap.docs.map((doc) => ({
@@ -135,6 +137,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       stats,
       recentViews: recentViews.slice(0, 100),
       recentAppointments: recentAppointments.slice(0, 100),
+      totalActiveSellers: activeSellersCount,
     };
 
     return NextResponse.json(response);

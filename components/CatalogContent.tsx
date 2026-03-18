@@ -9,7 +9,7 @@ import { useLanguage } from "@/context/LanguageContext";
 
 const VEHICLE_TYPE_VALUES  = ["SUV","Pickup","Sedán","Hatchback","Coupé","Minivan","Deportivo","Convertible","Eléctrico","4x4","Utilitario"];
 const VEHICLE_TYPE_ASSETS  = Array.from({ length: 11 }, (_, i) => `/assetsSpeedCars/asset ${i}.svg`);
-const FUEL_TYPE_VALUES     = ["Nafta", "Diesel", "Híbrido", "Eléctrico", "GNC"];
+const FUEL_TYPE_VALUES     = ["Gasolina", "Diésel", "Híbrido", "Eléctrico", "GLP"];
 const PRICE_VALUES         = ["10000", "20000", "30000", "50000", "80000"];
 const MILEAGE_VALUES       = ["12000", "31000", "62000", "93000"];
 
