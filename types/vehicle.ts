@@ -11,6 +11,7 @@ export interface Vehicle {
   color: string;
   images: string[];
   description: string;
+  descriptionEn?: string;
   slug: string;
   createdAt?: any;
   status?: string; // e.g. 'Disponible', 'Reservado', 'Vendido', 'Retirado'

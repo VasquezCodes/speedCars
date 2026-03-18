@@ -1088,8 +1088,10 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 )}
 
                 {/* Description */}
-                {vehicle.description && (
-                    <p className="vd-info-mobile-desc">{vehicle.description}</p>
+                {(lang === 'en' ? (vehicle.descriptionEn || vehicle.description) : vehicle.description) && (
+                    <p className="vd-info-mobile-desc">
+                        {lang === 'en' ? (vehicle.descriptionEn || vehicle.description) : vehicle.description}
+                    </p>
                 )}
             </div>
 
@@ -1259,9 +1261,9 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                             ))}
                         </div>
 
-                        {vehicle.description && (
+                        {(lang === 'en' ? (vehicle.descriptionEn || vehicle.description) : vehicle.description) && (
                             <div className="vd-desc">
-                                {vehicle.description}
+                                {lang === 'en' ? (vehicle.descriptionEn || vehicle.description) : vehicle.description}
                             </div>
                         )}
 

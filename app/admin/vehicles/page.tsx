@@ -40,6 +40,7 @@ const emptyForm: Vehicle = {
     bodyStyle: "Sedán",
     color: "Blanco",
     description: "",
+    descriptionEn: "",
     images: [],
     features: [],
     status: "Disponible",
@@ -682,17 +683,31 @@ export default function AdminVehiclesPage() {
                                             </div>
                                             <h3 style={{ fontSize: "1.25rem", fontWeight: 900, color: "#111827", textTransform: "uppercase", letterSpacing: "-0.04em" }}>Descripción Detallada</h3>
                                         </div>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                                            <label style={{ fontSize: 13, fontWeight: 500, color: "#6b7280", marginLeft: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Breve reseña</label>
-                                            <textarea 
-                                                style={{ width: "100%", padding: "20px 24px", borderRadius: 24, background: "#f9fafb", border: "1px solid transparent", outline: "none", fontSize: 15, color: "#111827", boxShadow: "0 1px 2px rgba(0,0,0,0.04)", resize: "none", fontFamily: "inherit", transition: "all 0.2s" }}
-                                                rows={5}
-                                                placeholder="Describe el estado, equipamiento y detalles especiales..."
-                                                value={form.description}
-                                                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                                onFocus={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.border = "1px solid rgba(220,38,38,0.3)"; e.currentTarget.style.boxShadow = "0 0 0 4px rgba(220,38,38,0.05)"; }}
-                                                onBlur={(e) => { e.currentTarget.style.background = "#f9fafb"; e.currentTarget.style.border = "1px solid transparent"; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)"; }}
-                                            />
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                                <label style={{ fontSize: 13, fontWeight: 500, color: "#6b7280", marginLeft: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Descripción en Español</label>
+                                                <textarea
+                                                    style={{ width: "100%", padding: "20px 24px", borderRadius: 24, background: "#f9fafb", border: "1px solid transparent", outline: "none", fontSize: 15, color: "#111827", boxShadow: "0 1px 2px rgba(0,0,0,0.04)", resize: "none", fontFamily: "inherit", transition: "all 0.2s" }}
+                                                    rows={4}
+                                                    placeholder="Describe el estado, equipamiento y detalles especiales..."
+                                                    value={form.description}
+                                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                                    onFocus={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.border = "1px solid rgba(220,38,38,0.3)"; e.currentTarget.style.boxShadow = "0 0 0 4px rgba(220,38,38,0.05)"; }}
+                                                    onBlur={(e) => { e.currentTarget.style.background = "#f9fafb"; e.currentTarget.style.border = "1px solid transparent"; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)"; }}
+                                                />
+                                            </div>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                                <label style={{ fontSize: 13, fontWeight: 500, color: "#6b7280", marginLeft: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Description in English</label>
+                                                <textarea
+                                                    style={{ width: "100%", padding: "20px 24px", borderRadius: 24, background: "#f9fafb", border: "1px solid transparent", outline: "none", fontSize: 15, color: "#111827", boxShadow: "0 1px 2px rgba(0,0,0,0.04)", resize: "none", fontFamily: "inherit", transition: "all 0.2s" }}
+                                                    rows={4}
+                                                    placeholder="Describe the vehicle condition, features and special details..."
+                                                    value={form.descriptionEn ?? ""}
+                                                    onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })}
+                                                    onFocus={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.border = "1px solid rgba(220,38,38,0.3)"; e.currentTarget.style.boxShadow = "0 0 0 4px rgba(220,38,38,0.05)"; }}
+                                                    onBlur={(e) => { e.currentTarget.style.background = "#f9fafb"; e.currentTarget.style.border = "1px solid transparent"; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)"; }}
+                                                />
+                                            </div>
                                         </div>
                                     </section>
                                 </div>
