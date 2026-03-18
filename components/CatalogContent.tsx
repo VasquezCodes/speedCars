@@ -182,7 +182,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                 open={openSections.sort}
                 onToggle={() => toggleSection("sort")}
             >
-                {(c.sortOptions as { value: string; label: string }[]).map((opt) => (
+                {(c.sortOptions as unknown as { value: string; label: string }[]).map((opt) => (
                     <label key={opt.value} onClick={() => { setSortBy(opt.value); setTimeout(() => setOpenSections((s) => ({ ...s, sort: false })), 350); }}
                         style={{
                             display: "flex", alignItems: "center", gap: 10,
