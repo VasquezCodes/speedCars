@@ -1,82 +1,111 @@
 'use client';
 
 import Link from "next/link";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 
 const VIDEOS = ["/hero9.mp4", "/hero3.mp4", "/hero7.mp4", "/hero6.mp4"];
-const FADE_MS = 900;
+const FADE_MS = 800;
 
 export default function HeroSection() {
     const { t } = useLanguage();
-    const [activeIdx, setActiveIdx] = useState(0);
-    const activeIdxRef = useRef(0);
-    const videoRefs = useRef<(HTMLVideoElement | null)[]>([null, null, null, null]);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const idxRef = useRef(0);
+    const [fading, setFading] = useState(false);
 
-    // Stable ref callbacks — created once, never recreated on re-render.
-    const videoRefCallbacks = useRef(
-        VIDEOS.map((_, index) => (el: HTMLVideoElement | null) => {
-            if (el) {
-                el.muted = true;
-                el.setAttribute("muted", "");
-            }
-            videoRefs.current[index] = el;
-        })
-    ).current;
+    // Force muted + playsinline via attributes (iOS needs both the prop AND the attribute)
+    const setVideoRef = useCallback((el: HTMLVideoElement | null) => {
+        if (el) {
+            el.muted = true;
+            el.setAttribute("muted", "");
+            el.setAttribute("playsinline", "");
+            el.setAttribute("webkit-playsinline", "");
+        }
+        (videoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el;
+    }, []);
 
+    // Initial play — also retry on user interaction if autoplay was blocked
     useEffect(() => {
-        const v = videoRefs.current[0];
+        const v = videoRef.current;
         if (!v) return;
-        v.muted = true;
-        v.play().catch(() => {});
+
+        const tryPlay = () => {
+            v.muted = true;
+            v.play().catch(() => {});
+        };
+
+        tryPlay();
+
+        // Fallback: if iOS blocked autoplay, retry on first user interaction
+        const onInteract = () => {
+            tryPlay();
+            cleanup();
+        };
+        const cleanup = () => {
+            document.removeEventListener("touchstart", onInteract);
+            document.removeEventListener("click", onInteract);
+        };
+        document.addEventListener("touchstart", onInteract, { once: true });
+        document.addEventListener("click", onInteract, { once: true });
+
+        return cleanup;
     }, []);
 
     const handleEnded = useCallback(() => {
-        const current = activeIdxRef.current;
-        const next = (current + 1) % VIDEOS.length;
-        const nextVideo = videoRefs.current[next];
-        if (nextVideo) {
-            // Ensure it's loaded before playing (iOS needs preload set)
-            nextVideo.preload = "auto";
-            nextVideo.currentTime = 0;
-            nextVideo.muted = true;
-            nextVideo.play().catch(() => {});
-        }
-        // Preload the one after next
-        const afterNext = (next + 1) % VIDEOS.length;
-        const afterNextVideo = videoRefs.current[afterNext];
-        if (afterNextVideo) afterNextVideo.preload = "auto";
+        const v = videoRef.current;
+        if (!v) return;
 
-        activeIdxRef.current = next;
-        setActiveIdx(next);
+        // Fade out
+        setFading(true);
+
+        setTimeout(() => {
+            // Switch to next video
+            const next = (idxRef.current + 1) % VIDEOS.length;
+            idxRef.current = next;
+            v.src = VIDEOS[next];
+            v.load();
+            v.muted = true;
+
+            const onCanPlay = () => {
+                v.removeEventListener("canplay", onCanPlay);
+                // Fade back in
+                setFading(false);
+                v.play().catch(() => {});
+            };
+            v.addEventListener("canplay", onCanPlay);
+
+            // Safety: if canplay doesn't fire within 2s, play anyway
+            setTimeout(() => {
+                v.removeEventListener("canplay", onCanPlay);
+                setFading(false);
+                v.play().catch(() => {});
+            }, 2000);
+        }, FADE_MS);
     }, []);
 
     return (
         <section className="hero-fs">
-            {/* Background videos */}
-            {VIDEOS.map((src, index) => (
-                <video
-                    key={src}
-                    ref={videoRefCallbacks[index]}
-                    src={src}
-                    playsInline
-                    autoPlay={index === 0}
-                    muted
-                    preload={index === 0 ? "auto" : "none"}
-                    onEnded={handleEnded}
-                    style={{
-                        position: "absolute",
-                        inset: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        objectPosition: "center center",
-                        opacity: index === activeIdx ? 1 : 0,
-                        transition: `opacity ${FADE_MS}ms ease-in-out`,
-                        zIndex: index === activeIdx ? 0 : -1,
-                    }}
-                />
-            ))}
+            {/* Single background video */}
+            <video
+                ref={setVideoRef}
+                src={VIDEOS[0]}
+                playsInline
+                autoPlay
+                muted
+                preload="auto"
+                onEnded={handleEnded}
+                style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center center",
+                    opacity: fading ? 0 : 1,
+                    transition: `opacity ${FADE_MS}ms ease-in-out`,
+                    zIndex: 0,
+                }}
+            />
 
             {/* Cinematic overlay */}
             <div style={{
