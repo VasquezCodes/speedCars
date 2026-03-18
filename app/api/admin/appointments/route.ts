@@ -94,9 +94,9 @@ export async function PATCH(request: NextRequest) {
                 sellerEmail: d.sellerEmail,
             };
             if (status === "cancelado") {
-                sendAppointmentCancellation(emailData).catch(console.error);
+                await sendAppointmentCancellation(emailData).catch(console.error);
             } else {
-                sendAppointmentCompleted(emailData).catch(console.error);
+                await sendAppointmentCompleted(emailData).catch(console.error);
             }
         }
     }

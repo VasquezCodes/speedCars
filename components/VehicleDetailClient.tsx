@@ -95,8 +95,8 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     const [referrerId, setReferrerId] = useState<string | undefined>(undefined);
     const [showLightbox, setShowLightbox] = useState(false);
     const [lightboxIdx, setLightboxIdx] = useState(0);
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const scrolling = useRef(false);
+    const [dragOffset, setDragOffset] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
     const touchStartX = useRef(0);
     const thumbStripRef = useRef<HTMLDivElement>(null);
     const thumbDragging = useRef(false);
@@ -112,7 +112,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     useEffect(() => {
         setLogoError(false);
         setActiveImg(0);
-        if (scrollRef.current) scrollRef.current.scrollLeft = 0;
+        setDragOffset(0);
     }, [vehicle.slug]);
 
     const images = vehicle.images?.length ? vehicle.images : ["/placeholder-car.jpg"];
@@ -159,48 +159,28 @@ export default function VehicleDetailClient({ vehicle }: Props) {
         ? vd.mileageNew
         : `${vehicle.mileage.toLocaleString("en-US")} mi`;
 
-    function scrollToImg(index: number) {
-        if (!scrollRef.current) return;
-        const el = scrollRef.current;
-        scrolling.current = true;
-        el.scrollTo({ left: index * el.clientWidth, behavior: "smooth" });
-        setActiveImg(index);
-        setTimeout(() => { scrolling.current = false; }, 400);
-    }
-
-    function handlePrevImg() {
-        const next = activeImg === 0 ? images.length - 1 : activeImg - 1;
-        scrollToImg(next);
-    }
-    function handleNextImg() {
-        const next = activeImg === images.length - 1 ? 0 : activeImg + 1;
-        scrollToImg(next);
-    }
-
-    function handleScroll() {
-        if (scrolling.current || !scrollRef.current) return;
-        const el = scrollRef.current;
-        const index = Math.round(el.scrollLeft / el.clientWidth);
-        if (index !== activeImg) setActiveImg(index);
-    }
-
     function handleTouchStart(e: React.TouchEvent) {
         touchStartX.current = e.touches[0].clientX;
+        setIsDragging(true);
+    }
+
+    function handleTouchMove(e: React.TouchEvent) {
+        const delta = e.touches[0].clientX - touchStartX.current;
+        // Clamp drag: can't drag past first/last image
+        if ((activeImg === 0 && delta > 0) || (activeImg === images.length - 1 && delta < 0)) {
+            setDragOffset(delta * 0.2); // rubber-band resistance
+        } else {
+            setDragOffset(delta);
+        }
     }
 
     function handleTouchEnd(e: React.TouchEvent) {
+        setIsDragging(false);
+        setDragOffset(0);
         const delta = touchStartX.current - e.changedTouches[0].clientX;
         if (Math.abs(delta) > 40) {
-            if (delta > 0) {
-                const next = Math.min(activeImg + 1, images.length - 1);
-                scrollToImg(next);
-            } else {
-                const next = Math.max(activeImg - 1, 0);
-                scrollToImg(next);
-            }
-        } else {
-            // snap back to current image
-            scrollToImg(activeImg);
+            if (delta > 0) setActiveImg(i => Math.min(i + 1, images.length - 1));
+            else           setActiveImg(i => Math.max(i - 1, 0));
         }
     }
 
@@ -923,33 +903,38 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 {/* Scroll-snap image strip */}
                 <div style={{ position: "relative" }}>
                     <div
-                        ref={scrollRef}
                         className="vd-gallery-mobile-img"
                         onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
                         onTouchEnd={handleTouchEnd}
-                        style={{
-                            display: "flex",
-                            overflow: "hidden",
-                            touchAction: "pan-y",
-                        }}
+                        style={{ overflow: "hidden", touchAction: "pan-y", position: "relative" }}
                     >
-                        {images.map((src, i) => (
-                            <div key={src + i} style={{
-                                flexShrink: 0, width: "100%", height: "100%",
-                                position: "relative",
-                            }}>
-                                <Image
-                                    src={src}
-                                    alt={vehicleTitle}
-                                    fill
-                                    style={{ objectFit: "cover" }}
-                                    priority={i === 0}
-                                    sizes="100vw"
-                                    quality={100}
-                                    unoptimized
-                                />
-                            </div>
-                        ))}
+                        <div style={{
+                            display: "flex",
+                            transform: `translateX(calc(${-activeImg * 100}% + ${dragOffset}px))`,
+                            transition: isDragging ? "none" : "transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                            willChange: "transform",
+                            width: "100%",
+                            height: "100%",
+                        }}>
+                            {images.map((src, i) => (
+                                <div key={src + i} style={{
+                                    flexShrink: 0, width: "100%", height: "100%",
+                                    position: "relative",
+                                }}>
+                                    <Image
+                                        src={src}
+                                        alt={vehicleTitle}
+                                        fill
+                                        style={{ objectFit: "cover" }}
+                                        priority={i === 0}
+                                        sizes="100vw"
+                                        quality={100}
+                                        unoptimized
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Back arrow overlay */}
@@ -1106,16 +1091,23 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                             }}
                             onClick={() => { setLightboxIdx(activeImg); setShowLightbox(true); }}
                         >
-                            <Image
-                                src={images[activeImg]}
-                                alt={vehicleTitle}
-                                fill
-                                style={{ objectFit: "cover" }}
-                                priority
-                                sizes="(max-width: 992px) 100vw, 60vw"
-                                quality={100}
-                                unoptimized
-                            />
+                            {images.map((src, i) => (
+                                <Image
+                                    key={src + i}
+                                    src={src}
+                                    alt={vehicleTitle}
+                                    fill
+                                    style={{
+                                        objectFit: "cover",
+                                        opacity: i === activeImg ? 1 : 0,
+                                        transition: "opacity 0.2s ease",
+                                    }}
+                                    priority={i === 0}
+                                    sizes="(max-width: 992px) 100vw, 60vw"
+                                    quality={100}
+                                    unoptimized
+                                />
+                            ))}
                             {/* Expand icon */}
                             <button
                                 className="vd-expand-btn"

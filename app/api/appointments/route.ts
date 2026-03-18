@@ -66,9 +66,11 @@ export async function POST(request: NextRequest) {
             sellerEmail,
         };
 
-        // Send emails (fire and forget — don't block response)
-        sendAppointmentClientConfirmation(emailData).catch(console.error);
-        sendAppointmentManagementNotification(emailData).catch(console.error);
+        // Send emails — must await in serverless (Vercel kills the function after response)
+        await Promise.all([
+            sendAppointmentClientConfirmation(emailData).catch(console.error),
+            sendAppointmentManagementNotification(emailData).catch(console.error),
+        ]);
 
         return NextResponse.json({ success: true });
     } catch (error) {

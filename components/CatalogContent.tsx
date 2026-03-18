@@ -99,10 +99,16 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     const PRICE_RANGES  = PRICE_VALUES.map((value, i)    => ({ value, label: c.priceLabels[i] as string }));
     const MILEAGE_RANGES = MILEAGE_VALUES.map((value, i) => ({ value, label: c.mileageLabels[i] as string }));
 
+    const MAX_PRICE = 10000;
+
     const [vehicles, setVehicles]       = useState<Vehicle[]>([]);
     const [loading, setLoading]         = useState(true);
     const [type, setType]               = useState(urlParams.get("type") || "");
     const [brand, setBrand]             = useState(urlParams.get("brand") || "");
+    const [priceSlider, setPriceSlider] = useState(() => {
+        const v = parseInt(urlParams.get("maxPrice") || "");
+        return isNaN(v) ? MAX_PRICE : v;
+    });
     const [maxPrice, setMaxPrice]       = useState(urlParams.get("maxPrice") || "");
     const [maxMileage, setMaxMileage]   = useState("");
     const [fuelTypes, setFuelTypes]     = useState<string[]>([]);
@@ -156,9 +162,15 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     const toggleFuel = (f: string) =>
         setFuelTypes((prev) => prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]);
 
+    const handlePriceSlider = (val: number) => {
+        setPriceSlider(val);
+        setMaxPrice(val >= MAX_PRICE ? "" : String(val));
+    };
+
     const clearAll = () => {
         setType(""); setBrand(""); setMaxPrice(""); setMaxMileage("");
         setFuelTypes([]); setSearch(""); setSearchInput("");
+        setPriceSlider(MAX_PRICE);
     };
 
     const hasFilters = type || brand || maxPrice || maxMileage || fuelTypes.length > 0 || search;
@@ -212,12 +224,38 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                 ))}
             </FilterSection>
 
-            {/* Price */}
+            {/* Price slider */}
             <FilterSection title={c.price} open={openSections.price} onToggle={() => toggleSection("price")}>
-                {PRICE_RANGES.map((r) => (
-                    <CheckItem key={r.value} label={r.label} checked={maxPrice === r.value}
-                        onChange={() => setMaxPrice(maxPrice === r.value ? "" : r.value)} />
-                ))}
+                <div style={{ paddingTop: 4, paddingBottom: 4 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>
+                            $0
+                        </span>
+                        <span style={{
+                            fontSize: 13, fontWeight: 700,
+                            color: priceSlider >= MAX_PRICE ? "var(--text-muted)" : "var(--accent)",
+                        }}>
+                            {priceSlider >= MAX_PRICE
+                                ? (c as any).priceAny
+                                : `$${priceSlider.toLocaleString("en-US")}`}
+                        </span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>
+                            $10k
+                        </span>
+                    </div>
+                    <input
+                        type="range"
+                        min={0}
+                        max={MAX_PRICE}
+                        step={500}
+                        value={priceSlider}
+                        onChange={(e) => handlePriceSlider(parseInt(e.target.value))}
+                        className="price-range-slider"
+                        style={{
+                            background: `linear-gradient(to right, var(--accent) ${(priceSlider / MAX_PRICE) * 100}%, var(--clr-surface-a30) ${(priceSlider / MAX_PRICE) * 100}%)`,
+                        }}
+                    />
+                </div>
             </FilterSection>
 
             {/* Brand */}
@@ -250,6 +288,46 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     return (
         <>
             <style>{`
+                /* Price range slider */
+                .price-range-slider {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 100%;
+                    height: 3px;
+                    border-radius: 2px;
+                    outline: none;
+                    cursor: pointer;
+                    transition: background 0.1s;
+                }
+                .price-range-slider::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    background: var(--accent, #d11119);
+                    cursor: pointer;
+                    border: 2.5px solid var(--primary, #121010);
+                    box-shadow: 0 1px 6px rgba(0,0,0,0.45);
+                    transition: transform 0.15s;
+                }
+                .price-range-slider::-webkit-slider-thumb:hover {
+                    transform: scale(1.18);
+                }
+                .price-range-slider::-moz-range-thumb {
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    background: var(--accent, #d11119);
+                    cursor: pointer;
+                    border: 2.5px solid var(--primary, #121010);
+                    box-shadow: 0 1px 6px rgba(0,0,0,0.45);
+                    transition: transform 0.15s;
+                }
+                .price-range-slider::-moz-range-thumb:hover {
+                    transform: scale(1.18);
+                }
+
                 /* Grid */
                 .cat-grid {
                     display: grid;

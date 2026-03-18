@@ -178,6 +178,7 @@ export const translations = {
       vehicleTypeLabels: ['SUVs', 'Pickups', 'Sedanes', 'Hatchbacks', 'Coupés', 'Minivans', 'Deportivos', 'Convertibles', 'Eléctricos', '4x4', 'Utilitarios'],
       fuelTypeLabels: ['Gasolina', 'Diesel', 'Híbrido', 'Eléctrico', 'GNC'],
       priceLabels: ['Hasta $10.000', 'Hasta $20.000', 'Hasta $30.000', 'Hasta $50.000', 'Hasta $80.000'],
+      priceAny: 'Cualquier precio',
       mileageLabels: ['Hasta 12.000 mi', 'Hasta 31.000 mi', 'Hasta 62.000 mi', 'Hasta 93.000 mi'],
     },
     statusLabels: {
@@ -423,6 +424,7 @@ export const translations = {
       vehicleTypeLabels: ['SUVs', 'Pickups', 'Sedans', 'Hatchbacks', 'Coupes', 'Minivans', 'Sports Cars', 'Convertibles', 'Electric', '4x4', 'Utility'],
       fuelTypeLabels: ['Gasoline', 'Diesel', 'Hybrid', 'Electric', 'LPG'],
       priceLabels: ['Up to $10,000', 'Up to $20,000', 'Up to $30,000', 'Up to $50,000', 'Up to $80,000'],
+      priceAny: 'Any price',
       mileageLabels: ['Up to 12,000 mi', 'Up to 31,000 mi', 'Up to 62,000 mi', 'Up to 93,000 mi'],
     },
     statusLabels: {

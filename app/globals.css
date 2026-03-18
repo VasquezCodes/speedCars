@@ -898,6 +898,7 @@ button {
   min-width: 0;        /* critical: prevents flex item from growing beyond viewport */
   margin-left: 0;
   padding-top: 56px;   /* offset for fixed 56px mobile topbar */
+  color: #111;         /* override dark-theme white text — admin is always light */
 }
 
 /* ── Sticky page headers — not sticky on mobile ── */
