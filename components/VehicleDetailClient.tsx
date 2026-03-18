@@ -95,9 +95,8 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     const [referrerId, setReferrerId] = useState<string | undefined>(undefined);
     const [showLightbox, setShowLightbox] = useState(false);
     const [lightboxIdx, setLightboxIdx] = useState(0);
-    const [dragOffset, setDragOffset] = useState(0);
-    const [isDragging, setIsDragging] = useState(false);
     const touchStartX = useRef(0);
+    const slideRef = useRef<HTMLDivElement>(null);
     const thumbStripRef = useRef<HTMLDivElement>(null);
     const thumbDragging = useRef(false);
     const thumbDragStartX = useRef(0);
@@ -112,7 +111,10 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     useEffect(() => {
         setLogoError(false);
         setActiveImg(0);
-        setDragOffset(0);
+        if (slideRef.current) {
+            slideRef.current.style.transition = "none";
+            slideRef.current.style.transform = "translateX(0%)";
+        }
     }, [vehicle.slug]);
 
     const images = vehicle.images?.length ? vehicle.images : ["/placeholder-car.jpg"];
@@ -149,6 +151,17 @@ export default function VehicleDetailClient({ vehicle }: Props) {
         }
     }, [activeImg]);
 
+    // Preload adjacent images so thumbnail clicks feel instant
+    useEffect(() => {
+        [-1, 1, 2].forEach(offset => {
+            const idx = activeImg + offset;
+            if (idx >= 0 && idx < images.length) {
+                const img = new window.Image();
+                img.src = images[idx];
+            }
+        });
+    }, [activeImg, images]);
+
     const vehicleTitle = `${vehicle.brand} ${vehicle.model}`;
     const priceFormatted = new Intl.NumberFormat("es-AR", {
         style: "currency",
@@ -161,27 +174,30 @@ export default function VehicleDetailClient({ vehicle }: Props) {
 
     function handleTouchStart(e: React.TouchEvent) {
         touchStartX.current = e.touches[0].clientX;
-        setIsDragging(true);
+        if (slideRef.current) slideRef.current.style.transition = "none";
     }
 
     function handleTouchMove(e: React.TouchEvent) {
+        if (!slideRef.current) return;
         const delta = e.touches[0].clientX - touchStartX.current;
-        // Clamp drag: can't drag past first/last image
-        if ((activeImg === 0 && delta > 0) || (activeImg === images.length - 1 && delta < 0)) {
-            setDragOffset(delta * 0.2); // rubber-band resistance
-        } else {
-            setDragOffset(delta);
-        }
+        const clamped = (activeImg === 0 && delta > 0) || (activeImg === images.length - 1 && delta < 0)
+            ? delta * 0.2
+            : delta;
+        slideRef.current.style.transform = `translateX(calc(${-activeImg * 100}% + ${clamped}px))`;
     }
 
     function handleTouchEnd(e: React.TouchEvent) {
-        setIsDragging(false);
-        setDragOffset(0);
         const delta = touchStartX.current - e.changedTouches[0].clientX;
-        if (Math.abs(delta) > 40) {
-            if (delta > 0) setActiveImg(i => Math.min(i + 1, images.length - 1));
-            else           setActiveImg(i => Math.max(i - 1, 0));
+        const newIdx = Math.abs(delta) > 40
+            ? delta > 0
+                ? Math.min(activeImg + 1, images.length - 1)
+                : Math.max(activeImg - 1, 0)
+            : activeImg;
+        if (slideRef.current) {
+            slideRef.current.style.transition = "transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+            slideRef.current.style.transform = `translateX(${-newIdx * 100}%)`;
         }
+        setActiveImg(newIdx);
     }
 
     async function handleWhatsApp() {
@@ -214,7 +230,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     function handleThumbMouseMove(e: React.MouseEvent) {
         if (!thumbDragging.current || !thumbStripRef.current) return;
         const delta = e.pageX - thumbDragStartX.current;
-        if (Math.abs(delta) > 4) thumbDragMoved.current = true;
+        if (Math.abs(delta) > 10) thumbDragMoved.current = true;
         thumbStripRef.current.scrollLeft = thumbScrollStart.current - delta;
     }
     function handleThumbMouseUp() {
@@ -667,17 +683,15 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     cursor: pointer;
                     background: none;
                     padding: 0;
-                    transition: opacity 0.2s, border-color 0.2s, transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+                    transition: opacity 0.15s, border-color 0.15s;
                     outline: none;
                 }
                 .vd-thumbstrip-item:hover {
-                    opacity: 0.75;
-                    transform: scale(1.05);
+                    opacity: 0.85;
                 }
                 .vd-thumbstrip-item.active {
                     opacity: 1;
                     border-color: var(--accent, #d11119);
-                    transform: scale(1.04);
                 }
                 .vd-thumbstrip-item img {
                     width: 100%;
@@ -687,6 +701,10 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 }
 
                 /* ── Desktop gallery ────────────────────────────── */
+                @keyframes vd-img-fadein {
+                    from { opacity: 0; }
+                    to   { opacity: 1; }
+                }
                 .vd-gallery-desktop {
                     display: block;
                 }
@@ -909,14 +927,17 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                         onTouchEnd={handleTouchEnd}
                         style={{ overflow: "hidden", touchAction: "pan-y", position: "relative" }}
                     >
-                        <div style={{
-                            display: "flex",
-                            transform: `translateX(calc(${-activeImg * 100}% + ${dragOffset}px))`,
-                            transition: isDragging ? "none" : "transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                            willChange: "transform",
-                            width: "100%",
-                            height: "100%",
-                        }}>
+                        <div
+                            ref={slideRef}
+                            style={{
+                                display: "flex",
+                                transform: `translateX(${-activeImg * 100}%)`,
+                                transition: "transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                                willChange: "transform",
+                                width: "100%",
+                                height: "100%",
+                            }}
+                        >
                             {images.map((src, i) => (
                                 <div key={src + i} style={{
                                     flexShrink: 0, width: "100%", height: "100%",
@@ -1091,23 +1112,17 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                             }}
                             onClick={() => { setLightboxIdx(activeImg); setShowLightbox(true); }}
                         >
-                            {images.map((src, i) => (
-                                <Image
-                                    key={src + i}
-                                    src={src}
-                                    alt={vehicleTitle}
-                                    fill
-                                    style={{
-                                        objectFit: "cover",
-                                        opacity: i === activeImg ? 1 : 0,
-                                        transition: "opacity 0.2s ease",
-                                    }}
-                                    priority={i === 0}
-                                    sizes="(max-width: 992px) 100vw, 60vw"
-                                    quality={100}
-                                    unoptimized
-                                />
-                            ))}
+                            <Image
+                                key={activeImg}
+                                src={images[activeImg]}
+                                alt={vehicleTitle}
+                                fill
+                                style={{ objectFit: "cover", animation: "vd-img-fadein 0.18s ease" }}
+                                priority
+                                sizes="(max-width: 992px) 100vw, 60vw"
+                                quality={100}
+                                unoptimized
+                            />
                             {/* Expand icon */}
                             <button
                                 className="vd-expand-btn"
@@ -1164,7 +1179,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                             draggable={false}
                                         >
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={img} alt="" draggable={false} />
+                                            <img src={img} alt="" draggable={false} loading="lazy" />
                                         </button>
                                     ))}
                                 </div>
