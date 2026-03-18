@@ -19,8 +19,6 @@ export default function HeroSection() {
             if (el) {
                 el.muted = true;
                 el.setAttribute("muted", "");
-                el.setAttribute("playsinline", "");
-                el.setAttribute("webkit-playsinline", "");
             }
             videoRefs.current[index] = el;
         })
@@ -38,9 +36,17 @@ export default function HeroSection() {
         const next = (current + 1) % VIDEOS.length;
         const nextVideo = videoRefs.current[next];
         if (nextVideo) {
+            // Ensure it's loaded before playing (iOS needs preload set)
+            nextVideo.preload = "auto";
             nextVideo.currentTime = 0;
+            nextVideo.muted = true;
             nextVideo.play().catch(() => {});
         }
+        // Preload the one after next
+        const afterNext = (next + 1) % VIDEOS.length;
+        const afterNextVideo = videoRefs.current[afterNext];
+        if (afterNextVideo) afterNextVideo.preload = "auto";
+
         activeIdxRef.current = next;
         setActiveIdx(next);
     }, []);
@@ -54,6 +60,9 @@ export default function HeroSection() {
                     ref={videoRefCallbacks[index]}
                     src={src}
                     playsInline
+                    autoPlay={index === 0}
+                    muted
+                    preload={index === 0 ? "auto" : "none"}
                     onEnded={handleEnded}
                     style={{
                         position: "absolute",

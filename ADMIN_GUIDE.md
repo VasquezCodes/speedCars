@@ -54,10 +54,8 @@ Si es la primera vez que lo usás, el usuario inicial se crea entrando a `/api/a
 | Retirado | Oculto del catálogo público |
 
 **Notas importantes:**
-- El campo **Kilometraje** acepta tanto KM como millas — usá el toggle KM/MI para ingresar en la unidad que prefieras. Internamente siempre se guarda en KM y se convierte automáticamente en el sitio según el idioma del visitante.
+- El campo **Millaje** se ingresa y se muestra siempre en millas (mi), tanto en el panel como en el sitio público.
 - El precio se muestra en dólares.
-- Las imágenes se suben a Cloudinary de forma automática.
-
 ---
 
 ## 3. Citas (Turnos)

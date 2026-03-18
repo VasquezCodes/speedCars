@@ -111,15 +111,9 @@ export default function VehicleDetailClient({ vehicle }: Props) {
         currency: "USD",
         maximumFractionDigits: 0,
     }).format(vehicle.price);
-    const mileageFormatted = (() => {
-        if (lang === 'en') {
-            if (vehicle.mileage === 0) return vd.mileageNew;
-            const miles = Math.round(vehicle.mileage * 0.621371);
-            return `${miles.toLocaleString("en-US")} mi`;
-        }
-        if (vehicle.mileage === 0) return vd.mileageNew;
-        return `${vehicle.mileage.toLocaleString("es-AR")} km`;
-    })();
+    const mileageFormatted = vehicle.mileage === 0
+        ? vd.mileageNew
+        : `${vehicle.mileage.toLocaleString("en-US")} mi`;
 
     function handlePrevImg() {
         setActiveImg(i => (i === 0 ? images.length - 1 : i - 1));

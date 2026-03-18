@@ -27,6 +27,8 @@ export default function AdminSellersPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [toggleConfirm, setToggleConfirm] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
@@ -83,6 +85,40 @@ export default function AdminSellersPage() {
     }
   };
 
+  const handleToggleActive = async (id: string) => {
+    const seller = sellers.find((s) => s.id === id);
+    if (!seller) return;
+    const newActive = !seller.isActive;
+    setTogglingId(id);
+    setToggleConfirm(null);
+
+    const doToggle = async () => {
+      const r = await fetch(`/api/admin/sellers/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: newActive }),
+      });
+      if (!r.ok) throw new Error("Error al actualizar");
+      setSellers((prev) => prev.map((s) => s.id === id ? { ...s, isActive: newActive } : s));
+    };
+
+    const promise = doToggle();
+
+    sileo.promise(promise, {
+      loading: { title: newActive ? "Reactivando..." : "Desactivando...", description: `${seller.name}` },
+      success: {
+        title: newActive ? "Vendedor reactivado" : "Vendedor desactivado",
+        description: newActive
+          ? `${seller.name} puede volver a ingresar al sistema.`
+          : `${seller.name} ya no puede ingresar. Sus datos históricos se conservan.`,
+      },
+      error: { title: "Error", description: "No se pudo actualizar el vendedor." },
+    });
+
+    await promise.catch(() => null);
+    setTogglingId(null);
+  };
+
   const handleDelete = async (id: string) => {
     const seller = sellers.find((s) => s.id === id);
     setDeletingId(id);
@@ -95,10 +131,9 @@ export default function AdminSellersPage() {
     };
 
     const promise = doDelete();
-
     sileo.promise(promise, {
       loading: { title: "Eliminando...", description: seller ? `Eliminando a ${seller.name}` : undefined },
-      success: { title: "Vendedor eliminado", description: seller ? `${seller.name} fue eliminado del equipo.` : "El vendedor fue eliminado." },
+      success: { title: "Vendedor eliminado", description: seller ? `${seller.name} fue eliminado permanentemente.` : "El vendedor fue eliminado." },
       error: { title: "Error al eliminar", description: "No se pudo eliminar el vendedor." },
     });
 
@@ -228,14 +263,13 @@ export default function AdminSellersPage() {
                     key={seller.id}
                     style={{
                       borderBottom: i < sellers.length - 1 ? "1px solid #eaeaea" : "none",
-                      animation: deletingId === seller.id
-                        ? "slideOutRow 0.28s ease 0ms forwards"
-                        : `fadeInRow 0.3s ease ${i * 40}ms both`,
+                      opacity: seller.isActive ? 1 : 0.6,
+                      animation: `fadeInRow 0.3s ease ${i * 40}ms both`,
                     }}
                   >
                     <td style={{ padding: "16px 24px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: seller.isActive ? "#0a0a0a" : "#d1d5db", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
                           {seller.name.slice(0, 2).toUpperCase()}
                         </div>
                         <span style={{ fontWeight: 600, fontSize: 14, color: "#111" }}>{seller.name}</span>
@@ -248,37 +282,63 @@ export default function AdminSellersPage() {
                       {seller.email ?? <span style={{ color: "#ccc" }}>—</span>}
                     </td>
                     <td style={{ padding: "16px 24px" }}>
-                      <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 20, background: seller.isActive ? "#f0fdf4" : "#fef2f2", color: seller.isActive ? "#16a34a" : "#dc2626", fontSize: 12, fontWeight: 700 }}>
+                      <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 20, background: seller.isActive ? "#f0fdf4" : "#f4f4f5", color: seller.isActive ? "#16a34a" : "#888", fontSize: 12, fontWeight: 700 }}>
                         {seller.isActive ? "Activo" : "Inactivo"}
                       </span>
                     </td>
                     <td style={{ padding: "16px 24px", fontSize: 13, color: "#888" }}>{formatDate(seller.createdAt)}</td>
                     <td style={{ padding: "16px 24px" }}>
-                      {deletingId === seller.id ? null : deleteConfirm === seller.id ? (
+                      {togglingId === seller.id || deletingId === seller.id ? (
+                        <span style={{ fontSize: 12, color: "#aaa" }}>...</span>
+                      ) : toggleConfirm === seller.id ? (
                         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                           <span style={{ fontSize: 12, color: "#666" }}>¿Confirmar?</span>
                           <button
-                            onClick={() => handleDelete(seller.id)}
-                            style={{
-                              padding: "4px 10px", borderRadius: 6, background: "#dc2626", color: "#fff",
-                              border: "none", cursor: "pointer",
-                              fontSize: 12, fontWeight: 600, fontFamily: "inherit",
-                            }}
+                            onClick={() => handleToggleActive(seller.id)}
+                            style={{ padding: "4px 10px", borderRadius: 6, background: seller.isActive ? "#dc2626" : "#16a34a", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit" }}
                           >
                             Sí
+                          </button>
+                          <button onClick={() => setToggleConfirm(null)} style={{ padding: "4px 10px", borderRadius: 6, background: "#f4f4f5", color: "#666", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit" }}>No</button>
+                        </div>
+                      ) : deleteConfirm === seller.id ? (
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <span style={{ fontSize: 12, color: "#dc2626", fontWeight: 600 }}>¿Eliminar permanentemente?</span>
+                          <button
+                            onClick={() => handleDelete(seller.id)}
+                            style={{ padding: "4px 10px", borderRadius: 6, background: "#dc2626", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit" }}
+                          >
+                            Sí, eliminar
                           </button>
                           <button onClick={() => setDeleteConfirm(null)} style={{ padding: "4px 10px", borderRadius: 6, background: "#f4f4f5", color: "#666", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit" }}>No</button>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => setDeleteConfirm(seller.id)}
-                          title="Eliminar vendedor"
-                          style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", padding: 4, display: "flex", transition: "color 0.15s" }}
-                          onMouseEnter={(e) => { e.currentTarget.style.color = "#dc2626"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.color = "#aaa"; }}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-                        </button>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          {/* Toggle active */}
+                          <button
+                            onClick={() => setToggleConfirm(seller.id)}
+                            title={seller.isActive ? "Desactivar vendedor" : "Reactivar vendedor"}
+                            style={{ background: "none", border: "1px solid #e5e7eb", borderRadius: 6, cursor: "pointer", color: seller.isActive ? "#aaa" : "#16a34a", padding: "4px 10px", fontSize: 12, fontWeight: 600, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5, transition: "color 0.15s, border-color 0.15s" }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = seller.isActive ? "#f59e0b" : "#15803d"; e.currentTarget.style.borderColor = seller.isActive ? "#f59e0b" : "#15803d"; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = seller.isActive ? "#aaa" : "#16a34a"; e.currentTarget.style.borderColor = "#e5e7eb"; }}
+                          >
+                            {seller.isActive ? (
+                              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Desactivar</>
+                            ) : (
+                              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Reactivar</>
+                            )}
+                          </button>
+                          {/* Delete */}
+                          <button
+                            onClick={() => setDeleteConfirm(seller.id)}
+                            title="Eliminar vendedor"
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc", padding: 4, display: "flex", transition: "color 0.15s" }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = "#dc2626"; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = "#ccc"; }}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

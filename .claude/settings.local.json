@@ -50,7 +50,10 @@
       "mcp__plugin_firebase_firebase__firestore_list_collections",
       "Bash(ls d:/autosdealer-app/.env*)",
       "Bash(node scripts/clear-test-data.mjs)",
-      "Bash(find D:/autosdealer-app -name *.ts -path */api/vehicles*)"
+      "Bash(find D:/autosdealer-app -name *.ts -path */api/vehicles*)",
+      "Bash(find D:/autosdealer-app/app/seller -name *.tsx -o -name *.ts)",
+      "Bash(find D:/autosdealer-app/app/api/seller -name *.ts)",
+      "Bash(ls d:/autosdealer-app/app/api/contact*)"
     ]
   },
   "enableAllProjectMcpServers": true,

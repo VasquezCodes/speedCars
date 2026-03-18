@@ -32,9 +32,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         maximumFractionDigits: 0,
     }).format(vehicle.price);
 
-    const mileageDisplay = lang === 'en'
-        ? `${Math.round(vehicle.mileage * 0.621371).toLocaleString("en-US")} mi`
-        : `${vehicle.mileage.toLocaleString("es-AR")} km`;
+    const mileageDisplay = `${vehicle.mileage.toLocaleString("en-US")} mi`;
 
     const imageUrl = vehicle.images?.[0] || "/placeholder-car.jpg";
 

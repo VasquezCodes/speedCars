@@ -11,7 +11,7 @@ const VEHICLE_TYPE_VALUES  = ["SUV","Pickup","Sedán","Hatchback","Coupé","Mini
 const VEHICLE_TYPE_ASSETS  = Array.from({ length: 11 }, (_, i) => `/assetsSpeedCars/asset ${i}.svg`);
 const FUEL_TYPE_VALUES     = ["Nafta", "Diesel", "Híbrido", "Eléctrico", "GNC"];
 const PRICE_VALUES         = ["10000", "20000", "30000", "50000", "80000"];
-const MILEAGE_VALUES       = ["20000", "50000", "100000", "150000"];
+const MILEAGE_VALUES       = ["12000", "31000", "62000", "93000"];
 
 const BRANDS = [
     "Toyota","Ford","Chevrolet","Honda","Volkswagen",
@@ -108,6 +108,8 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     const [fuelTypes, setFuelTypes]     = useState<string[]>([]);
     const [search, setSearch]           = useState(urlParams.get("search") || "");
     const [searchInput, setSearchInput] = useState(urlParams.get("search") || "");
+    const [sortBy, setSortBy]           = useState("recent");
+    const hasLoadedOnce                 = useRef(false);
     const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Sync with URL param changes (e.g. when navbar search navigates to /autos?search=...)
@@ -124,7 +126,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     };
 
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-        bodyType: false, brand: false, price: false, mileage: false, fuel: false,
+        sort: false, bodyType: false, brand: false, price: false, mileage: false, fuel: false,
     });
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -142,7 +144,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
             const data = await res.json();
             setVehicles(Array.isArray(data) ? data : []);
         } catch { setVehicles([]); }
-        finally { setLoading(false); }
+        finally { setLoading(false); hasLoadedOnce.current = true; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [brand, type, maxPrice, maxMileage, search, fuelTypes.join(",")]);
 
@@ -162,23 +164,45 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     const hasFilters = type || brand || maxPrice || maxMileage || fuelTypes.length > 0 || search;
     const filterCount = [type, brand, maxPrice, maxMileage, ...fuelTypes].filter(Boolean).length;
 
+    const sortedVehicles = [...vehicles].sort((a, b) => {
+        if (sortBy === "price-asc")   return (a.price ?? 0) - (b.price ?? 0);
+        if (sortBy === "price-desc")  return (b.price ?? 0) - (a.price ?? 0);
+        if (sortBy === "mileage-asc") return (a.mileage ?? 0) - (b.mileage ?? 0);
+        if (sortBy === "year-desc")   return (b.year ?? 0) - (a.year ?? 0);
+        if (sortBy === "year-asc")    return (a.year ?? 0) - (b.year ?? 0);
+        return 0; // "recent" — keep original fetch order
+    });
+
     /* ── Sidebar content (shared desktop + mobile drawer) ── */
     const sidebarFilters = (
         <>
             {/* Sort by */}
-            <div style={{
-                padding: "14px 20px",
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                borderBottom: "1px solid var(--clr-surface-a20)", cursor: "pointer",
-            }}>
-                <span style={{ fontSize: 14, color: "var(--text-primary)" }}>{c.sortBy}</span>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{c.mostRecent}</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--clr-surface-a40)" strokeWidth="2.5" strokeLinecap="round">
-                        <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                </div>
-            </div>
+            <FilterSection
+                title={c.sortBy}
+                open={openSections.sort}
+                onToggle={() => toggleSection("sort")}
+            >
+                {(c.sortOptions as { value: string; label: string }[]).map((opt) => (
+                    <label key={opt.value} onClick={() => { setSortBy(opt.value); setTimeout(() => setOpenSections((s) => ({ ...s, sort: false })), 350); }}
+                        style={{
+                            display: "flex", alignItems: "center", gap: 10,
+                            padding: "5px 0", cursor: "pointer", fontSize: 13.5,
+                            color: sortBy === opt.value ? "var(--text-primary)" : "var(--text-secondary)",
+                            fontWeight: sortBy === opt.value ? 600 : 400,
+                        }}>
+                        <div style={{
+                            width: 17, height: 17, borderRadius: "50%", flexShrink: 0,
+                            border: `1.5px solid ${sortBy === opt.value ? "#d11119" : "var(--clr-surface-a30)"}`,
+                            background: sortBy === opt.value ? "#d11119" : "var(--clr-surface-a10)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            transition: "all 0.15s",
+                        }}>
+                            {sortBy === opt.value && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />}
+                        </div>
+                        {opt.label}
+                    </label>
+                ))}
+            </FilterSection>
 
             {/* Body Type */}
             <FilterSection title={c.bodyType} open={openSections.bodyType} onToggle={() => toggleSection("bodyType")}>
@@ -231,6 +255,28 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                     display: grid;
                     grid-template-columns: repeat(4, 1fr);
                     gap: 16px;
+                }
+                .cat-grid-wrap {
+                    position: relative;
+                    transition: opacity 0.25s ease;
+                }
+                .cat-grid-wrap.is-loading {
+                    opacity: 0.45;
+                    pointer-events: none;
+                }
+                .cat-grid-wrap.is-loading::after {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+                    background-size: 200% 100%;
+                    animation: cat-shimmer 1.2s infinite linear;
+                    border-radius: 10px;
+                    z-index: 1;
+                }
+                @keyframes cat-shimmer {
+                    0%   { background-position: -200% 0; }
+                    100% { background-position:  200% 0; }
                 }
                 @media (max-width: 1200px) { .cat-grid { grid-template-columns: repeat(3, 1fr); } }
                 @media (max-width: 900px)  { .cat-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -330,7 +376,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                     </div>
 
                     {/* GRID */}
-                    {loading ? (
+                    {loading && !hasLoadedOnce.current ? (
                         <div className="cat-grid">
                             {Array.from({ length: 8 }).map((_, i) => (
                                 <div key={i} style={{ borderRadius: 10, overflow: "hidden", background: "var(--clr-surface-a10)", border: "1px solid var(--clr-surface-a20)" }}>
@@ -345,10 +391,27 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                                 </div>
                             ))}
                         </div>
-                    ) : vehicles.length > 0 ? (
+                    ) : sortedVehicles.length > 0 ? (
+                        <div className={`cat-grid-wrap${loading ? " is-loading" : ""}`}>
+                            <div className="cat-grid">
+                                {sortedVehicles.map((v) => (
+                                    <VehicleCard key={v.id} vehicle={v} />
+                                ))}
+                            </div>
+                        </div>
+                    ) : loading ? (
                         <div className="cat-grid">
-                            {vehicles.map((v) => (
-                                <VehicleCard key={v.id} vehicle={v} />
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <div key={i} style={{ borderRadius: 10, overflow: "hidden", background: "var(--clr-surface-a10)", border: "1px solid var(--clr-surface-a20)" }}>
+                                    <div style={{ paddingTop: "66%", position: "relative" }}>
+                                        <div className="skeleton" style={{ position: "absolute", inset: 0, background: "var(--clr-surface-a20)" }} />
+                                    </div>
+                                    <div style={{ padding: "12px 14px 16px" }}>
+                                        <div style={{ height: 13, borderRadius: 4, background: "var(--clr-surface-a20)", marginBottom: 8 }} />
+                                        <div style={{ height: 18, borderRadius: 4, background: "var(--clr-surface-a20)", marginBottom: 10, width: "70%" }} />
+                                        <div style={{ height: 13, borderRadius: 4, background: "var(--clr-surface-a20)", width: "45%" }} />
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     ) : (
@@ -375,7 +438,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                 <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex" }}>
                     <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }}
                         onClick={() => setMobileFiltersOpen(false)} />
-                    <div style={{
+                    <div onClick={(e) => e.stopPropagation()} style={{
                         position: "relative", zIndex: 1,
                         background: "var(--clr-surface-a10)", width: 319, height: "100%",
                         overflowY: "auto", flexShrink: 0,
