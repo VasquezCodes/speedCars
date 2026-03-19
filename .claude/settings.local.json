@@ -61,7 +61,8 @@
       "Bash(find /d/autosdealer-app -name *appointment* -type f)",
       "Bash(find /d/autosdealer-app/app -name *appointment* -type f)",
       "Bash(find /d/autosdealer-app/app/api -name route.* -type f)",
-      "Bash(find /d/autosdealer-app -maxdepth 2 -name .env* -o -name *.env*)"
+      "Bash(find /d/autosdealer-app -maxdepth 2 -name .env* -o -name *.env*)",
+      "Bash(grep -rn \"Toyota\\\\|Renault\\\\|Citro\" d:/autosdealer-app --include=*.tsx --include=*.ts --include=*.js -l)"
     ]
   },
   "enableAllProjectMcpServers": true,

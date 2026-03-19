@@ -15,7 +15,11 @@ const MILEAGE_VALUES       = ["12000", "31000", "62000", "93000"];
 
 const BRANDS = [
     "Toyota","Ford","Chevrolet","Honda","Volkswagen",
+    "Jeep","Dodge","Ram","GMC","Cadillac","Lincoln",
+    "Buick","Chrysler","Tesla","Hummer",
     "Renault","Fiat","Nissan","Hyundai","Peugeot","Citroën",
+    "BMW","Mercedes-Benz","Audi","Kia","Mazda","Subaru",
+    "Mitsubishi","Land Rover","Infiniti","Lexus",
 ];
 
 /* ─── Sub-components ─────────────────────────────────────── */

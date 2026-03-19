@@ -98,10 +98,6 @@ export default function VehicleDetailClient({ vehicle }: Props) {
     const touchStartX = useRef(0);
     const slideRef = useRef<HTMLDivElement>(null);
     const thumbStripRef = useRef<HTMLDivElement>(null);
-    const thumbDragging = useRef(false);
-    const thumbDragStartX = useRef(0);
-    const thumbScrollStart = useRef(0);
-    const thumbDragMoved = useRef(false);
 
     useEffect(() => {
         const code = getCookie("referral");
@@ -151,16 +147,6 @@ export default function VehicleDetailClient({ vehicle }: Props) {
         }
     }, [activeImg]);
 
-    // Preload adjacent images so thumbnail clicks feel instant
-    useEffect(() => {
-        [-1, 1, 2].forEach(offset => {
-            const idx = activeImg + offset;
-            if (idx >= 0 && idx < images.length) {
-                const img = new window.Image();
-                img.src = images[idx];
-            }
-        });
-    }, [activeImg, images]);
 
     const vehicleTitle = `${vehicle.brand} ${vehicle.model}`;
     const priceFormatted = new Intl.NumberFormat("es-AR", {
@@ -219,25 +205,6 @@ export default function VehicleDetailClient({ vehicle }: Props) {
         window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
     }
 
-    function handleThumbMouseDown(e: React.MouseEvent) {
-        if (!thumbStripRef.current) return;
-        thumbDragging.current = true;
-        thumbDragMoved.current = false;
-        thumbDragStartX.current = e.pageX;
-        thumbScrollStart.current = thumbStripRef.current.scrollLeft;
-        thumbStripRef.current.style.cursor = "grabbing";
-    }
-    function handleThumbMouseMove(e: React.MouseEvent) {
-        if (!thumbDragging.current || !thumbStripRef.current) return;
-        const delta = e.pageX - thumbDragStartX.current;
-        if (Math.abs(delta) > 10) thumbDragMoved.current = true;
-        thumbStripRef.current.scrollLeft = thumbScrollStart.current - delta;
-    }
-    function handleThumbMouseUp() {
-        if (!thumbStripRef.current) return;
-        thumbDragging.current = false;
-        thumbStripRef.current.style.cursor = "grab";
-    }
     function scrollThumbStrip(dir: "left" | "right") {
         thumbStripRef.current?.scrollBy({ left: dir === "right" ? 200 : -200, behavior: "smooth" });
     }
@@ -667,8 +634,6 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     scrollbar-width: none;
                     padding: 4px 2px 10px;
                     scroll-behavior: smooth;
-                    cursor: grab;
-                    user-select: none;
                 }
                 .vd-thumbstrip::-webkit-scrollbar { display: none; }
                 .vd-thumbstrip-item {
@@ -701,10 +666,6 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                 }
 
                 /* ── Desktop gallery ────────────────────────────── */
-                @keyframes vd-img-fadein {
-                    from { opacity: 0; }
-                    to   { opacity: 1; }
-                }
                 .vd-gallery-desktop {
                     display: block;
                 }
@@ -1114,17 +1075,30 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                             }}
                             onClick={() => { setLightboxIdx(activeImg); setShowLightbox(true); }}
                         >
-                            <Image
-                                key={activeImg}
-                                src={images[activeImg]}
-                                alt={vehicleTitle}
-                                fill
-                                style={{ objectFit: "cover", animation: "vd-img-fadein 0.18s ease" }}
-                                priority
-                                sizes="(max-width: 992px) 100vw, 60vw"
-                                quality={100}
-                                unoptimized
-                            />
+                            {/* Filmstrip – no remount on slide change */}
+                            <div style={{
+                                display: "flex",
+                                height: "100%",
+                                transform: `translateX(${-activeImg * 100}%)`,
+                                transition: "transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                                willChange: "transform",
+                            }}>
+                                {images.map((src, i) => (
+                                    <div key={i} style={{ flexShrink: 0, width: "100%", height: "100%", position: "relative" }}>
+                                        <Image
+                                            src={src}
+                                            alt={i === 0 ? vehicleTitle : ""}
+                                            fill
+                                            style={{ objectFit: "cover" }}
+                                            priority={i === 0}
+                                            sizes="(max-width: 992px) 100vw, 60vw"
+                                            quality={85}
+                                            unoptimized
+                                            loading={i < 3 ? "eager" : "lazy"}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
                             {/* Expand icon */}
                             <button
                                 className="vd-expand-btn"
@@ -1167,15 +1141,11 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                 <div
                                     className="vd-thumbstrip"
                                     ref={thumbStripRef}
-                                    onMouseDown={handleThumbMouseDown}
-                                    onMouseMove={handleThumbMouseMove}
-                                    onMouseUp={handleThumbMouseUp}
-                                    onMouseLeave={handleThumbMouseUp}
                                 >
                                     {images.map((img, i) => (
                                         <button
                                             key={i}
-                                            onClick={() => { if (!thumbDragMoved.current) setActiveImg(i); }}
+                                            onClick={() => setActiveImg(i)}
                                             className={`vd-thumbstrip-item${i === activeImg ? ' active' : ''}`}
                                             aria-label={`Imagen ${i + 1}`}
                                             draggable={false}
