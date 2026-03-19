@@ -24,7 +24,7 @@ async function getFeaturedVehicles(): Promise<Vehicle[]> {
 
     const all = snap.docs
       .map((d) => ({ ...d.data(), id: d.id } as Vehicle))
-      .filter((v) => v.status !== "Retirado" && v.status !== "Vendido");
+      .filter((v) => v.status !== "Retirado");
     const featured = all.filter((v) => v.isFeatured);
     return (featured.length > 0 ? featured : all).slice(0, 6);
   } catch (error) {

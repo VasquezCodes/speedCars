@@ -1,118 +1,91 @@
 'use client';
 
 import Link from "next/link";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 
-const VIDEOS = ["/hero9Compressed.mp4", "/hero3Compressed.mp4", "/hero7Compressed.mp4", "/hero6Compressed.mp4"];
-const FADE_MS = 800;
+const VIDEOS = [
+    "/hero9Compressed.mp4",
+    "/hero3Compressed.mp4",
+    "/hero7Compressed.mp4",
+    "/hero6Compressed.mp4",
+];
+const FADE_MS = 700;
 
 export default function HeroSection() {
     const { t } = useLanguage();
     const videoRef = useRef<HTMLVideoElement | null>(null);
-    const idxRef = useRef(0);
-    const [fading, setFading] = useState(false);
+    const [currentIdx, setCurrentIdx] = useState(0);
+    const [visible, setVisible] = useState(true);
+    const transitioning = useRef(false);
 
-    // After hydration, grab the video element rendered by dangerouslySetInnerHTML
+    // Play video whenever the index changes (video remounts via key)
     useEffect(() => {
-        const wrapper = document.getElementById("hero-video-wrap");
-        const v = wrapper?.querySelector("video") as HTMLVideoElement | null;
+        const v = videoRef.current;
         if (!v) return;
-        videoRef.current = v;
-
-        let mounted = true;
 
         const tryPlay = () => {
-            if (!mounted || !v.paused) return;
             const p = v.play();
             if (p !== undefined) {
                 p.catch(() => {
-                    if (!mounted) return;
-                    // iOS blocked autoplay (e.g. Low Power Mode) —
-                    // unlock on first user touch, which happens naturally when
-                    // the user scrolls or taps anywhere on the page.
-                    const unlock = () => {
-                        if (!mounted) return;
-                        v.play().catch(() => {});
-                    };
+                    const unlock = () => v.play().catch(() => {});
                     document.addEventListener("touchstart", unlock, { once: true, capture: true });
-                    document.addEventListener("click", unlock, { once: true, capture: true });
+                    document.addEventListener("click",      unlock, { once: true, capture: true });
                 });
             }
         };
 
-        v.addEventListener("loadeddata", tryPlay, { once: true });
-        v.addEventListener("canplay", tryPlay, { once: true });
-        tryPlay();
+        if (v.readyState >= 2) {
+            tryPlay();
+        } else {
+            v.addEventListener("canplay", tryPlay, { once: true });
+            return () => v.removeEventListener("canplay", tryPlay);
+        }
+    }, [currentIdx]);
 
-        return () => {
-            mounted = false;
-            v.removeEventListener("loadeddata", tryPlay);
-            v.removeEventListener("canplay", tryPlay);
-        };
+    const handleEnded = useCallback(() => {
+        if (transitioning.current) return;
+        transitioning.current = true;
+
+        setVisible(false);
+        setTimeout(() => {
+            setCurrentIdx(prev => (prev + 1) % VIDEOS.length);
+            setVisible(true);
+            transitioning.current = false;
+        }, FADE_MS);
     }, []);
-
-    // Handle video ended — transition to next video
-    useEffect(() => {
-        const check = () => {
-            const v = videoRef.current;
-            if (!v) { setTimeout(check, 200); return; }
-
-            v.onended = () => {
-                setFading(true);
-                setTimeout(() => {
-                    const next = (idxRef.current + 1) % VIDEOS.length;
-                    idxRef.current = next;
-                    v.src = VIDEOS[next];
-                    v.load();
-
-                    const onReady = () => {
-                        v.removeEventListener("canplay", onReady);
-                        setFading(false);
-                        v.play().catch(() => {});
-                    };
-                    v.addEventListener("canplay", onReady);
-
-                    // Safety fallback
-                    setTimeout(() => {
-                        v.removeEventListener("canplay", onReady);
-                        setFading(false);
-                        v.play().catch(() => {});
-                    }, 3000);
-                }, FADE_MS);
-            };
-        };
-        check();
-    }, []);
-
-    // Raw HTML string — iOS Safari evaluates autoplay policy when it first
-    // parses the HTML. React's hydration can strip/re-add attributes which
-    // makes iOS treat the video as non-autoplay. dangerouslySetInnerHTML
-    // ensures muted + playsinline + autoplay are in the very first HTML.
-    const videoHtml = `<video
-        src="${VIDEOS[0]}"
-        muted
-        playsinline
-        webkit-playsinline
-        autoplay
-        preload="auto"
-        style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;z-index:0"
-    ></video>`;
 
     return (
         <section className="hero-fs">
+            {/* Video background */}
             <div
-                id="hero-video-wrap"
-                suppressHydrationWarning
-                dangerouslySetInnerHTML={{ __html: videoHtml }}
                 style={{
                     position: "absolute",
                     inset: 0,
                     zIndex: 0,
-                    opacity: fading ? 0 : 1,
+                    opacity: visible ? 1 : 0,
                     transition: `opacity ${FADE_MS}ms ease-in-out`,
                 }}
-            />
+            >
+                <video
+                    ref={videoRef}
+                    key={currentIdx}
+                    src={VIDEOS[currentIdx]}
+                    muted
+                    playsInline
+                    autoPlay
+                    preload="auto"
+                    onEnded={handleEnded}
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "center center",
+                    }}
+                />
+            </div>
 
             {/* Cinematic overlay */}
             <div style={{
@@ -161,7 +134,6 @@ export default function HeroSection() {
                     </Link>
                 </div>
             </div>
-
         </section>
     );
 }
