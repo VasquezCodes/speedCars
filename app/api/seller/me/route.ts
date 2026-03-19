@@ -23,8 +23,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     let appointmentsSnap: QuerySnapshot | null = null;
     try {
       [viewsSnap, appointmentsSnap] = await Promise.all([
-        adminDb.collection("pageViews").where("referrerId", "==", sellerId).orderBy("createdAt", "desc").get(),
-        adminDb.collection("appointments").where("referrerId", "==", sellerId).orderBy("date", "desc").get(),
+        adminDb.collection("pageViews").where("referrerId", "==", sellerId).get(),
+        adminDb.collection("appointments").where("referrerId", "==", sellerId).get(),
       ]);
     } catch (queryErr) {
       console.error("Seller me — query error (missing index?):", queryErr);
@@ -35,7 +35,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       : 0;
 
     const appointments = appointmentsSnap
-      ? appointmentsSnap.docs.map((doc) => {
+      ? appointmentsSnap.docs
+        .sort((a, b) => ((b.data().date ?? "") > (a.data().date ?? "") ? 1 : -1))
+        .map((doc) => {
           const d = doc.data();
           return {
             id: doc.id,
@@ -58,7 +60,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Recent page views with vehicle info (last 20)
     const recentViews = viewsSnap
-      ? viewsSnap.docs.slice(0, 20).map((doc) => {
+      ? viewsSnap.docs
+        .sort((a, b) => ((b.data().createdAt ?? "") > (a.data().createdAt ?? "") ? 1 : -1))
+        .slice(0, 20)
+        .map((doc) => {
           const d = doc.data();
           return {
             id: doc.id,

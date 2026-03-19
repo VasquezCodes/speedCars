@@ -62,7 +62,10 @@
       "Bash(find /d/autosdealer-app/app -name *appointment* -type f)",
       "Bash(find /d/autosdealer-app/app/api -name route.* -type f)",
       "Bash(find /d/autosdealer-app -maxdepth 2 -name .env* -o -name *.env*)",
-      "Bash(grep -rn \"Toyota\\\\|Renault\\\\|Citro\" d:/autosdealer-app --include=*.tsx --include=*.ts --include=*.js -l)"
+      "Bash(grep -rn \"Toyota\\\\|Renault\\\\|Citro\" d:/autosdealer-app --include=*.tsx --include=*.ts --include=*.js -l)",
+      "Bash(find /d/autosdealer-app -name sanity* -o -name *schema*)",
+      "Bash(grep -r \"404\\\\|not found\\\\|not-found\" /d/autosdealer-app/app --include=*.tsx --include=*.ts)",
+      "Bash(grep -r \"seller.*404\\\\|404.*seller\\\\|seller.*error\" /d/autosdealer-app --include=*.tsx --include=*.ts)"
     ]
   },
   "enableAllProjectMcpServers": true,

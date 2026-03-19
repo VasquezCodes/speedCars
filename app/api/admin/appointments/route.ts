@@ -60,10 +60,38 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id, status } = (await request.json()) as {
+    const body = (await request.json()) as {
         id: string;
-        status: AppointmentStatus;
+        status?: AppointmentStatus;
+        sellerId?: string;
     };
+    const { id, status, sellerId } = body;
+
+    if (!id) {
+        return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+    }
+
+    // Seller assignment
+    if (sellerId !== undefined) {
+        if (sellerId === "") {
+            await adminDb.collection("appointments").doc(id).update({
+                referrerId: "",
+                sellerName: null,
+                sellerEmail: null,
+            });
+        } else {
+            const sellerDoc = await adminDb.collection("sellers").doc(sellerId).get();
+            if (!sellerDoc.exists) {
+                return NextResponse.json({ error: "Vendedor no encontrado" }, { status: 404 });
+            }
+            await adminDb.collection("appointments").doc(id).update({
+                referrerId: sellerId,
+                sellerName: sellerDoc.data()?.name ?? null,
+                sellerEmail: sellerDoc.data()?.email ?? null,
+            });
+        }
+        return NextResponse.json({ success: true });
+    }
 
     const validStatuses: AppointmentStatus[] = [
         "pendiente",
@@ -71,7 +99,7 @@ export async function PATCH(request: NextRequest) {
         "cancelado",
         "completado",
     ];
-    if (!id || !validStatuses.includes(status)) {
+    if (!status || !validStatuses.includes(status)) {
         return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
     }
 

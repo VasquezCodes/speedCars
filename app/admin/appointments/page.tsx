@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminAppointment, AppointmentStatus } from "@/types/appointment";
 
+interface SellerOption { id: string; name: string; }
+
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function todayStr(): string {
@@ -155,11 +157,49 @@ function StatusDropdown({
   );
 }
 
+// ─── SellerDropdown ──────────────────────────────────────────────────────────
+
+function SellerDropdown({
+  apptId,
+  currentReferrerId,
+  sellers,
+  onChange,
+  updating,
+}: {
+  apptId: string;
+  currentReferrerId: string;
+  sellers: SellerOption[];
+  onChange: (id: string, sellerId: string) => void;
+  updating: boolean;
+}) {
+  return (
+    <select
+      value={currentReferrerId}
+      disabled={updating || sellers.length === 0}
+      onChange={(e) => onChange(apptId, e.target.value)}
+      style={{
+        padding: "4px 8px", borderRadius: 8, border: "1px solid #e4e4e7",
+        fontSize: 12, fontWeight: 600, cursor: updating ? "wait" : "pointer",
+        background: currentReferrerId ? "#0a0a0a" : "#f9f9f9",
+        color: currentReferrerId ? "#fff" : "#888",
+        fontFamily: "inherit", outline: "none",
+        opacity: updating ? 0.6 : 1, maxWidth: 140,
+      }}
+    >
+      <option value="">Sin asignar</option>
+      {sellers.map((s) => (
+        <option key={s.id} value={s.id}>{s.name}</option>
+      ))}
+    </select>
+  );
+}
+
 // ─── Main page ───────────────────────────────────────────────────────────────
 
 export default function AdminAppointmentsPage() {
   const router = useRouter();
   const [appointments, setAppointments] = useState<AdminAppointment[]>([]);
+  const [sellers, setSellers] = useState<SellerOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"historial" | "agenda">("historial");
   const [updating, setUpdating] = useState<string | null>(null);
@@ -175,12 +215,17 @@ export default function AdminAppointmentsPage() {
   // ── fetch ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     let alive = true;
-    fetch("/api/admin/appointments")
-      .then((r) => {
+    Promise.all([
+      fetch("/api/admin/appointments").then((r) => {
         if (r.status === 401) { router.push("/admin"); return null; }
         return r.json() as Promise<{ appointments: AdminAppointment[] }>;
+      }),
+      fetch("/api/admin/sellers").then((r) => r.ok ? r.json() as Promise<{ sellers: Array<{ id: string; name: string }> }> : null),
+    ])
+      .then(([apptData, sellersData]) => {
+        if (apptData && alive) setAppointments(apptData.appointments);
+        if (sellersData && alive) setSellers(sellersData.sellers.map((s) => ({ id: s.id, name: s.name })));
       })
-      .then((d) => { if (d && alive) setAppointments(d.appointments); })
       .catch(console.error)
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
@@ -198,6 +243,32 @@ export default function AdminAppointmentsPage() {
       if (res.ok) {
         setAppointments((prev) =>
           prev.map((a) => (a.id === id ? { ...a, status } : a))
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUpdating(null);
+    }
+  }
+
+  // ── seller assignment ──────────────────────────────────────────────────────
+  async function handleSellerChange(id: string, sellerId: string) {
+    setUpdating(id + "_seller");
+    try {
+      const res = await fetch("/api/admin/appointments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, sellerId }),
+      });
+      if (res.ok) {
+        const sellerName = sellers.find((s) => s.id === sellerId)?.name ?? null;
+        setAppointments((prev) =>
+          prev.map((a) =>
+            a.id === id
+              ? { ...a, referrerId: sellerId, sellerName: sellerId ? sellerName : null }
+              : a
+          )
         );
       }
     } catch (e) {
@@ -437,13 +508,13 @@ export default function AdminAppointmentsPage() {
                           </td>
                           {/* Vendedor */}
                           <td style={{ padding: "16px 24px" }}>
-                            {appt.sellerName ? (
-                              <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 20, background: "#0a0a0a", color: "#fff", fontSize: 12, fontWeight: 700 }}>
-                                {appt.sellerName}
-                              </span>
-                            ) : (
-                              <span style={{ fontSize: 13, color: "#aaa" }}>Directo</span>
-                            )}
+                            <SellerDropdown
+                              apptId={appt.id}
+                              currentReferrerId={appt.referrerId ?? ""}
+                              sellers={sellers}
+                              onChange={handleSellerChange}
+                              updating={updating === appt.id + "_seller"}
+                            />
                           </td>
                           {/* Notas */}
                           <td style={{ padding: "16px 24px", fontSize: 13, color: "#666", maxWidth: 180 }}>
