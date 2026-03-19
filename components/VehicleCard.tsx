@@ -172,7 +172,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
                                         display: "block",
                                         lineHeight: 1,
                                     }}>
-                                        {lang === "en" ? "SOLD" : "VEND."}
+                                        SOLD
                                     </span>
                                 </div>
                             </div>
