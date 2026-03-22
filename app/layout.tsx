@@ -5,6 +5,7 @@ import { Toaster } from "sileo";
 import "sileo/styles.css";
 import ReferralCapture from "@/components/ReferralCapture";
 import Providers from "@/app/providers";
+import { Analytics } from "@vercel/analytics/next";
 
 const lato = localFont({
   src: [
@@ -60,6 +61,7 @@ export default function RootLayout({
           <Toaster position="top-center" theme="dark" />
           <ReferralCapture />
           {children}
+          <Analytics />
         </Providers>
       </body>
     </html>

@@ -19,10 +19,13 @@ export default function HeroSection() {
     const [visible, setVisible] = useState(true);
     const transitioning = useRef(false);
 
-    // Play video whenever the index changes (video remounts via key)
+    // Load & play video whenever the index changes
     useEffect(() => {
         const v = videoRef.current;
         if (!v) return;
+
+        v.src = VIDEOS[currentIdx];
+        v.load();
 
         const tryPlay = () => {
             const p = v.play();
@@ -69,8 +72,6 @@ export default function HeroSection() {
             >
                 <video
                     ref={videoRef}
-                    key={currentIdx}
-                    src={VIDEOS[currentIdx]}
                     muted
                     playsInline
                     autoPlay
