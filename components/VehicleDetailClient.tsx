@@ -64,7 +64,7 @@ const getBrandLogo = (brand: string) => {
         "dodge": "Dodge_black_logo.svg",
         "hummer": "Hummer_wordmark.svg",
     };
-    return map[normalize] || `${normalize.replace(/\s+/g, '-')}-svgrepo-com.svg`;
+    return map[normalize] || null;
 };
 
 const FUEL_ES: Record<string, string> = {
@@ -1169,11 +1169,11 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     {/* Right: Content (Desktop Sticky Column) */}
                     <div className="vd-info-desktop">
                         {!logoError && brandLogo && (
-                            <div style={{ marginBottom: 20 }}>
+                            <div style={{ marginBottom: 20, display: "inline-flex", alignItems: "center", background: "rgba(255,255,255,0.93)", borderRadius: 8, padding: "6px 14px" }}>
                                 <img
                                     src={`/carBrands/${brandLogo}`}
                                     alt={`${vehicle.brand} logo`}
-                                    style={{ height: 48, width: "auto", objectFit: "contain", opacity: 0.85, filter: "brightness(0) invert(1)" }}
+                                    style={{ height: 36, width: "auto", objectFit: "contain" }}
                                     onError={() => setLogoError(true)}
                                 />
                             </div>
