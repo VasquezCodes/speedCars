@@ -4,8 +4,16 @@ import Footer from "@/components/Footer";
 import CatalogContent from "@/components/CatalogContent";
 
 export const metadata = {
-    title: "Catálogo de Autos",
-    description: "Explorá todos nuestros vehículos disponibles. Filtrá por marca, tipo y precio.",
+    title: "Used Cars for Sale — Fort Worth, TX",
+    description: "Browse FF Speed Cars inventory of quality used vehicles in Fort Worth, TX. Filter by brand, type, and price. Transparent pricing, clean titles.",
+    alternates: { canonical: "https://ffspeedcars.com/autos" },
+    openGraph: {
+        title: "Used Cars for Sale — FF Speed Cars Fort Worth, TX",
+        description: "Browse quality used vehicles in Fort Worth, TX. Filter by brand, type, and price.",
+        url: "https://ffspeedcars.com/autos",
+        siteName: "FF Speed Cars",
+        type: "website",
+    },
 };
 
 export default function CatalogPage({

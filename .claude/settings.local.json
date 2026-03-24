@@ -96,7 +96,10 @@
       "Bash(powershell -NoProfile -Command \"cd ''D:\\\\autosdealer-app''; Remove-Item -Recurse -Force node_modules\\\\next -ErrorAction SilentlyContinue; pnpm install 2>&1\")",
       "Bash(powershell -NoProfile -Command \"Test-Path ''D:\\\\autosdealer-app\\\\node_modules\\\\next''\")",
       "Bash(powershell -NoProfile -Command \":*)",
-      "Bash(powershell -NoProfile -Command \"Test-Path ''D:\\\\autosdealer-app\\\\node_modules\\\\next\\\\dist\\\\bin\\\\next''\")"
+      "Bash(powershell -NoProfile -Command \"Test-Path ''D:\\\\autosdealer-app\\\\node_modules\\\\next\\\\dist\\\\bin\\\\next''\")",
+      "Bash(grep -rn \"ffspeedcars\\\\|domain\\\\|url\\\\|NEXT_PUBLIC_URL\\\\|NEXT_PUBLIC_SITE\" d:/autosdealer-app/.env*)",
+      "Bash(grep -rn \"ffspeedcars\\\\|vercel.app\" d:/autosdealer-app/next.config*)",
+      "Bash(grep -rn ffspeedcars d:/autosdealer-app --include=*.json --include=*.ts --include=*.tsx -l)"
     ]
   },
   "enableAllProjectMcpServers": true,
