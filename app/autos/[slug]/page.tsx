@@ -93,7 +93,7 @@ export default async function VehicleDetailPage({ params }: Params) {
         image: vehicle.images?.[0],
         url: `${SITE_URL}/autos/${slug}`,
         vehicleTransmission: vehicle.transmission,
-        fuelType: vehicle.fuel,
+        fuelType: vehicle.fuelType,
         bodyType: vehicle.type,
         color: vehicle.color,
         itemCondition: "https://schema.org/UsedCondition",
