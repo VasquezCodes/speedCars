@@ -11,7 +11,7 @@ const VEHICLE_TYPE_VALUES  = ["SUV","Pickup","Sedán","Hatchback","Coupé","Mini
 const VEHICLE_TYPE_ASSETS  = Array.from({ length: 11 }, (_, i) => `/assetsSpeedCars/asset ${i}.svg`);
 const FUEL_TYPE_VALUES     = ["Gasolina", "Diésel", "Híbrido", "Eléctrico", "GLP"];
 const PRICE_VALUES         = ["10000", "20000", "30000", "50000", "80000"];
-const MILEAGE_VALUES       = ["12000", "31000", "62000", "93000"];
+const MAX_MILEAGE = 200000;
 
 const BRANDS = [
     "Toyota","Ford","Chevrolet","Honda","Volkswagen",
@@ -101,7 +101,6 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     }));
     const FUEL_TYPES    = FUEL_TYPE_VALUES.map((value, i) => ({ value, label: c.fuelTypeLabels[i] as string }));
     const PRICE_RANGES  = PRICE_VALUES.map((value, i)    => ({ value, label: c.priceLabels[i] as string }));
-    const MILEAGE_RANGES = MILEAGE_VALUES.map((value, i) => ({ value, label: c.mileageLabels[i] as string }));
 
     const MAX_PRICE = 10000;
 
@@ -114,8 +113,10 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
         return isNaN(v) ? MAX_PRICE : v;
     });
     const [maxPrice, setMaxPrice]       = useState(urlParams.get("maxPrice") || "");
+    const [mileageSlider, setMileageSlider] = useState(MAX_MILEAGE);
     const [maxMileage, setMaxMileage]   = useState("");
     const [fuelTypes, setFuelTypes]     = useState<string[]>([]);
+    const [availableOnly, setAvailableOnly] = useState(false);
     const [search, setSearch]           = useState(urlParams.get("search") || "");
     const [searchInput, setSearchInput] = useState(urlParams.get("search") || "");
     const [sortBy, setSortBy]           = useState("recent");
@@ -171,16 +172,23 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
         setMaxPrice(val >= MAX_PRICE ? "" : String(val));
     };
 
+    const handleMileageSlider = (val: number) => {
+        setMileageSlider(val);
+        setMaxMileage(val >= MAX_MILEAGE ? "" : String(val));
+    };
+
     const clearAll = () => {
         setType(""); setBrand(""); setMaxPrice(""); setMaxMileage("");
         setFuelTypes([]); setSearch(""); setSearchInput("");
-        setPriceSlider(MAX_PRICE);
+        setPriceSlider(MAX_PRICE); setMileageSlider(MAX_MILEAGE);
+        setAvailableOnly(false);
     };
 
-    const hasFilters = type || brand || maxPrice || maxMileage || fuelTypes.length > 0 || search;
-    const filterCount = [type, brand, maxPrice, maxMileage, ...fuelTypes].filter(Boolean).length;
+    const hasFilters = type || brand || maxPrice || maxMileage || fuelTypes.length > 0 || search || availableOnly;
+    const filterCount = [type, brand, maxPrice, maxMileage, ...fuelTypes, availableOnly ? "1" : ""].filter(Boolean).length;
 
-    const sortedVehicles = [...vehicles].sort((a, b) => {
+    const filteredVehicles = availableOnly ? vehicles.filter((v) => v.status !== "Vendido") : vehicles;
+    const sortedVehicles = [...filteredVehicles].sort((a, b) => {
         if (sortBy === "price-asc")   return (a.price ?? 0) - (b.price ?? 0);
         if (sortBy === "price-desc")  return (b.price ?? 0) - (a.price ?? 0);
         if (sortBy === "mileage-asc") return (a.mileage ?? 0) - (b.mileage ?? 0);
@@ -270,12 +278,38 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                 ))}
             </FilterSection>
 
-            {/* Mileage */}
+            {/* Mileage slider */}
             <FilterSection title={c.mileage} open={openSections.mileage} onToggle={() => toggleSection("mileage")}>
-                {MILEAGE_RANGES.map((r) => (
-                    <CheckItem key={r.value} label={r.label} checked={maxMileage === r.value}
-                        onChange={() => setMaxMileage(maxMileage === r.value ? "" : r.value)} />
-                ))}
+                <div style={{ paddingTop: 4, paddingBottom: 4 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>
+                            0 mi
+                        </span>
+                        <span style={{
+                            fontSize: 13, fontWeight: 700,
+                            color: mileageSlider >= MAX_MILEAGE ? "var(--text-muted)" : "var(--accent)",
+                        }}>
+                            {mileageSlider >= MAX_MILEAGE
+                                ? (c as any).mileageAny
+                                : `${mileageSlider.toLocaleString("en-US")} mi`}
+                        </span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>
+                            200k
+                        </span>
+                    </div>
+                    <input
+                        type="range"
+                        min={0}
+                        max={MAX_MILEAGE}
+                        step={5000}
+                        value={mileageSlider}
+                        onChange={(e) => handleMileageSlider(parseInt(e.target.value))}
+                        className="price-range-slider"
+                        style={{
+                            background: `linear-gradient(to right, var(--accent) ${(mileageSlider / MAX_MILEAGE) * 100}%, var(--clr-surface-a30) ${(mileageSlider / MAX_MILEAGE) * 100}%)`,
+                        }}
+                    />
+                </div>
             </FilterSection>
 
             {/* Fuel Type */}
@@ -285,6 +319,32 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                         onChange={() => toggleFuel(f.value)} />
                 ))}
             </FilterSection>
+
+            {/* Available only toggle */}
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--clr-surface-a20)" }}>
+                <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+                    <span style={{ fontSize: 14, fontWeight: 400, color: "var(--text-primary)" }}>
+                        {(c as any).availableOnly}
+                    </span>
+                    <button
+                        onClick={() => setAvailableOnly(!availableOnly)}
+                        style={{
+                            width: 42, height: 24, borderRadius: 12, border: "none",
+                            background: availableOnly ? "#d11119" : "var(--clr-surface-a30)",
+                            position: "relative", cursor: "pointer", transition: "background 0.2s",
+                            flexShrink: 0,
+                        }}
+                    >
+                        <div style={{
+                            width: 18, height: 18, borderRadius: "50%", background: "white",
+                            position: "absolute", top: 3,
+                            left: availableOnly ? 21 : 3,
+                            transition: "left 0.2s",
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                        }} />
+                    </button>
+                </label>
+            </div>
 
         </>
     );
@@ -429,10 +489,10 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                             borderRadius: 8, padding: "7px 14px",
                         }}>
                             <span style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>
-                                {loading ? "—" : vehicles.length.toLocaleString()}
+                                {loading ? "—" : sortedVehicles.length.toLocaleString()}
                             </span>
                             <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 400 }}>
-                                {loading ? c.loading : vehicles.length !== 1 ? c.matches : c.match}
+                                {loading ? c.loading : sortedVehicles.length !== 1 ? c.matches : c.match}
                             </span>
                         </div>
 
@@ -545,7 +605,7 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                                 border: "none", borderRadius: 10, padding: 14,
                                 fontSize: 15, fontWeight: 700, cursor: "pointer",
                             }}>
-                                {c.viewResults} {vehicles.length} {c.results}
+                                {c.viewResults} {sortedVehicles.length} {c.results}
                             </button>
                         </div>
                     </div>

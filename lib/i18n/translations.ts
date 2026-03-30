@@ -179,7 +179,9 @@ export const translations = {
       fuelTypeLabels: ['Gasolina', 'Diesel', 'Híbrido', 'Eléctrico', 'GNC'],
       priceLabels: ['Hasta $10.000', 'Hasta $20.000', 'Hasta $30.000', 'Hasta $50.000', 'Hasta $80.000'],
       priceAny: 'Cualquier precio',
+      mileageAny: 'Cualquier millaje',
       mileageLabels: ['Hasta 12.000 mi', 'Hasta 31.000 mi', 'Hasta 62.000 mi', 'Hasta 93.000 mi'],
+      availableOnly: 'Solo disponibles',
     },
     statusLabels: {
       Disponible: 'Disponible',
@@ -425,7 +427,9 @@ export const translations = {
       fuelTypeLabels: ['Gasoline', 'Diesel', 'Hybrid', 'Electric', 'LPG'],
       priceLabels: ['Up to $10,000', 'Up to $20,000', 'Up to $30,000', 'Up to $50,000', 'Up to $80,000'],
       priceAny: 'Any price',
+      mileageAny: 'Any mileage',
       mileageLabels: ['Up to 12,000 mi', 'Up to 31,000 mi', 'Up to 62,000 mi', 'Up to 93,000 mi'],
+      availableOnly: 'Available only',
     },
     statusLabels: {
       Disponible: 'Available',
