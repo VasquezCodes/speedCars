@@ -189,12 +189,16 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
 
     const filteredVehicles = availableOnly ? vehicles.filter((v) => v.status !== "Vendido") : vehicles;
     const sortedVehicles = [...filteredVehicles].sort((a, b) => {
+        // Sold vehicles always go last
+        const aSold = a.status === "Vendido" ? 1 : 0;
+        const bSold = b.status === "Vendido" ? 1 : 0;
+        if (aSold !== bSold) return aSold - bSold;
         if (sortBy === "price-asc")   return (a.price ?? 0) - (b.price ?? 0);
         if (sortBy === "price-desc")  return (b.price ?? 0) - (a.price ?? 0);
         if (sortBy === "mileage-asc") return (a.mileage ?? 0) - (b.mileage ?? 0);
         if (sortBy === "year-desc")   return (b.year ?? 0) - (a.year ?? 0);
         if (sortBy === "year-asc")    return (a.year ?? 0) - (b.year ?? 0);
-        return 0; // "recent" — keep original fetch order
+        return 0;
     });
 
     /* ── Sidebar content (shared desktop + mobile drawer) ── */
