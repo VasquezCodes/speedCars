@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState, FormEvent } from "react";
-import { CldUploadWidget } from "next-cloudinary";
-import { Plus, X, Camera, Star, Trash2, Pencil, Car, MapPin, Gauge, Search, Filter, ChevronDown, Check, MoreVertical } from "lucide-react";
+import { Plus, X, Camera, Star, Trash2, Pencil, Car, MapPin, Gauge, Search, Filter, ChevronDown, Check, MoreVertical, Loader2 } from "lucide-react";
 import { sileo } from "sileo";
 
 import { Vehicle } from '@/types/vehicle';
@@ -162,10 +161,28 @@ export default function AdminVehiclesPage() {
         setShowForm(true);
     };
 
-    const handleUpload = (result: any) => {
-        const url = result?.info?.secure_url;
-        if (url) {
-            setForm(f => ({ ...f, images: [...f.images, url] }));
+    const [uploading, setUploading] = useState(false);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files?.length) return;
+        setUploading(true);
+        try {
+            const fd = new FormData();
+            Array.from(files).forEach((f) => fd.append("files", f));
+            const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (data.urls) {
+                setForm((f) => ({ ...f, images: [...f.images, ...data.urls] }));
+                sileo.success({ title: `${data.urls.length} imagen(es) subida(s)` });
+            } else {
+                sileo.error({ title: "Error al subir", description: data.error });
+            }
+        } catch {
+            sileo.error({ title: "Error de conexión al subir imágenes" });
+        } finally {
+            setUploading(false);
+            e.target.value = "";
         }
     };
 
@@ -726,23 +743,35 @@ export default function AdminVehiclesPage() {
                                                 <span style={{ fontSize: 12, fontWeight: 700, color: "#4f46e5", background: "#eef2ff", padding: "6px 12px", borderRadius: 12, border: "1px solid #e0e7ff" }}>{form.images.length} Archivos</span>
                                             </div>
 
-                                            <CldUploadWidget signatureEndpoint="/api/admin/cloudinary-sign" onSuccess={handleUpload}>
-                                                {({ open }) => (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => open()}
-                                                        style={{ width: "100%", height: 192, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: "3px dashed #e5e7eb", borderRadius: 40, background: "rgba(249,250,251,0.5)", cursor: "pointer", transition: "all 0.3s", position: "relative", overflow: "hidden", fontFamily: "inherit" }}
-                                                    onMouseEnter={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "rgba(220,38,38,0.3)"; e.currentTarget.style.boxShadow = "0 20px 40px rgba(220,38,38,0.05)"; }}
-                                                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(249,250,251,0.5)"; e.currentTarget.style.borderColor = "#e5e7eb"; e.currentTarget.style.boxShadow = "none"; }}
-                                                    >
+                                            <label
+                                                style={{ width: "100%", height: 192, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: "3px dashed #e5e7eb", borderRadius: 40, background: uploading ? "#f9fafb" : "rgba(249,250,251,0.5)", cursor: uploading ? "wait" : "pointer", transition: "all 0.3s", position: "relative", overflow: "hidden" }}
+                                                onMouseEnter={(e) => { if (!uploading) { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "rgba(220,38,38,0.3)"; e.currentTarget.style.boxShadow = "0 20px 40px rgba(220,38,38,0.05)"; } }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.background = uploading ? "#f9fafb" : "rgba(249,250,251,0.5)"; e.currentTarget.style.borderColor = "#e5e7eb"; e.currentTarget.style.boxShadow = "none"; }}
+                                            >
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    multiple
+                                                    onChange={handleFileUpload}
+                                                    disabled={uploading}
+                                                    style={{ display: "none" }}
+                                                />
+                                                {uploading ? (
+                                                    <>
+                                                        <Loader2 size={32} style={{ color: "#dc2626", animation: "spin 1s linear infinite" }} />
+                                                        <p style={{ fontWeight: 700, color: "#4b5563", marginTop: 16 }}>Subiendo...</p>
+                                                    </>
+                                                ) : (
+                                                    <>
                                                         <div style={{ width: 64, height: 64, background: "#fff", borderRadius: 24, boxShadow: "0 4px 14px rgba(0,0,0,0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#d1d5db", border: "1px solid #f9fafb", marginBottom: 16 }}>
                                                             <Plus size={24} />
                                                         </div>
                                                         <p style={{ fontWeight: 700, color: "#4b5563", letterSpacing: "-0.02em" }}>Cargar Imágenes</p>
-                                                        <span style={{ fontSize: 12, color: "#9ca3af", marginTop: 4, textTransform: "uppercase", fontWeight: 900, letterSpacing: "0.1em" }}>JPG, PNG • Máx 5MB</span>
-                                                    </button>
+                                                        <span style={{ fontSize: 12, color: "#9ca3af", marginTop: 4, textTransform: "uppercase", fontWeight: 900, letterSpacing: "0.1em" }}>JPG, PNG, WEBP • Máx 10MB</span>
+                                                    </>
                                                 )}
-                                            </CldUploadWidget>
+                                            </label>
+                                            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
                                             {form.images.length > 0 && (
                                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 32 }}>
