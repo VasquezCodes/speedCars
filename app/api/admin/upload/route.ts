@@ -13,7 +13,7 @@ const s3 = new S3Client({
 
 const BUCKET = process.env.R2_BUCKET_NAME!;
 const PUBLIC_URL = process.env.R2_PUBLIC_URL!;
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_SIZE = 25 * 1024 * 1024; // 25 MB
 
 export async function POST(req: NextRequest) {
     try {
