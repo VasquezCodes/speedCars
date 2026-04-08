@@ -168,18 +168,41 @@ export default function AdminVehiclesPage() {
         if (!files?.length) return;
         setUploading(true);
         try {
-            const fd = new FormData();
-            Array.from(files).forEach((f) => fd.append("files", f));
-            const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-            const data = await res.json();
-            if (data.urls) {
-                setForm((f) => ({ ...f, images: [...f.images, ...data.urls] }));
-                sileo.success({ title: `${data.urls.length} imagen(es) subida(s)` });
-            } else {
-                sileo.error({ title: "Error al subir", description: data.error });
+            const fileArr = Array.from(files);
+            const meta = fileArr.map((f) => ({ name: f.name, type: f.type || "image/jpeg" }));
+
+            const signRes = await fetch("/api/admin/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ files: meta }),
+            });
+            const signData = await signRes.json();
+            if (!signRes.ok || !signData.files) {
+                sileo.error({ title: "Error al preparar la subida", description: signData.error });
+                return;
             }
-        } catch {
-            sileo.error({ title: "Error de conexión al subir imágenes" });
+
+            const publicUrls = await Promise.all(
+                fileArr.map(async (file, i) => {
+                    const { uploadUrl, publicUrl } = signData.files[i];
+                    const putRes = await fetch(uploadUrl, {
+                        method: "PUT",
+                        headers: { "Content-Type": file.type || "image/jpeg" },
+                        body: file,
+                    });
+                    if (!putRes.ok) throw new Error(`Falló la subida de ${file.name} (${putRes.status})`);
+                    return publicUrl;
+                }),
+            );
+
+            setForm((f) => ({ ...f, images: [...f.images, ...publicUrls] }));
+            sileo.success({ title: `${publicUrls.length} imagen(es) subida(s)` });
+        } catch (err) {
+            console.error("Upload error:", err);
+            sileo.error({
+                title: "Error al subir imágenes",
+                description: err instanceof Error ? err.message : "Revisá tu conexión e intentá nuevamente.",
+            });
         } finally {
             setUploading(false);
             e.target.value = "";
@@ -273,7 +296,7 @@ export default function AdminVehiclesPage() {
         <div className="min-h-screen bg-white" style={{ background: "#fff", minHeight: "100vh" }}>
             {/* Header Section */}
             <header className="admin-sticky-header" style={{ zIndex: 40, background: "rgba(255,255,255,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid #f4f4f5" }}>
-                <div className="max-w-[1600px] mx-auto admin-veh-header" style={{ maxWidth: 1600, margin: "0 auto" }}>
+                <div className="max-w-400 mx-auto admin-veh-header" style={{ maxWidth: 1600, margin: "0 auto" }}>
                     <div className="admin-veh-header-inner" style={{ display: "flex" }}>
                         <div>
                             <div className="flex items-center gap-2 mb-1">
@@ -296,7 +319,7 @@ export default function AdminVehiclesPage() {
             </header>
 
             {/* Sub-header Filter & Search */}
-            <div className="max-w-[1600px] mx-auto admin-veh-search" style={{ maxWidth: 1600, margin: "0 auto" }}>
+            <div className="max-w-400 mx-auto admin-veh-search" style={{ maxWidth: 1600, margin: "0 auto" }}>
                 <div className="flex flex-col sm:flex-row items-center gap-4 bg-zinc-50/50 p-2 rounded-3xl border border-zinc-100 mb-10" style={{ display: "flex", alignItems: "center", gap: 16, background: "rgba(250,250,250,0.5)", padding: 8, borderRadius: 24, border: "1px solid #f4f4f5", marginBottom: 40 }}>
                     <div className="relative flex-1 w-full group">
                         <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" />
@@ -319,10 +342,10 @@ export default function AdminVehiclesPage() {
             </div>
 
             {/* Content Area */}
-            <div className="max-w-[1600px] mx-auto admin-veh-grid" style={{ maxWidth: 1600, margin: "0 auto" }}>
+            <div className="max-w-400 mx-auto admin-veh-grid" style={{ maxWidth: 1600, margin: "0 auto" }}>
                 {filteredVehicles.length === 0 ? (
                     <div className="bg-white/50 backdrop-blur-sm border-2 border-dashed border-gray-200 rounded-[40px] p-20 text-center flex flex-col items-center justify-center">
-                        <div className="w-24 h-24 bg-white rounded-[32px] flex items-center justify-center mb-6 shadow-xl shadow-gray-200/50 border border-gray-100">
+                        <div className="w-24 h-24 bg-white rounded-4xl flex items-center justify-center mb-6 shadow-xl shadow-gray-200/50 border border-gray-100">
                             <Car size={40} className="text-gray-300" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">
@@ -341,9 +364,9 @@ export default function AdminVehiclesPage() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8 pb-20 admin-veh-cards-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 32, paddingBottom: 80 }}>
                         {filteredVehicles.map((v) => (
-                            <div key={v.id} className="group bg-white rounded-[32px] overflow-hidden border border-zinc-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full" style={{ background: "#fff", borderRadius: 32, overflow: "hidden", border: "1px solid #e4e4e7", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", transition: "all 0.3s ease" }}>
+                            <div key={v.id} className="group bg-white rounded-4xl overflow-hidden border border-zinc-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full" style={{ background: "#fff", borderRadius: 32, overflow: "hidden", border: "1px solid #e4e4e7", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", transition: "all 0.3s ease" }}>
                                 {/* Image Container */}
-                                <div className="relative aspect-[16/10] bg-zinc-100 overflow-hidden shrink-0" style={{ position: "relative", aspectRatio: "16/10", background: "#f4f4f5", overflow: "hidden", flexShrink: 0 }}>
+                                <div className="relative aspect-16/10 bg-zinc-100 overflow-hidden shrink-0" style={{ position: "relative", aspectRatio: "16/10", background: "#f4f4f5", overflow: "hidden", flexShrink: 0 }}>
                                     {v.images?.length > 0 ? (
                                         <img src={v.images[0]} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                     ) : (

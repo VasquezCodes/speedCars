@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
 
 const s3 = new S3Client({
@@ -13,46 +14,34 @@ const s3 = new S3Client({
 
 const BUCKET = process.env.R2_BUCKET_NAME!;
 const PUBLIC_URL = process.env.R2_PUBLIC_URL!;
-const MAX_SIZE = 25 * 1024 * 1024; // 25 MB
+
+type FileMeta = { name: string; type: string };
 
 export async function POST(req: NextRequest) {
     try {
-        const formData = await req.formData();
-        const files = formData.getAll("files") as File[];
+        const { files } = (await req.json()) as { files?: FileMeta[] };
 
-        if (!files.length) {
+        if (!Array.isArray(files) || !files.length) {
             return NextResponse.json({ error: "No files provided" }, { status: 400 });
         }
 
-        const urls: string[] = [];
-
-        for (const file of files) {
-            if (file.size > MAX_SIZE) {
-                return NextResponse.json(
-                    { error: `File ${file.name} exceeds 10 MB limit` },
-                    { status: 400 },
-                );
-            }
-
-            const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-            const key = `vehicles/${randomUUID()}.${ext}`;
-            const buffer = Buffer.from(await file.arrayBuffer());
-
-            await s3.send(
-                new PutObjectCommand({
+        const results = await Promise.all(
+            files.map(async (f) => {
+                const ext = f.name.split(".").pop()?.toLowerCase() || "jpg";
+                const key = `vehicles/${randomUUID()}.${ext}`;
+                const command = new PutObjectCommand({
                     Bucket: BUCKET,
                     Key: key,
-                    Body: buffer,
-                    ContentType: file.type,
-                }),
-            );
+                    ContentType: f.type,
+                });
+                const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+                return { uploadUrl, publicUrl: `${PUBLIC_URL}/${key}` };
+            }),
+        );
 
-            urls.push(`${PUBLIC_URL}/${key}`);
-        }
-
-        return NextResponse.json({ urls });
+        return NextResponse.json({ files: results });
     } catch (err: any) {
-        console.error("R2 upload error:", err);
-        return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+        console.error("R2 presign error:", err);
+        return NextResponse.json({ error: "Failed to create upload URLs" }, { status: 500 });
     }
 }
