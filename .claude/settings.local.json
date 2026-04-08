@@ -100,7 +100,8 @@
       "Bash(grep -rn \"ffspeedcars\\\\|domain\\\\|url\\\\|NEXT_PUBLIC_URL\\\\|NEXT_PUBLIC_SITE\" d:/autosdealer-app/.env*)",
       "Bash(grep -rn \"ffspeedcars\\\\|vercel.app\" d:/autosdealer-app/next.config*)",
       "Bash(grep -rn ffspeedcars d:/autosdealer-app --include=*.json --include=*.ts --include=*.tsx -l)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(pnpm install:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
