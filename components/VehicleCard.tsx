@@ -36,7 +36,9 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 
     const mileageDisplay = `${vehicle.mileage.toLocaleString("en-US")} mi`;
 
-    const imageUrl = vehicle.images?.[0] || "/placeholder-car.jpg";
+    const firstImage = vehicle.images?.[0];
+    const isBroken = !firstImage || firstImage.includes("res.cloudinary.com");
+    const imageUrl = isBroken ? "/placeholder-car.svg" : firstImage;
 
     return (
         <Link href={`/autos/${vehicle.slug}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>

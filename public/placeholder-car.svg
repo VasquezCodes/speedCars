@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1f2937"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <g fill="none" stroke="#475569" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" transform="translate(220 180)">
+    <path d="M20 90 L60 40 Q80 25 110 25 L250 25 Q280 25 300 40 L340 90 L350 90 Q360 90 360 100 L360 140 Q360 150 350 150 L320 150"/>
+    <path d="M40 150 L10 150 Q0 150 0 140 L0 100 Q0 90 10 90 L20 90"/>
+    <circle cx="80" cy="150" r="22" fill="#0f172a"/>
+    <circle cx="280" cy="150" r="22" fill="#0f172a"/>
+    <path d="M102 150 L258 150"/>
+  </g>
+  <text x="400" y="380" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="22" font-weight="600" fill="#94a3b8" text-anchor="middle" letter-spacing="1">Foto no disponible</text>
+  <text x="400" y="410" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="14" fill="#64748b" text-anchor="middle">Consulta con nosotros por m&#225;s informaci&#243;n</text>
+</svg>

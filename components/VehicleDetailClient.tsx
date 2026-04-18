@@ -113,7 +113,8 @@ export default function VehicleDetailClient({ vehicle }: Props) {
         }
     }, [vehicle.slug]);
 
-    const images = vehicle.images?.length ? vehicle.images : ["/placeholder-car.jpg"];
+    const validImages = (vehicle.images ?? []).filter(url => url && !url.includes("res.cloudinary.com"));
+    const images = validImages.length ? validImages : ["/placeholder-car.svg"];
 
     useEffect(() => {
         if (!showLightbox) return;
