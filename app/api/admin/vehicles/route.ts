@@ -54,16 +54,18 @@ export async function POST(request: NextRequest) {
     }
     try {
         const data = await request.json();
-        const slug =
-            data.slug ||
-            `${data.brand}-${data.model}-${data.year}`
-                .toLowerCase()
-                .replace(/\s+/g, "-")
-                .replace(/[^a-z0-9-]/g, "");
+        const baseSlug = `${data.brand}-${data.model}-${data.year}`
+            .toLowerCase()
+            .replace(/\s+/g, "-")
+            .replace(/[^a-z0-9-]/g, "");
 
         console.log("[vehicles POST] keys=%o imagesCount=%d", Object.keys(data ?? {}), Array.isArray(data?.images) ? data.images.length : -1);
 
-        const docRef = await adminDb.collection("vehicles").add({
+        // Create doc first to get the ID, then set slug with ID suffix to guarantee uniqueness
+        const docRef = adminDb.collection("vehicles").doc();
+        const slug = `${baseSlug}-${docRef.id.slice(0, 6)}`;
+
+        await docRef.set({
             ...data,
             slug,
             isAvailable: data.isAvailable ?? true,

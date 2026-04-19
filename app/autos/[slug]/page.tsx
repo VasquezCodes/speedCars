@@ -12,11 +12,16 @@ interface Params {
     params: Promise<{ slug: string }>;
 }
 
-async function getVehicle(slug: string): Promise<Vehicle | null> {
+async function getVehicle(slugOrId: string): Promise<Vehicle | null> {
     try {
+        // Try by Firestore document ID first (new links use vehicle.id)
+        const byId = await adminDb.collection("vehicles").doc(slugOrId).get();
+        if (byId.exists) return { id: byId.id, ...byId.data() } as Vehicle;
+
+        // Fallback: query by slug for old/shared links
         const snap = await adminDb
             .collection("vehicles")
-            .where("slug", "==", slug)
+            .where("slug", "==", slugOrId)
             .limit(1)
             .get();
         if (snap.empty) return null;

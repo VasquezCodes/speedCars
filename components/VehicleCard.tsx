@@ -41,7 +41,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
     const imageUrl = isBroken ? "/placeholder-car.svg" : firstImage;
 
     return (
-        <Link href={`/autos/${vehicle.slug}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
+        <Link href={`/autos/${vehicle.id ?? vehicle.slug}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
             <article
                 style={{
                     background: "var(--clr-surface-a10)",
