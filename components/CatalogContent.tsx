@@ -316,14 +316,6 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
                 </div>
             </FilterSection>
 
-            {/* Fuel Type */}
-            <FilterSection title={c.fuel} open={openSections.fuel} onToggle={() => toggleSection("fuel")}>
-                {FUEL_TYPES.map((f) => (
-                    <CheckItem key={f.value} label={f.label} checked={fuelTypes.includes(f.value)}
-                        onChange={() => toggleFuel(f.value)} />
-                ))}
-            </FilterSection>
-
             {/* Available only toggle */}
             <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--clr-surface-a20)" }}>
                 <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
