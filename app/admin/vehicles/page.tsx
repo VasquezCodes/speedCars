@@ -112,14 +112,41 @@ export default function AdminVehiclesPage() {
                     title: form.id ? "Vehículo actualizado" : "Vehículo publicado",
                     description: `${form.brand} ${form.model} fue guardado correctamente.`,
                 });
-            } else {
+            } else if (res.status === 401) {
                 sileo.error({
-                    title: "Error al guardar",
-                    description: "No se pudo guardar el vehículo. Intentá de nuevo.",
+                    title: "Sesión expirada",
+                    description: "Tu sesión caducó. Redirigiendo al login...",
+                });
+                setTimeout(() => { window.location.href = "/admin"; }, 1500);
+            } else {
+                let serverMsg = "";
+                let serverCode = "";
+                try {
+                    const body = await res.json();
+                    serverMsg = body?.error || "";
+                    serverCode = body?.code || "";
+                } catch {
+                    try { serverMsg = await res.text(); } catch {}
+                }
+                console.error("[save vehicle] fallo", {
+                    status: res.status,
+                    statusText: res.statusText,
+                    method,
+                    url,
+                    serverMsg,
+                    serverCode,
+                });
+                sileo.error({
+                    title: `Error al guardar (${res.status})`,
+                    description: serverMsg || "No se pudo guardar el vehículo. Intentá de nuevo.",
                 });
             }
-        } catch (error) {
-            console.error(error);
+        } catch (error: any) {
+            console.error("[save vehicle] excepción", error);
+            sileo.error({
+                title: "Error de red",
+                description: error?.message || "Revisá tu conexión e intentá nuevamente.",
+            });
         }
         setSaving(false);
     };

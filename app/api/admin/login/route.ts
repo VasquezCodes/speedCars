@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
         // Require email verification or just accept it. We'll accept any valid token for now.
         // We can add role checks here later if we want to reject sign-in.
         
-        const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+        const expiresIn = 60 * 60 * 24 * 14 * 1000; // 14 days (máximo permitido por Firebase)
         const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
 
         const response = NextResponse.json({ success: true, role: decodedToken.role || 'user' });

@@ -7,11 +7,18 @@ export const dynamic = "force-dynamic";
 
 async function isAuthenticated(request: NextRequest) {
     const sessionCookie = request.cookies.get("admin_session")?.value;
-    if (!sessionCookie) return false;
+    if (!sessionCookie) {
+        console.error("[auth] admin_session cookie ausente");
+        return false;
+    }
     try {
         await adminAuth.verifySessionCookie(sessionCookie, true);
         return true;
-    } catch {
+    } catch (err: any) {
+        console.error("[auth] verifySessionCookie falló:", {
+            code: err?.code,
+            message: err?.message,
+        });
         return false;
     }
 }
@@ -42,6 +49,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     const isAuth = await isAuthenticated(request);
     if (!isAuth) {
+        console.error("[vehicles POST] 401 — sesión admin inválida o ausente");
         return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
     try {
@@ -53,6 +61,8 @@ export async function POST(request: NextRequest) {
                 .replace(/\s+/g, "-")
                 .replace(/[^a-z0-9-]/g, "");
 
+        console.log("[vehicles POST] keys=%o imagesCount=%d", Object.keys(data ?? {}), Array.isArray(data?.images) ? data.images.length : -1);
+
         const docRef = await adminDb.collection("vehicles").add({
             ...data,
             slug,
@@ -63,7 +73,15 @@ export async function POST(request: NextRequest) {
             createdAt: new Date().toISOString(),
         });
         return NextResponse.json({ id: docRef.id, slug, success: true });
-    } catch (error) {
-        return NextResponse.json({ error: "Error interno" }, { status: 500 });
+    } catch (error: any) {
+        console.error("[vehicles POST] fallo:", {
+            message: error?.message,
+            code: error?.code,
+            stack: error?.stack,
+        });
+        return NextResponse.json(
+            { error: error?.message || "Error interno", code: error?.code ?? null },
+            { status: 500 },
+        );
     }
 }

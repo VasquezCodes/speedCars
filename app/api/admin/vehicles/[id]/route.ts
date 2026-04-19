@@ -7,11 +7,18 @@ export const dynamic = "force-dynamic";
 
 async function isAuthenticated(request: NextRequest) {
     const sessionCookie = request.cookies.get("admin_session")?.value;
-    if (!sessionCookie) return false;
+    if (!sessionCookie) {
+        console.error("[auth] admin_session cookie ausente");
+        return false;
+    }
     try {
         await adminAuth.verifySessionCookie(sessionCookie, true);
         return true;
-    } catch {
+    } catch (err: any) {
+        console.error("[auth] verifySessionCookie falló:", {
+            code: err?.code,
+            message: err?.message,
+        });
         return false;
     }
 }
@@ -22,18 +29,34 @@ export async function PUT(
 ) {
     const isAuth = await isAuthenticated(request);
     if (!isAuth) {
+        console.error("[vehicles PUT] 401 — sesión admin inválida o ausente");
         return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+    let id: string | undefined;
     try {
-        const { id } = await params;
+        ({ id } = await params);
         const data = await request.json();
-        await adminDb.collection("vehicles").doc(id).update({
-            ...data,
+
+        // Strip fields that must not be overwritten
+        const { id: _discardId, createdAt: _discardCreated, ...rest } = data ?? {};
+
+        console.log("[vehicles PUT] id=%s keys=%o imagesCount=%d", id, Object.keys(rest), Array.isArray(rest.images) ? rest.images.length : -1);
+
+        await adminDb.collection("vehicles").doc(id!).update({
+            ...rest,
             updatedAt: new Date().toISOString(),
         });
         return NextResponse.json({ success: true });
-    } catch (error) {
-        return NextResponse.json({ error: "Error interno" }, { status: 500 });
+    } catch (error: any) {
+        console.error("[vehicles PUT] fallo id=%s:", id, {
+            message: error?.message,
+            code: error?.code,
+            stack: error?.stack,
+        });
+        return NextResponse.json(
+            { error: error?.message || "Error interno", code: error?.code ?? null },
+            { status: 500 },
+        );
     }
 }
 
