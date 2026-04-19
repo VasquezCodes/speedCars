@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
         vehicles = vehicles.filter((v) => v.status !== "Retirado");
 
         if (brand) vehicles = vehicles.filter((v) => v.brand === brand);
-        if (type) vehicles = vehicles.filter((v) => v.type === type);
+        if (type) vehicles = vehicles.filter((v) => v.bodyStyle === type || v.type === type);
         if (featured === "true") vehicles = vehicles.filter((v) => v.isFeatured);
         if (maxPrice) vehicles = vehicles.filter((v) => v.price <= parseInt(maxPrice));
         if (maxMileage) vehicles = vehicles.filter((v) => v.mileage <= parseInt(maxMileage));
