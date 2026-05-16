@@ -195,8 +195,20 @@ export default function AdminVehiclesPage() {
         if (!files?.length) return;
         setUploading(true);
         try {
+            const MAX_BYTES = 10 * 1024 * 1024;
             const fileArr = Array.from(files);
+
+            const oversized = fileArr.filter((f) => f.size > MAX_BYTES);
+            if (oversized.length) {
+                sileo.error({
+                    title: oversized.length === 1 ? "Imagen demasiado grande" : `${oversized.length} imágenes demasiado grandes`,
+                    description: `Máx 10MB por imagen. Excedidas: ${oversized.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(1)}MB)`).join(", ")}`,
+                });
+                return;
+            }
+
             const meta = fileArr.map((f) => ({ name: f.name, type: f.type || "image/jpeg" }));
+            console.log("[upload] firmando", meta.map((m, i) => ({ ...m, size: fileArr[i].size })));
 
             const signRes = await fetch("/api/admin/upload", {
                 method: "POST",
@@ -212,12 +224,25 @@ export default function AdminVehiclesPage() {
             const publicUrls = await Promise.all(
                 fileArr.map(async (file, i) => {
                     const { uploadUrl, publicUrl } = signData.files[i];
+                    const contentType = file.type || "image/jpeg";
                     const putRes = await fetch(uploadUrl, {
                         method: "PUT",
-                        headers: { "Content-Type": file.type || "image/jpeg" },
+                        headers: { "Content-Type": contentType },
                         body: file,
                     });
-                    if (!putRes.ok) throw new Error(`Falló la subida de ${file.name} (${putRes.status})`);
+                    if (!putRes.ok) {
+                        let r2Body = "";
+                        try { r2Body = await putRes.text(); } catch {}
+                        console.error("[upload] R2 PUT falló", {
+                            file: file.name,
+                            size: file.size,
+                            contentType,
+                            status: putRes.status,
+                            statusText: putRes.statusText,
+                            r2Body: r2Body.slice(0, 500),
+                        });
+                        throw new Error(`Falló la subida de ${file.name} (${putRes.status}): ${r2Body.slice(0, 200) || putRes.statusText}`);
+                    }
                     return publicUrl;
                 }),
             );

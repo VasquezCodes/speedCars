@@ -25,6 +25,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No files provided" }, { status: 400 });
         }
 
+        console.log("[upload presign] firmando %d archivos", files.length, files.map((f) => ({ name: f.name, type: f.type })));
+
         const results = await Promise.all(
             files.map(async (f) => {
                 const ext = f.name.split(".").pop()?.toLowerCase() || "jpg";
@@ -32,7 +34,7 @@ export async function POST(req: NextRequest) {
                 const command = new PutObjectCommand({
                     Bucket: BUCKET,
                     Key: key,
-                    ContentType: f.type,
+                    ContentType: f.type || "image/jpeg",
                 });
                 const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
                 return { uploadUrl, publicUrl: `${PUBLIC_URL}/${key}` };
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ files: results });
     } catch (err: any) {
-        console.error("R2 presign error:", err);
-        return NextResponse.json({ error: "Failed to create upload URLs" }, { status: 500 });
+        console.error("[upload presign] error:", { message: err?.message, code: err?.code, stack: err?.stack });
+        return NextResponse.json({ error: err?.message || "Failed to create upload URLs" }, { status: 500 });
     }
 }
