@@ -195,14 +195,14 @@ export default function AdminVehiclesPage() {
         if (!files?.length) return;
         setUploading(true);
         try {
-            const MAX_BYTES = 10 * 1024 * 1024;
+            const MAX_BYTES = 30 * 1024 * 1024;
             const fileArr = Array.from(files);
 
             const oversized = fileArr.filter((f) => f.size > MAX_BYTES);
             if (oversized.length) {
                 sileo.error({
                     title: oversized.length === 1 ? "Imagen demasiado grande" : `${oversized.length} imágenes demasiado grandes`,
-                    description: `Máx 10MB por imagen. Excedidas: ${oversized.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(1)}MB)`).join(", ")}`,
+                    description: `Máx 30MB por imagen. Excedidas: ${oversized.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(1)}MB)`).join(", ")}`,
                 });
                 return;
             }
@@ -842,7 +842,7 @@ export default function AdminVehiclesPage() {
                                                             <Plus size={24} />
                                                         </div>
                                                         <p style={{ fontWeight: 700, color: "#4b5563", letterSpacing: "-0.02em" }}>Cargar Imágenes</p>
-                                                        <span style={{ fontSize: 12, color: "#9ca3af", marginTop: 4, textTransform: "uppercase", fontWeight: 900, letterSpacing: "0.1em" }}>JPG, PNG, WEBP • Máx 10MB</span>
+                                                        <span style={{ fontSize: 12, color: "#9ca3af", marginTop: 4, textTransform: "uppercase", fontWeight: 900, letterSpacing: "0.1em" }}>JPG, PNG, WEBP • Máx 30MB</span>
                                                     </>
                                                 )}
                                             </label>
