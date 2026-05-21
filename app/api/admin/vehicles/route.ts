@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 
 import { adminAuth } from "@/lib/firebase/admin";
+import { revalidateVehicleCaches } from "@/lib/vehicles";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +75,7 @@ export async function POST(request: NextRequest) {
             images: data.images || [],
             createdAt: new Date().toISOString(),
         });
+        revalidateVehicleCaches();
         return NextResponse.json({ id: docRef.id, slug, success: true });
     } catch (error: any) {
         console.error("[vehicles POST] fallo:", {

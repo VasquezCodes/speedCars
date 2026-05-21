@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 
 import { adminAuth } from "@/lib/firebase/admin";
+import { revalidateVehicleCaches } from "@/lib/vehicles";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,7 @@ export async function PUT(
             ...rest,
             updatedAt: new Date().toISOString(),
         });
+        revalidateVehicleCaches();
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error("[vehicles PUT] fallo id=%s:", id, {
@@ -71,6 +73,7 @@ export async function DELETE(
     try {
         const { id } = await params;
         await adminDb.collection("vehicles").doc(id).delete();
+        revalidateVehicleCaches();
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json({ error: "Error interno" }, { status: 500 });

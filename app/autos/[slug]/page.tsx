@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { adminDb } from "@/lib/firebase/admin";
 import { notFound } from "next/navigation";
 import VehicleDetailNav from "@/components/VehicleDetailNav";
@@ -12,7 +13,13 @@ interface Params {
     params: Promise<{ slug: string }>;
 }
 
-async function getVehicle(slugOrId: string): Promise<Vehicle | null> {
+// ISR: rendered HTML is cached and reused, regenerated at most every 10 min
+// (or instantly when inventory changes — see revalidatePath in admin routes).
+export const revalidate = 600;
+
+// cache() dedupes the Firestore read so generateMetadata + the page component
+// share a single lookup per request instead of querying twice.
+const getVehicle = cache(async (slugOrId: string): Promise<Vehicle | null> => {
     try {
         // Try by Firestore document ID first (new links use vehicle.id)
         const byId = await adminDb.collection("vehicles").doc(slugOrId).get();
@@ -30,7 +37,7 @@ async function getVehicle(slugOrId: string): Promise<Vehicle | null> {
     } catch {
         return null;
     }
-}
+});
 
 const SITE_URL = "https://ffspeedcars.com";
 

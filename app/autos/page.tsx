@@ -16,17 +16,13 @@ export const metadata = {
     },
 };
 
-export default function CatalogPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ brand?: string; type?: string; maxPrice?: string; search?: string }>;
-}) {
+export default function CatalogPage() {
     return (
         <>
             <Navbar />
             <main style={{ minHeight: "80vh", background: "var(--primary)" }}>
                 <Suspense fallback={<CatalogSkeleton />}>
-                    <CatalogContent searchParams={searchParams} />
+                    <CatalogContent />
                 </Suspense>
             </main>
             <Footer />

@@ -1,6 +1,8 @@
-export const dynamic = "force-dynamic";
+// Cached/ISR: served as static HTML, regenerated at most every 5 min
+// (or instantly when inventory changes — see revalidateTag in admin routes).
+export const revalidate = 300;
 
-import { adminDb } from "@/lib/firebase/admin";
+import { getAvailableVehicles } from "@/lib/vehicles";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import type { Vehicle } from "@/components/VehicleCard";
@@ -15,16 +17,7 @@ import NosotrosSection from "@/components/NosotrosSection";
 
 async function getFeaturedVehicles(): Promise<Vehicle[]> {
   try {
-    const snap = await adminDb
-      .collection("vehicles")
-      .where("isAvailable", "==", true)
-      .orderBy("createdAt", "desc")
-      .limit(20)
-      .get();
-
-    const all = snap.docs
-      .map((d) => ({ ...d.data(), id: d.id } as Vehicle))
-      .filter((v) => v.status !== "Retirado");
+    const all = (await getAvailableVehicles()) as unknown as Vehicle[];
     const featured = all.filter((v) => v.isFeatured);
     return (featured.length > 0 ? featured : all).slice(0, 6);
   } catch (error) {

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import VehicleCard, { Vehicle } from "@/components/VehicleCard";
 import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
+import { fuzzyMatch } from "@/lib/vehicle-search";
 
 /* ─── Static values (DB filter keys — language-independent) ─ */
 
@@ -87,11 +88,7 @@ function CheckItem({ label, checked, onChange }: { label: string; checked: boole
 
 /* ─── Main Component ─────────────────────────────────────── */
 
-interface CatalogContentProps {
-    searchParams: Promise<{ brand?: string; type?: string; maxPrice?: string; search?: string }>;
-}
-
-export default function CatalogContent({ searchParams }: CatalogContentProps) {
+export default function CatalogContent() {
     const urlParams = useSearchParams();
     const { t } = useLanguage();
     const c = t.catalog;
@@ -141,25 +138,24 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     });
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-    const fetchVehicles = useCallback(async () => {
-        setLoading(true);
-        try {
-            const params = new URLSearchParams();
-            if (brand)              params.set("brand", brand);
-            if (type)               params.set("type", type);
-            if (maxPrice)           params.set("maxPrice", maxPrice);
-            if (maxMileage)         params.set("maxMileage", maxMileage);
-            if (fuelTypes.length)   params.set("fuelType", fuelTypes.join(","));
-            if (search)             params.set("search", search);
-            const res  = await fetch(`/api/vehicles?${params.toString()}`);
-            const data = await res.json();
-            setVehicles(Array.isArray(data) ? data : []);
-        } catch { setVehicles([]); }
-        finally { setLoading(false); hasLoadedOnce.current = true; }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [brand, type, maxPrice, maxMileage, search, fuelTypes.join(",")]);
-
-    useEffect(() => { fetchVehicles(); }, [fetchVehicles]);
+    // Fetch the full inventory once; all filtering/search happens in-browser below.
+    // The endpoint is edge-cached, so this is typically served without invoking
+    // any server function.
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            try {
+                const res = await fetch("/api/vehicles");
+                const data = await res.json();
+                if (active) setVehicles(Array.isArray(data) ? data : []);
+            } catch {
+                if (active) setVehicles([]);
+            } finally {
+                if (active) { setLoading(false); hasLoadedOnce.current = true; }
+            }
+        })();
+        return () => { active = false; };
+    }, []);
 
     const toggleSection = (id: string) =>
         setOpenSections((s) => ({ ...s, [id]: !s[id] }));
@@ -187,7 +183,28 @@ export default function CatalogContent({ searchParams }: CatalogContentProps) {
     const hasFilters = type || brand || maxPrice || maxMileage || fuelTypes.length > 0 || search || availableOnly;
     const filterCount = [type, brand, maxPrice, maxMileage, ...fuelTypes, availableOnly ? "1" : ""].filter(Boolean).length;
 
-    const filteredVehicles = availableOnly ? vehicles.filter((v) => v.status !== "Vendido") : vehicles;
+    // All filtering runs locally over the full list (same rules the API used).
+    const filteredVehicles = useMemo(() => {
+        let list = vehicles;
+        if (brand)            list = list.filter((v) => v.brand === brand);
+        if (type)             list = list.filter((v) => (v as { bodyStyle?: string }).bodyStyle === type || v.type === type);
+        if (maxPrice)         list = list.filter((v) => v.price <= parseInt(maxPrice));
+        if (maxMileage)       list = list.filter((v) => v.mileage <= parseInt(maxMileage));
+        if (fuelTypes.length) list = list.filter((v) => fuelTypes.includes(v.fuelType ?? ""));
+        if (search) {
+            const q = search.trim();
+            list = list.filter((v) =>
+                v.year?.toString().includes(q) ||          // year: exact
+                fuzzyMatch(q, v.brand) ||                  // brand: fuzzy
+                fuzzyMatch(q, v.model) ||                  // model: fuzzy
+                fuzzyMatch(q, `${v.brand} ${v.model}`) ||  // "ford focus": combined
+                fuzzyMatch(q, v.description)               // description: fuzzy
+            );
+        }
+        if (availableOnly) list = list.filter((v) => v.status !== "Vendido");
+        return list;
+    }, [vehicles, brand, type, maxPrice, maxMileage, fuelTypes, search, availableOnly]);
+
     const sortedVehicles = [...filteredVehicles].sort((a, b) => {
         // Sold vehicles always go last
         const aSold = a.status === "Vendido" ? 1 : 0;
