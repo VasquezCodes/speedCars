@@ -113,7 +113,7 @@ export default function CatalogContent() {
     const [mileageSlider, setMileageSlider] = useState(MAX_MILEAGE);
     const [maxMileage, setMaxMileage]   = useState("");
     const [fuelTypes, setFuelTypes]     = useState<string[]>([]);
-    const [availableOnly, setAvailableOnly] = useState(true);
+    const [availableOnly, setAvailableOnly] = useState(false);
     const [search, setSearch]           = useState(urlParams.get("search") || "");
     const [searchInput, setSearchInput] = useState(urlParams.get("search") || "");
     const [sortBy, setSortBy]           = useState("recent");
@@ -177,7 +177,7 @@ export default function CatalogContent() {
         setType(""); setBrand(""); setMaxPrice(""); setMaxMileage("");
         setFuelTypes([]); setSearch(""); setSearchInput("");
         setPriceSlider(MAX_PRICE); setMileageSlider(MAX_MILEAGE);
-        setAvailableOnly(true);
+        setAvailableOnly(false);
     };
 
     const hasFilters = type || brand || maxPrice || maxMileage || fuelTypes.length > 0 || search || availableOnly;
@@ -217,6 +217,8 @@ export default function CatalogContent() {
         if (sortBy === "year-asc")    return (a.year ?? 0) - (b.year ?? 0);
         return 0;
     });
+
+    const availableCount = sortedVehicles.filter(v => v.status !== "Vendido").length;
 
     /* ── Sidebar content (shared desktop + mobile drawer) ── */
     const sidebarFilters = (
@@ -502,10 +504,10 @@ export default function CatalogContent() {
                             borderRadius: 8, padding: "7px 14px",
                         }}>
                             <span style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>
-                                {loading ? "—" : sortedVehicles.length.toLocaleString()}
+                                {loading ? "—" : availableCount.toLocaleString()}
                             </span>
                             <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 400 }}>
-                                {loading ? c.loading : sortedVehicles.length !== 1 ? c.matches : c.match}
+                                {loading ? c.loading : availableCount !== 1 ? c.matches : c.match}
                             </span>
                         </div>
 
@@ -618,7 +620,7 @@ export default function CatalogContent() {
                                 border: "none", borderRadius: 10, padding: 14,
                                 fontSize: 15, fontWeight: 700, cursor: "pointer",
                             }}>
-                                {c.viewResults} {sortedVehicles.length} {c.results}
+                                {c.viewResults} {availableCount} {c.results}
                             </button>
                         </div>
                     </div>
