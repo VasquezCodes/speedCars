@@ -65,7 +65,7 @@ export default function AdminVehiclesPage() {
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState<Vehicle>(emptyForm);
     const [saving, setSaving] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState<'all' | 'available' | 'sold'>('all');
     const [brandIsOther, setBrandIsOther] = useState(false);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -280,10 +280,11 @@ export default function AdminVehiclesPage() {
     };
 
     const filteredVehicles = vehicles
-        .filter(v => 
-            v.brand.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            v.model.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        .filter(v => {
+            if (statusFilter === 'available') return v.status !== 'Vendido';
+            if (statusFilter === 'sold') return v.status === 'Vendido';
+            return true;
+        })
         .sort((a, b) => {
             if (a.status === 'Vendido' && b.status !== 'Vendido') return 1;
             if (a.status !== 'Vendido' && b.status === 'Vendido') return -1;
@@ -416,25 +417,26 @@ export default function AdminVehiclesPage() {
                 </div>
             </div>
 
-            {/* Sub-header Filter & Search */}
-            <div className="max-w-400 mx-auto admin-veh-search" style={{ maxWidth: 1600, margin: "0 auto" }}>
-                <div className="flex flex-col sm:flex-row items-center gap-4 bg-zinc-50/50 p-2 rounded-3xl border border-zinc-100 mb-10" style={{ display: "flex", alignItems: "center", gap: 16, background: "rgba(250,250,250,0.5)", padding: 8, borderRadius: 24, border: "1px solid #f4f4f5", marginBottom: 40 }}>
-                    <div className="relative flex-1 w-full group">
-                        <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" />
-                        <input 
-                            type="text"
-                            placeholder="Buscar marca o modelo..."
-                            className="w-full bg-transparent pl-14 pr-6 py-4 outline-none text-[15px] text-zinc-900 placeholder:text-zinc-400"
-                            style={{ width: "100%", background: "transparent", paddingLeft: 56, paddingRight: 24, paddingTop: 16, paddingBottom: 16, outline: "none", fontSize: 15, color: "#18181b", border: "none" }}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <div className="w-px h-8 bg-zinc-200 hidden sm:block" />
-                    <button className="flex items-center gap-2 px-6 py-3 text-zinc-500 hover:text-zinc-900 font-bold text-sm transition-colors">
-                        <Filter size={16} />
-                        <span>Filtros</span>
-                        <ChevronDown size={14} />
+            {/* Sub-header Filters */}
+            <div className="max-w-400 mx-auto admin-veh-filters" style={{ maxWidth: 1600, margin: "0 auto", padding: "0 24px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f4f4f5", padding: 6, borderRadius: 20, marginBottom: 32, width: "fit-content" }}>
+                    <button
+                        onClick={() => setStatusFilter('all')}
+                        style={{ padding: "10px 20px", borderRadius: 14, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700, transition: "all 0.2s", background: statusFilter === 'all' ? "#fff" : "transparent", color: statusFilter === 'all' ? "#18181b" : "#71717a", boxShadow: statusFilter === 'all' ? "0 2px 8px rgba(0,0,0,0.06)" : "none" }}
+                    >
+                        Todos
+                    </button>
+                    <button
+                        onClick={() => setStatusFilter('available')}
+                        style={{ padding: "10px 20px", borderRadius: 14, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700, transition: "all 0.2s", background: statusFilter === 'available' ? "#fff" : "transparent", color: statusFilter === 'available' ? "#18181b" : "#71717a", boxShadow: statusFilter === 'available' ? "0 2px 8px rgba(0,0,0,0.06)" : "none" }}
+                    >
+                        Solo Disponibles
+                    </button>
+                    <button
+                        onClick={() => setStatusFilter('sold')}
+                        style={{ padding: "10px 20px", borderRadius: 14, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700, transition: "all 0.2s", background: statusFilter === 'sold' ? "#fff" : "transparent", color: statusFilter === 'sold' ? "#18181b" : "#71717a", boxShadow: statusFilter === 'sold' ? "0 2px 8px rgba(0,0,0,0.06)" : "none" }}
+                    >
+                        Solo Vendidos
                     </button>
                 </div>
             </div>
@@ -447,16 +449,16 @@ export default function AdminVehiclesPage() {
                             <Car size={40} className="text-gray-300" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                            {searchTerm ? "No se encontraron resultados" : "Tu inventario está vacío"}
+                            {statusFilter !== 'all' ? "No hay vehículos en este estado" : "Tu inventario está vacío"}
                         </h3>
                         <p className="text-gray-500 max-w-sm mb-8 leading-relaxed">
-                            {searchTerm 
-                                ? `No hay coincidencias para "${searchTerm}". Intenta buscar con otros términos.`
+                            {statusFilter !== 'all'
+                                ? "No encontramos vehículos que coincidan con el filtro seleccionado."
                                 : "Aún no has registrado ningún vehículo. Haz clic en el botón superior para empezar."
                             }
                         </p>
-                        {searchTerm && (
-                            <button onClick={() => setSearchTerm("")} className="text-red-600 font-bold hover:underline">Limpiar búsqueda</button>
+                        {statusFilter !== 'all' && (
+                            <button onClick={() => setStatusFilter('all')} className="text-red-600 font-bold hover:underline">Mostrar todos</button>
                         )}
                     </div>
                 ) : (
