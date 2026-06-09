@@ -279,10 +279,16 @@ export default function AdminVehiclesPage() {
         });
     };
 
-    const filteredVehicles = vehicles.filter(v => 
-        v.brand.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        v.model.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredVehicles = vehicles
+        .filter(v => 
+            v.brand.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            v.model.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => {
+            if (a.status === 'Vendido' && b.status !== 'Vendido') return 1;
+            if (a.status !== 'Vendido' && b.status === 'Vendido') return -1;
+            return 0;
+        });
 
     const renderInput = (key: keyof Vehicle, label: string, type = "text", placeholder = "") => {
         const isNumeric = type === "number";
