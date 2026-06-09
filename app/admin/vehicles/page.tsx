@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, FormEvent } from "react";
-import { Plus, X, Camera, Star, Trash2, Pencil, Car, MapPin, Gauge, Search, Filter, ChevronDown, Check, MoreVertical, Loader2 } from "lucide-react";
+import { Plus, X, Camera, Star, Trash2, Pencil, Car, MapPin, Gauge, Search, Filter, ChevronDown, Check, MoreVertical, Loader2, Tag } from "lucide-react";
 import { sileo } from "sileo";
 
 import { Vehicle } from '@/types/vehicle';
@@ -350,6 +350,10 @@ export default function AdminVehiclesPage() {
         );
     }
 
+    const totalVehiclesCount = vehicles.length;
+    const soldVehiclesCount = vehicles.filter(v => v.status === 'Vendido').length;
+    const availableVehiclesCount = totalVehiclesCount - soldVehiclesCount;
+
     return (
         <div className="min-h-screen bg-white" style={{ background: "#fff", minHeight: "100vh" }}>
             {/* Header Section */}
@@ -375,6 +379,42 @@ export default function AdminVehiclesPage() {
                     </div>
                 </div>
             </header>
+
+            {/* Stats Dashboard */}
+            <div style={{ maxWidth: 1600, margin: "32px auto 24px", padding: "0 24px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
+                    {/* Stat 1: Total */}
+                    <div style={{ background: "#fff", borderRadius: 24, padding: 24, border: "1px solid #f4f4f5", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", gap: 20 }}>
+                        <div style={{ width: 64, height: 64, borderRadius: 20, background: "rgba(24, 24, 27, 0.04)", display: "flex", alignItems: "center", justifyContent: "center", color: "#18181b" }}>
+                            <Car size={28} strokeWidth={2.5} />
+                        </div>
+                        <div>
+                            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Inventario</p>
+                            <h3 style={{ margin: "4px 0 0", fontSize: 32, fontWeight: 900, color: "#18181b", lineHeight: 1 }}>{totalVehiclesCount}</h3>
+                        </div>
+                    </div>
+                    {/* Stat 2: Disponibles */}
+                    <div style={{ background: "#fff", borderRadius: 24, padding: 24, border: "1px solid #f4f4f5", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", gap: 20 }}>
+                        <div style={{ width: 64, height: 64, borderRadius: 20, background: "rgba(34, 197, 94, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a" }}>
+                            <Check size={28} strokeWidth={3} />
+                        </div>
+                        <div>
+                            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Disponibles</p>
+                            <h3 style={{ margin: "4px 0 0", fontSize: 32, fontWeight: 900, color: "#18181b", lineHeight: 1 }}>{availableVehiclesCount}</h3>
+                        </div>
+                    </div>
+                    {/* Stat 3: Vendidos */}
+                    <div style={{ background: "#fff", borderRadius: 24, padding: 24, border: "1px solid #f4f4f5", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", gap: 20 }}>
+                        <div style={{ width: 64, height: 64, borderRadius: 20, background: "rgba(220, 38, 38, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#dc2626" }}>
+                            <Tag size={28} strokeWidth={2.5} />
+                        </div>
+                        <div>
+                            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Vendidos</p>
+                            <h3 style={{ margin: "4px 0 0", fontSize: 32, fontWeight: 900, color: "#18181b", lineHeight: 1 }}>{soldVehiclesCount}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Sub-header Filter & Search */}
             <div className="max-w-400 mx-auto admin-veh-search" style={{ maxWidth: 1600, margin: "0 auto" }}>
