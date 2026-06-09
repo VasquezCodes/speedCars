@@ -113,7 +113,7 @@ export default function CatalogContent() {
     const [mileageSlider, setMileageSlider] = useState(MAX_MILEAGE);
     const [maxMileage, setMaxMileage]   = useState("");
     const [fuelTypes, setFuelTypes]     = useState<string[]>([]);
-    const [availableOnly, setAvailableOnly] = useState(false);
+    const [availableOnly, setAvailableOnly] = useState(true);
     const [search, setSearch]           = useState(urlParams.get("search") || "");
     const [searchInput, setSearchInput] = useState(urlParams.get("search") || "");
     const [sortBy, setSortBy]           = useState("recent");
@@ -177,7 +177,7 @@ export default function CatalogContent() {
         setType(""); setBrand(""); setMaxPrice(""); setMaxMileage("");
         setFuelTypes([]); setSearch(""); setSearchInput("");
         setPriceSlider(MAX_PRICE); setMileageSlider(MAX_MILEAGE);
-        setAvailableOnly(false);
+        setAvailableOnly(true);
     };
 
     const hasFilters = type || brand || maxPrice || maxMileage || fuelTypes.length > 0 || search || availableOnly;
