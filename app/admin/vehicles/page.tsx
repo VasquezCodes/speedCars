@@ -381,36 +381,36 @@ export default function AdminVehiclesPage() {
             </header>
 
             {/* Stats Dashboard */}
-            <div style={{ maxWidth: 1600, margin: "32px auto 24px", padding: "0 24px" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
+            <div style={{ maxWidth: 1600, margin: "24px auto 16px", padding: "0 24px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
                     {/* Stat 1: Total */}
-                    <div style={{ background: "#fff", borderRadius: 24, padding: 24, border: "1px solid #f4f4f5", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", gap: 20 }}>
-                        <div style={{ width: 64, height: 64, borderRadius: 20, background: "rgba(24, 24, 27, 0.04)", display: "flex", alignItems: "center", justifyContent: "center", color: "#18181b" }}>
-                            <Car size={28} strokeWidth={2.5} />
+                    <div style={{ background: "#fff", borderRadius: 16, padding: 16, border: "1px solid #f4f4f5", boxShadow: "0 2px 10px rgba(0,0,0,0.02)", display: "flex", alignItems: "center", gap: 14 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(24, 24, 27, 0.04)", display: "flex", alignItems: "center", justifyContent: "center", color: "#18181b", flexShrink: 0 }}>
+                            <Car size={20} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Inventario</p>
-                            <h3 style={{ margin: "4px 0 0", fontSize: 32, fontWeight: 900, color: "#18181b", lineHeight: 1 }}>{totalVehiclesCount}</h3>
+                            <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Inventario</p>
+                            <h3 style={{ margin: "2px 0 0", fontSize: 22, fontWeight: 900, color: "#18181b", lineHeight: 1 }}>{totalVehiclesCount}</h3>
                         </div>
                     </div>
                     {/* Stat 2: Disponibles */}
-                    <div style={{ background: "#fff", borderRadius: 24, padding: 24, border: "1px solid #f4f4f5", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", gap: 20 }}>
-                        <div style={{ width: 64, height: 64, borderRadius: 20, background: "rgba(34, 197, 94, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a" }}>
-                            <Check size={28} strokeWidth={3} />
+                    <div style={{ background: "#fff", borderRadius: 16, padding: 16, border: "1px solid #f4f4f5", boxShadow: "0 2px 10px rgba(0,0,0,0.02)", display: "flex", alignItems: "center", gap: 14 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(34, 197, 94, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a", flexShrink: 0 }}>
+                            <Check size={20} strokeWidth={3} />
                         </div>
                         <div>
-                            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Disponibles</p>
-                            <h3 style={{ margin: "4px 0 0", fontSize: 32, fontWeight: 900, color: "#18181b", lineHeight: 1 }}>{availableVehiclesCount}</h3>
+                            <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Disponibles</p>
+                            <h3 style={{ margin: "2px 0 0", fontSize: 22, fontWeight: 900, color: "#18181b", lineHeight: 1 }}>{availableVehiclesCount}</h3>
                         </div>
                     </div>
                     {/* Stat 3: Vendidos */}
-                    <div style={{ background: "#fff", borderRadius: 24, padding: 24, border: "1px solid #f4f4f5", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", display: "flex", alignItems: "center", gap: 20 }}>
-                        <div style={{ width: 64, height: 64, borderRadius: 20, background: "rgba(220, 38, 38, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#dc2626" }}>
-                            <Tag size={28} strokeWidth={2.5} />
+                    <div style={{ background: "#fff", borderRadius: 16, padding: 16, border: "1px solid #f4f4f5", boxShadow: "0 2px 10px rgba(0,0,0,0.02)", display: "flex", alignItems: "center", gap: 14 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(220, 38, 38, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#dc2626", flexShrink: 0 }}>
+                            <Tag size={20} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Vendidos</p>
-                            <h3 style={{ margin: "4px 0 0", fontSize: 32, fontWeight: 900, color: "#18181b", lineHeight: 1 }}>{soldVehiclesCount}</h3>
+                            <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Vendidos</p>
+                            <h3 style={{ margin: "2px 0 0", fontSize: 22, fontWeight: 900, color: "#18181b", lineHeight: 1 }}>{soldVehiclesCount}</h3>
                         </div>
                     </div>
                 </div>
