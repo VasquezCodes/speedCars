@@ -445,6 +445,15 @@ export default function AdminVehiclesPage() {
                                             ${v.price.toLocaleString()}
                                         </div>
                                     </div>
+
+                                    {/* Sold Badge */}
+                                    {v.status === 'Vendido' && (
+                                        <div className="absolute bottom-4 right-4 z-10" style={{ position: "absolute", bottom: 16, right: 16, zIndex: 10 }}>
+                                            <div className="bg-red-600/90 backdrop-blur-md px-4 py-1.5 rounded-xl text-[13px] font-black text-white border border-red-500/50 shadow-lg" style={{ background: "rgba(220,38,38,0.9)", backdropFilter: "blur(8px)", padding: "6px 16px", borderRadius: 12, fontSize: 13, fontWeight: 900, color: "#fff", border: "1px solid rgba(239,68,68,0.5)", boxShadow: "0 4px 12px rgba(220,38,38,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                                Vendido
+                                            </div>
+                                        </div>
+                                    )}
                                     
                                     {/* Quick Actions Hover Overlay */}
                                     <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
