@@ -239,11 +239,9 @@ export default function AdminVehiclesPage() {
                     const contentType = file.type;
                     const putRes = await fetch(uploadUrl, {
                         method: "PUT",
-                        headers: {
-                            "Content-Type": contentType,
-                            // Must match the presigned command exactly or R2 rejects the signature.
-                            "Cache-Control": "public, max-age=31536000, immutable",
-                        },
+                        // Only Content-Type: the bucket's CORS rule allows no other
+                        // request header, and anything extra fails the preflight.
+                        headers: { "Content-Type": contentType },
                         body: file.blob,
                     });
                     if (!putRes.ok) {

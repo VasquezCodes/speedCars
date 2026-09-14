@@ -35,10 +35,8 @@ export async function POST(req: NextRequest) {
                     Bucket: BUCKET,
                     Key: key,
                     ContentType: f.type || "image/jpeg",
-                    // Keys are random UUIDs, so an object is never rewritten —
-                    // it can be cached forever. Without this R2 returns no
-                    // Cache-Control at all and every read is a fresh download.
-                    CacheControl: "public, max-age=31536000, immutable",
+                    // No CacheControl: presigned URLs never sign it, so it only
+                    // applies if the browser sends the header, which R2's CORS blocks.
                 });
                 const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
                 return { uploadUrl, publicUrl: `${PUBLIC_URL}/${key}` };
