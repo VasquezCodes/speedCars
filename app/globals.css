@@ -176,7 +176,12 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
   width: 100%;
-  touch-action: pan-y;
+  /* No touch-action here. `pan-y` looks harmless but the effective value is
+     the intersection down the whole ancestor chain, so it silently killed
+     horizontal finger-swiping inside every nested scroller (the vehicle
+     thumbnail strip, the lightbox strip, every admin table) and disabled
+     pinch-zoom. `overflow-x: clip` above already stops the page itself from
+     panning sideways, which is all that was wanted. */
 }
 
 
@@ -1186,4 +1191,181 @@ button {
   .seller-main { padding: 48px 24px; }
   .seller-ref-row { flex-direction: row; align-items: center; }
   .seller-ref-row button { width: auto; padding: 8px 16px; }
+}
+
+/* ─────────────────────────────────────────
+   Vehicle card
+   Every card is the same shape at every
+   width. The photo box is a locked 3:2 so a
+   row of cards reads as one continuous
+   showroom wall instead of a ragged edge,
+   and the price of every car in a row sits
+   on the same baseline for comparison.
+───────────────────────────────────────── */
+.vcard {
+  /* Meta grey, measured 5.2:1 on --clr-surface-a10 (#282626) */
+  --vcard-meta: #9a9898;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;                       /* never widen its grid/flex track */
+  background: var(--clr-surface-a10);
+  border: 1px solid var(--clr-surface-a20);
+  border-radius: 12px;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.vcard:hover {
+  transform: translateY(-3px);
+  border-color: var(--clr-surface-a30);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+
+.vcard:focus-visible {
+  outline: 2px solid var(--clr-primary-a10);
+  outline-offset: 3px;
+  border-color: var(--clr-surface-a30);
+}
+
+/* ── Photo ── */
+.vcard-media {
+  position: relative;
+  flex-shrink: 0;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--clr-surface-a20);
+}
+
+.vcard-media img {
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+.vcard:hover .vcard-media img { transform: scale(1.04); }
+
+/* ── Body ── */
+.vcard-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 13px 14px 0;
+}
+
+.vcard-title {
+  /* Always two lines tall, so prices align across a row.
+     `anywhere` keeps even a 40-character trim name from
+     widening the column it sits in. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-height: 2.6em;
+  margin: 0 0 9px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--clr-light-a0);
+  overflow-wrap: anywhere;
+}
+
+.vcard-figures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 9px;
+  min-width: 0;
+  margin-bottom: 13px;
+}
+
+.vcard-price {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--clr-light-a0);
+}
+
+.vcard-mileage {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vcard-meta);
+}
+
+/* ── Footer ── */
+.vcard-foot {
+  min-width: 0;
+  margin-top: auto;
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--clr-surface-a20);
+}
+
+.vcard-foot-label {
+  margin: 0 0 1px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--vcard-meta);
+}
+
+.vcard-foot-name {
+  margin: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Sold ── */
+.vcard.is-sold { border-color: rgba(160, 30, 30, 0.32); }
+.vcard.is-sold:hover { border-color: rgba(160, 30, 30, 0.55); }
+.vcard.is-sold .vcard-media img { filter: grayscale(70%) brightness(0.6); }
+.vcard.is-sold .vcard-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 8, 8, 0.34);
+}
+.vcard.is-sold .vcard-title,
+.vcard.is-sold .vcard-foot-name { color: var(--vcard-meta); }
+
+/* A sold car is a past event, so it is marked, not shouted:
+   one tag on the photo and a struck-through price. */
+.vcard-sold-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 4px 9px;
+  border: 1px solid rgba(209, 17, 25, 0.55);
+  border-radius: 5px;
+  background: rgba(18, 16, 16, 0.82);
+  color: #ef6a6a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+  backdrop-filter: blur(3px);
+}
+
+.vcard.is-sold .vcard-price {
+  color: var(--vcard-meta);
+  text-decoration: line-through;
+  text-decoration-color: rgba(209, 17, 25, 0.7);
+  text-decoration-thickness: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vcard,
+  .vcard-media img { transition: none; }
+  .vcard:hover { transform: none; }
+  .vcard:hover .vcard-media img { transform: none; }
 }

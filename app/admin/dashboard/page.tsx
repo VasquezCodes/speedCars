@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { optimizedSrc } from "@/lib/img";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -396,7 +397,7 @@ export default function AdminDashboard() {
                                         <td style={{ padding: "10px 20px", width: 64 }}>
                                             {vehicle.images?.[0] ? (
                                                 <div style={{ width: 52, height: 40, borderRadius: 8, overflow: "hidden", background: "#f3f4f6" }}>
-                                                    <img src={vehicle.images[0]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                    <img src={optimizedSrc(vehicle.images[0], 128, 70)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                                 </div>
                                             ) : (
                                                 <div style={{ width: 52, height: 40, borderRadius: 8, background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center" }}>

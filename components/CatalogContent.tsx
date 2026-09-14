@@ -103,6 +103,8 @@ export default function CatalogContent() {
 
     const [vehicles, setVehicles]       = useState<Vehicle[]>([]);
     const [loading, setLoading]         = useState(true);
+    const [loadError, setLoadError]     = useState(false);
+    const [reloadKey, setReloadKey]     = useState(0);
     const [type, setType]               = useState(urlParams.get("type") || "");
     const [brand, setBrand]             = useState(urlParams.get("brand") || "");
     const [priceSlider, setPriceSlider] = useState(() => {
@@ -143,19 +145,26 @@ export default function CatalogContent() {
     // any server function.
     useEffect(() => {
         let active = true;
+        setLoading(true);
+        setLoadError(false);
         (async () => {
             try {
                 const res = await fetch("/api/vehicles");
+                // A failed request must not look like an empty lot: an error
+                // body is not an array, and treating it as [] used to render
+                // "no vehicles found" to every visitor during an outage.
+                if (!res.ok) throw new Error(`inventory ${res.status}`);
                 const data = await res.json();
-                if (active) setVehicles(Array.isArray(data) ? data : []);
+                if (!Array.isArray(data)) throw new Error("inventory: unexpected payload");
+                if (active) setVehicles(data);
             } catch {
-                if (active) setVehicles([]);
+                if (active) setLoadError(true);
             } finally {
                 if (active) { setLoading(false); hasLoadedOnce.current = true; }
             }
         })();
         return () => { active = false; };
-    }, []);
+    }, [reloadKey]);
 
     const toggleSection = (id: string) =>
         setOpenSections((s) => ({ ...s, [id]: !s[id] }));
@@ -407,11 +416,15 @@ export default function CatalogContent() {
                     transform: scale(1.18);
                 }
 
-                /* Grid */
+                /* Grid — tracks follow the CONTENT COLUMN, not the viewport.
+                   auto-fill + minmax(min(...),1fr) can never be widened past
+                   its container, so a row always fits however long a vehicle
+                   name happens to be. */
                 .cat-grid {
                     display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 16px;
+                    grid-template-columns: repeat(auto-fill, minmax(min(258px, 100%), 1fr));
+                    gap: 20px;
+                    align-items: stretch;
                 }
                 .cat-grid-wrap {
                     position: relative;
@@ -435,26 +448,38 @@ export default function CatalogContent() {
                     0%   { background-position: -200% 0; }
                     100% { background-position:  200% 0; }
                 }
-                @media (max-width: 1200px) { .cat-grid { grid-template-columns: repeat(3, 1fr); } }
-                @media (max-width: 900px)  { .cat-grid { grid-template-columns: repeat(2, 1fr); } }
-                @media (max-width: 500px)  { .cat-grid { grid-template-columns: 1fr; } }
                 /* Sidebar */
                 .cat-sidebar {
                     width: 319px;
                     flex-shrink: 0;
                     background: var(--clr-surface-a10);
                     border-right: 1px solid var(--clr-surface-a20);
-                    align-self: flex-start;
+                }
+                .cat-sidebar-inner {
                     position: sticky;
                     top: 0;
                     max-height: 100vh;
                     overflow-y: auto;
                 }
-                .cat-sidebar::-webkit-scrollbar { width: 3px; }
-                .cat-sidebar::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
-                @media (max-width: 900px) { .cat-sidebar { display: none; } }
+                .cat-sidebar-inner::-webkit-scrollbar { width: 3px; }
+                .cat-sidebar-inner::-webkit-scrollbar-thumb { background: var(--clr-surface-a30); border-radius: 2px; }
+                /* The sidebar only claims its 319px while what is left still
+                   holds two full-size cards. Below that the filters move into
+                   the drawer and the cars get the whole width. */
+                @media (max-width: 1099px) { .cat-sidebar { display: none; } }
                 .cat-mob-btn { display: none; }
-                @media (max-width: 900px) { .cat-mob-btn { display: flex; } }
+                @media (max-width: 1099px) { .cat-mob-btn { display: flex; } }
+
+                /* Content column */
+                .cat-main {
+                    flex: 1;
+                    min-width: 0;
+                    max-width: 1560px;
+                    padding: 24px 24px 64px;
+                }
+                @media (max-width: 560px) { .cat-main { padding: 18px 16px 56px; } }
+
+                .cat-drawer { width: min(319px, 88vw); }
             `}</style>
 
             {/* ═══ LAYOUT ═══ */}
@@ -462,6 +487,7 @@ export default function CatalogContent() {
 
                 {/* ── SIDEBAR 319px ── */}
                 <nav className="cat-sidebar">
+                  <div className="cat-sidebar-inner">
 
                     {/* Sidebar header */}
                     <div style={{
@@ -488,10 +514,11 @@ export default function CatalogContent() {
 
                     {/* Filter sections — each row 70px collapsed */}
                     {sidebarFilters}
+                  </div>
                 </nav>
 
                 {/* ── MAIN CONTENT ── */}
-                <div style={{ flex: 1, minWidth: 0, padding: "24px 24px 64px" }}>
+                <div className="cat-main">
 
                     {/* COUNT ROW */}
                     <div style={{
@@ -504,7 +531,7 @@ export default function CatalogContent() {
                             borderRadius: 8, padding: "7px 14px",
                         }}>
                             <span style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>
-                                {loading ? "—" : availableCount.toLocaleString()}
+                                {loading || loadError ? "—" : availableCount.toLocaleString()}
                             </span>
                             <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 400 }}>
                                 {loading ? c.loading : availableCount !== 1 ? c.matches : c.match}
@@ -571,6 +598,20 @@ export default function CatalogContent() {
                                 </div>
                             ))}
                         </div>
+                    ) : loadError ? (
+                        <div role="alert" style={{ textAlign: "center", padding: "80px 16px", maxWidth: 440, margin: "0 auto" }}>
+                            <h3 style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 22, marginBottom: 8 }}>
+                                {c.loadErrorTitle}
+                            </h3>
+                            <p style={{ color: "var(--text-muted)", marginBottom: 28, lineHeight: 1.55 }}>{c.loadErrorBody}</p>
+                            <button onClick={() => setReloadKey((k) => k + 1)} style={{
+                                background: "#d11119", color: "white", border: "none",
+                                borderRadius: 100, padding: "13px 32px",
+                                fontSize: 14, fontWeight: 700, cursor: "pointer",
+                            }}>
+                                {c.retry}
+                            </button>
+                        </div>
                     ) : (
                         <div style={{ textAlign: "center", padding: "80px 0" }}>
                             <div style={{ fontSize: 52, marginBottom: 16 }}>🔍</div>
@@ -595,9 +636,9 @@ export default function CatalogContent() {
                 <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex" }}>
                     <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }}
                         onClick={() => setMobileFiltersOpen(false)} />
-                    <div onClick={(e) => e.stopPropagation()} style={{
+                    <div className="cat-drawer" onClick={(e) => e.stopPropagation()} style={{
                         position: "relative", zIndex: 1,
-                        background: "var(--clr-surface-a10)", width: 319, height: "100%",
+                        background: "var(--clr-surface-a10)", height: "100%",
                         overflowY: "auto", flexShrink: 0,
                         boxShadow: "4px 0 40px rgba(0,0,0,0.5)",
                     }}>

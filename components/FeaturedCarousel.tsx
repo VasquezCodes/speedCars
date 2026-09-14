@@ -87,16 +87,21 @@ export default function FeaturedCarousel({ vehicles }: { vehicles: Vehicle[] }) 
   // Apply transform directly to DOM (no state = no re-render during drag)
   const applyTransform = useCallback((offset: number) => {
     if (trackRef.current) {
+      trackRef.current.style.willChange = "transform";
       trackRef.current.style.transition = "none";
       trackRef.current.style.transform = `translateX(${offset}px)`;
     }
   }, []);
 
   const snapToIndex = useCallback((i: number) => {
-    if (trackRef.current) {
-      trackRef.current.style.transition = "transform 0.42s cubic-bezier(0.4, 0, 0.2, 1)";
-      trackRef.current.style.transform = `translateX(${-(i * step)}px)`;
-    }
+    const el = trackRef.current;
+    if (!el) return;
+    el.style.willChange = "transform";
+    el.style.transition = "transform 0.42s cubic-bezier(0.4, 0, 0.2, 1)";
+    el.style.transform = `translateX(${-(i * step)}px)`;
+    // Drop the compositor layer once the slide has settled.
+    const done = () => { el.style.willChange = "auto"; el.removeEventListener("transitionend", done); };
+    el.addEventListener("transitionend", done);
   }, [step]);
 
   // Sync DOM transform when index or step changes (arrows, dots, resize)
@@ -242,7 +247,6 @@ export default function FeaturedCarousel({ vehicles }: { vehicles: Vehicle[] }) 
             display: "flex",
             gap: gap,
             transform: `translateX(${-(index * step)}px)`,
-            willChange: "transform",
           }}
         >
           {vehicles.map((v) => (

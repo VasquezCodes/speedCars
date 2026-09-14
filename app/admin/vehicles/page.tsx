@@ -2,6 +2,8 @@
 import { useEffect, useState, FormEvent } from "react";
 import { Plus, X, Camera, Star, Trash2, Pencil, Car, MapPin, Gauge, Search, Filter, ChevronDown, Check, MoreVertical, Loader2, Tag } from "lucide-react";
 import { sileo } from "sileo";
+import { optimizedSrc } from "@/lib/img";
+import { downscaleImage } from "@/lib/downscale-image";
 
 import { Vehicle } from '@/types/vehicle';
 
@@ -207,8 +209,18 @@ export default function AdminVehiclesPage() {
                 return;
             }
 
-            const meta = fileArr.map((f) => ({ name: f.name, type: f.type || "image/jpeg" }));
-            console.log("[upload] firmando", meta.map((m, i) => ({ ...m, size: fileArr[i].size })));
+            // Re-encode before signing: what we store is what every later
+            // page load has to read, so the original never reaches R2.
+            const prepared = await Promise.all(fileArr.map(downscaleImage));
+            const savedBytes = prepared.reduce((n, p) => n + (p.originalBytes - p.blob.size), 0);
+            if (savedBytes > 0) {
+                console.log("[upload] optimizadas: %s -> %s (-%s%%)",
+                    (prepared.reduce((n, p) => n + p.originalBytes, 0) / 1048576).toFixed(1) + "MB",
+                    (prepared.reduce((n, p) => n + p.blob.size, 0) / 1048576).toFixed(1) + "MB",
+                    ((savedBytes / prepared.reduce((n, p) => n + p.originalBytes, 0)) * 100).toFixed(0));
+            }
+
+            const meta = prepared.map((p) => ({ name: p.name, type: p.type }));
 
             const signRes = await fetch("/api/admin/upload", {
                 method: "POST",
@@ -222,20 +234,24 @@ export default function AdminVehiclesPage() {
             }
 
             const publicUrls = await Promise.all(
-                fileArr.map(async (file, i) => {
+                prepared.map(async (file, i) => {
                     const { uploadUrl, publicUrl } = signData.files[i];
-                    const contentType = file.type || "image/jpeg";
+                    const contentType = file.type;
                     const putRes = await fetch(uploadUrl, {
                         method: "PUT",
-                        headers: { "Content-Type": contentType },
-                        body: file,
+                        headers: {
+                            "Content-Type": contentType,
+                            // Must match the presigned command exactly or R2 rejects the signature.
+                            "Cache-Control": "public, max-age=31536000, immutable",
+                        },
+                        body: file.blob,
                     });
                     if (!putRes.ok) {
                         let r2Body = "";
                         try { r2Body = await putRes.text(); } catch {}
                         console.error("[upload] R2 PUT falló", {
                             file: file.name,
-                            size: file.size,
+                            size: file.blob.size,
                             contentType,
                             status: putRes.status,
                             statusText: putRes.statusText,
@@ -468,7 +484,7 @@ export default function AdminVehiclesPage() {
                                 {/* Image Container */}
                                 <div className="relative aspect-16/10 bg-zinc-100 overflow-hidden shrink-0" style={{ position: "relative", aspectRatio: "16/10", background: "#f4f4f5", overflow: "hidden", flexShrink: 0 }}>
                                     {v.images?.length > 0 ? (
-                                        <img src={v.images[0]} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                        <img src={optimizedSrc(v.images[0], 384, 70)} loading="lazy" alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <Camera size={40} className="text-zinc-200" />
@@ -909,7 +925,7 @@ export default function AdminVehiclesPage() {
                                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 32 }}>
                                                     {form.images.map((img, idx) => (
                                                         <div key={`${img}-${idx}`} className="group" style={{ position: "relative", aspectRatio: "4/3", borderRadius: 24, overflow: "hidden", background: "#f3f4f6", border: idx === 0 ? "2px solid #dc2626" : "1px solid #f3f4f6", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", transition: "all 0.5s" }}>
-                                                            <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                            <img src={optimizedSrc(img, 256, 70)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
 
                                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 

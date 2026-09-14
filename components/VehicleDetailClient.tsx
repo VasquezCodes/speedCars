@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
+import { optimizedSrc } from '@/lib/img';
 import { CalendarCheck, ChevronLeft, ChevronRight, CheckCircle2, Maximize2, X } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
 import { AppointmentForm } from '@/components/AppointmentForm';
@@ -912,8 +913,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                         style={{ objectFit: "cover" }}
                                         priority={i === 0}
                                         sizes="100vw"
-                                        quality={100}
-                                        unoptimized
+                                        quality={85}
                                     />
                                 </div>
                             ))}
@@ -1094,7 +1094,6 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                             priority={i === 0}
                                             sizes="(max-width: 992px) 100vw, 60vw"
                                             quality={85}
-                                            unoptimized
                                             loading={i < 3 ? "eager" : "lazy"}
                                         />
                                     </div>
@@ -1151,8 +1150,15 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                             aria-label={`Imagen ${i + 1}`}
                                             draggable={false}
                                         >
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={img} alt="" draggable={false} loading="lazy" />
+                                            <Image
+                                                src={img}
+                                                alt=""
+                                                fill
+                                                sizes="96px"
+                                                quality={70}
+                                                draggable={false}
+                                                loading="lazy"
+                                            />
                                         </button>
                                     ))}
                                 </div>
@@ -1363,7 +1369,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src={images[lightboxIdx]}
+                            src={optimizedSrc(images[lightboxIdx], 1920, 85)}
                             alt={`${vehicleTitle} — imagen ${lightboxIdx + 1}`}
                             draggable={false}
                         />
@@ -1391,7 +1397,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                     aria-label={`Ir a imagen ${i + 1}`}
                                 >
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={src} alt="" />
+                                    <img src={optimizedSrc(src, 128, 70)} alt="" loading="lazy" />
                                 </button>
                             ))}
                         </div>

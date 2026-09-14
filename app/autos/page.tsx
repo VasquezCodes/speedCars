@@ -31,30 +31,48 @@ export default function CatalogPage() {
 }
 
 function CatalogSkeleton() {
+    // Mirrors CatalogContent's real layout so nothing shifts when it swaps in:
+    // same 319px sidebar, same breakpoint, same auto-fill grid.
     return (
-        <div style={{ display: "flex", maxWidth: 1280, margin: "0 auto", padding: "0 24px" }}>
-            {/* Sidebar skeleton */}
-            <aside style={{ width: 280, flexShrink: 0, padding: "24px 0" }}>
-                <div style={{ height: 40, borderRadius: 8, background: "var(--clr-surface-a20)", marginBottom: 16 }} />
-                {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} style={{ height: 52, borderBottom: "1px solid var(--clr-surface-a20)", background: "var(--clr-surface-a10)" }} />
-                ))}
-            </aside>
-            {/* Content skeleton */}
-            <div style={{ flex: 1, minWidth: 0, padding: "24px 0 24px 24px" }}>
-                <div style={{ height: 130, borderRadius: 12, background: "var(--clr-surface-a20)", marginBottom: 24 }} />
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-                    {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} style={{ borderRadius: 10, overflow: "hidden", background: "var(--clr-surface-a10)" }}>
-                            <div style={{ paddingTop: "66%", background: "var(--clr-surface-a20)" }} />
-                            <div style={{ padding: 14 }}>
-                                <div style={{ height: 14, borderRadius: 4, background: "var(--clr-surface-a20)", marginBottom: 8 }} />
-                                <div style={{ height: 18, borderRadius: 4, background: "var(--clr-surface-a20)" }} />
-                            </div>
-                        </div>
+        <>
+            <style>{`
+                .cat-skel-wrap { display: flex; min-height: calc(100vh - 112px); }
+                .cat-skel-side {
+                    width: 319px; flex-shrink: 0;
+                    background: var(--clr-surface-a10);
+                    border-right: 1px solid var(--clr-surface-a20);
+                }
+                @media (max-width: 1099px) { .cat-skel-side { display: none; } }
+                .cat-skel-main { flex: 1; min-width: 0; max-width: 1560px; padding: 24px 24px 64px; }
+                @media (max-width: 560px) { .cat-skel-main { padding: 18px 16px 56px; } }
+                .cat-skel-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(min(258px, 100%), 1fr));
+                    gap: 20px;
+                }
+            `}</style>
+            <div className="cat-skel-wrap">
+                <aside className="cat-skel-side">
+                    <div style={{ height: 53, borderBottom: "1px solid var(--clr-surface-a20)" }} />
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} style={{ height: 49, borderBottom: "1px solid var(--clr-surface-a20)" }} />
                     ))}
+                </aside>
+                <div className="cat-skel-main">
+                    <div style={{ height: 36, width: 148, borderRadius: 8, background: "var(--clr-surface-a10)", border: "1px solid var(--clr-surface-a20)", marginBottom: 16 }} />
+                    <div className="cat-skel-grid">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} style={{ borderRadius: 12, overflow: "hidden", background: "var(--clr-surface-a10)", border: "1px solid var(--clr-surface-a20)" }}>
+                                <div style={{ aspectRatio: "3 / 2", background: "var(--clr-surface-a20)" }} />
+                                <div style={{ padding: "13px 14px 12px" }}>
+                                    <div style={{ height: 36, borderRadius: 4, background: "var(--clr-surface-a20)", marginBottom: 9 }} />
+                                    <div style={{ height: 19, borderRadius: 4, background: "var(--clr-surface-a20)", width: "58%" }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
