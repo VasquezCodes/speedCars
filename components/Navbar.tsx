@@ -97,7 +97,7 @@ export default function Navbar() {
                     <div style={{ display: "flex", alignItems: "center" }}>
                         <Link href="/" style={{ display: "flex", alignItems: "center" }}>
                             <Image
-                                src="/logo-nuevo.png"
+                                src="/logo-nuevo.webp"
                                 alt="FF Speed Cars Logo"
                                 width={340}
                                 height={100}

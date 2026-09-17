@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
+import { isPhotoVariantWidth, photoVariantKey } from "@/lib/photo-variants";
 
 const s3 = new S3Client({
     region: "auto",
@@ -15,7 +16,18 @@ const s3 = new S3Client({
 const BUCKET = process.env.R2_BUCKET_NAME!;
 const PUBLIC_URL = process.env.R2_PUBLIC_URL!;
 
-type FileMeta = { name: string; type: string };
+type FileMeta = { name: string; type: string; variants?: { width: number; type: string }[] };
+
+function signPut(key: string, contentType: string) {
+    const command = new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        ContentType: contentType,
+        // No CacheControl: presigned URLs never sign it, so it only
+        // applies if the browser sends the header, which R2's CORS blocks.
+    });
+    return getSignedUrl(s3, command, { expiresIn: 300 });
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -25,21 +37,25 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No files provided" }, { status: 400 });
         }
 
-        console.log("[upload presign] firmando %d archivos", files.length, files.map((f) => ({ name: f.name, type: f.type })));
+        console.log("[upload presign] firmando %d archivos", files.length, files.map((f) => ({ name: f.name, type: f.type, variants: f.variants?.length ?? 0 })));
 
         const results = await Promise.all(
             files.map(async (f) => {
                 const ext = f.name.split(".").pop()?.toLowerCase() || "jpg";
                 const key = `vehicles/${randomUUID()}.${ext}`;
-                const command = new PutObjectCommand({
-                    Bucket: BUCKET,
-                    Key: key,
-                    ContentType: f.type || "image/jpeg",
-                    // No CacheControl: presigned URLs never sign it, so it only
-                    // applies if the browser sends the header, which R2's CORS blocks.
-                });
-                const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
-                return { uploadUrl, publicUrl: `${PUBLIC_URL}/${key}` };
+                // Resized copies the browser already rendered; see lib/photo-variants.ts.
+                const variants = await Promise.all(
+                    (f.variants ?? []).flatMap((v) =>
+                        isPhotoVariantWidth(v.width)
+                            ? [signPut(photoVariantKey(key, v.width), v.type || "image/webp").then((uploadUrl) => ({ width: v.width, uploadUrl }))]
+                            : [],
+                    ),
+                );
+                return {
+                    uploadUrl: await signPut(key, f.type || "image/jpeg"),
+                    publicUrl: `${PUBLIC_URL}/${key}`,
+                    variants,
+                };
             }),
         );
 

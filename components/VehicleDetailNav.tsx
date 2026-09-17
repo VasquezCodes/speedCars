@@ -30,7 +30,7 @@ export default function VehicleDetailNav() {
             }}>
                 <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Image
-                        src="/logo-nuevo.png"
+                        src="/logo-nuevo.webp"
                         alt="FF Speed Cars"
                         width={340}
                         height={100}

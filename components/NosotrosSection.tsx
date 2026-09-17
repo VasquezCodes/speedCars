@@ -51,7 +51,7 @@ export default function NosotrosSection() {
                         overflow: "hidden",
                     }}>
                         <Image
-                            src="/history.png"
+                            src="/history.webp"
                             alt="FF Speed Cars - Fort Worth, TX"
                             fill
                             style={{ objectFit: "cover", objectPosition: "center" }}

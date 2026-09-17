@@ -913,7 +913,6 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                         style={{ objectFit: "cover" }}
                                         priority={i === 0}
                                         sizes="100vw"
-                                        quality={85}
                                     />
                                 </div>
                             ))}
@@ -1093,7 +1092,6 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                             style={{ objectFit: "cover" }}
                                             priority={i === 0}
                                             sizes="(max-width: 992px) 100vw, 60vw"
-                                            quality={85}
                                             loading={i < 3 ? "eager" : "lazy"}
                                         />
                                     </div>
@@ -1155,7 +1153,6 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                                 alt=""
                                                 fill
                                                 sizes="96px"
-                                                quality={70}
                                                 draggable={false}
                                                 loading="lazy"
                                             />
@@ -1369,7 +1366,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                     >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src={optimizedSrc(images[lightboxIdx], 1920, 85)}
+                            src={optimizedSrc(images[lightboxIdx], 1920)}
                             {...fallbackToOriginal(images[lightboxIdx])}
                             alt={`${vehicleTitle} — imagen ${lightboxIdx + 1}`}
                             draggable={false}
@@ -1398,7 +1395,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                     aria-label={`Ir a imagen ${i + 1}`}
                                 >
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={optimizedSrc(src, 128, 70)} {...fallbackToOriginal(src)} alt="" loading="lazy" />
+                                    <img src={optimizedSrc(src, 128)} {...fallbackToOriginal(src)} alt="" loading="lazy" />
                                 </button>
                             ))}
                         </div>

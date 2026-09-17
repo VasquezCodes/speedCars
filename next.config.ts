@@ -1,34 +1,15 @@
 import type { NextConfig } from "next";
 
-// Vehicle photos live in one public R2 bucket (see app/api/admin/upload).
-// Deriving the host from the same env var the uploader writes keeps the two
-// from drifting apart.
-const r2Host = (() => {
-  try {
-    return new URL(process.env.R2_PUBLIC_URL ?? "").hostname;
-  } catch {
-    return null;
-  }
-})();
-
 const nextConfig: NextConfig = {
   images: {
-    // Scoped to our own bucket on purpose: a wildcard host turns /_next/image
-    // into an open resize-proxy for the whole internet, billed to us.
-    remotePatterns: r2Host
-      ? [{ protocol: "https", hostname: r2Host }]
-      : [{ protocol: "https", hostname: "**" }],
+    // Vercel's optimizer is not used: on the Hobby plan its quota runs out
+    // and every uncached image then answers 402. Vehicle photos are resized
+    // once, at upload, into R2 (lib/photo-variants.ts); local assets in
+    // /public are already sized for where they are shown.
+    loader: "custom",
+    loaderFile: "./lib/image-loader.ts",
 
-    // Originals are 4-6 MB camera files; these two lines are what turn a
-    // 5333x4000 JPEG into a ~17 KB WebP for a 320px card.
-    formats: ["image/avif", "image/webp"],
-    qualities: [70, 78, 85],
-
-    // Keys are content-addressed UUIDs, so a derivative never goes stale.
-    minimumCacheTTL: 31536000,
-
-    // No screen on this site shows a car wider than 1920, and every extra
-    // entry is another transformation to pay for and cache.
+    // These still drive the srcset widths next/image asks the loader for.
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [32, 64, 96, 128, 256, 384],
   },

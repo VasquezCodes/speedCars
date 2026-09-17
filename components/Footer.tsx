@@ -27,7 +27,7 @@ export default function Footer() {
           <div style={{ maxWidth: "320px" }}>
             <Link href="/" style={{ display: "inline-block", marginBottom: "12px", textDecoration: "none" }}>
               <Image
-                src="/logo-nuevo.png"
+                src="/logo-nuevo.webp"
                 alt="FF Speed Cars Logo"
                 width={150}
                 height={48}

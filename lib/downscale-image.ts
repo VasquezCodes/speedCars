@@ -6,20 +6,58 @@
  * original just makes every later read slower and more expensive. Re-encoding
  * to a 2400px WebP keeps the lightbox visually identical while cutting a
  * typical listing photo by roughly 95%.
+ *
+ * The same pass renders the smaller sizes the site actually shows
+ * (lib/photo-variants.ts), so no server ever has to resize anything.
  */
+
+import { PHOTO_VARIANT_WIDTHS, type PhotoVariantWidth } from "./photo-variants";
 
 const MAX_EDGE = 2400;
 const WEBP_QUALITY = 0.86;
+const VARIANT_WEBP_QUALITY = 0.8;
+
+export type PhotoVariantBlob = {
+    width: PhotoVariantWidth;
+    blob: Blob;
+    type: string;
+};
 
 export type DownscaleResult = {
     blob: Blob;
     name: string;
     type: string;
     originalBytes: number;
+    /** Empty when the file could not be decoded; the site then shows the original. */
+    variants: PhotoVariantBlob[];
 };
 
 function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
     return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+/**
+ * WebP where the browser can encode it. Safari < 14 and some older Android
+ * webviews cannot; toBlob then hands back a PNG, which would be larger than
+ * the source, so fall back to JPEG.
+ */
+async function encode(canvas: HTMLCanvasElement, webpQuality: number): Promise<{ blob: Blob; type: string; ext: string } | null> {
+    const webp = await canvasToBlob(canvas, "image/webp", webpQuality);
+    if (webp?.type === "image/webp") return { blob: webp, type: "image/webp", ext: "webp" };
+    const jpeg = await canvasToBlob(canvas, "image/jpeg", Math.min(0.88, webpQuality + 0.02));
+    return jpeg ? { blob: jpeg, type: "image/jpeg", ext: "jpg" } : null;
+}
+
+function drawScaled(source: CanvasImageSource, width: number, height: number): HTMLCanvasElement | null {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(source, 0, 0, width, height);
+    return canvas;
 }
 
 /**
@@ -33,6 +71,7 @@ export async function downscaleImage(file: File): Promise<DownscaleResult> {
         name: file.name,
         type: file.type || "image/jpeg",
         originalBytes: file.size,
+        variants: [],
     };
 
     // Vector and animated sources must pass through as-is.
@@ -46,36 +85,25 @@ export async function downscaleImage(file: File): Promise<DownscaleResult> {
         const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
 
         const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-        const width = Math.round(bitmap.width * scale);
-        const height = Math.round(bitmap.height * scale);
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) { bitmap.close(); return untouched; }
-
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(bitmap, 0, 0, width, height);
+        const canvas = drawScaled(bitmap, Math.round(bitmap.width * scale), Math.round(bitmap.height * scale));
         bitmap.close();
+        if (!canvas) return untouched;
 
-        let blob = await canvasToBlob(canvas, "image/webp", WEBP_QUALITY);
-        let type = "image/webp";
-        let ext = "webp";
-
-        // Safari < 14 and some older Android webviews cannot encode WebP;
-        // toBlob then hands back a PNG, which would be larger than the source.
-        if (!blob || blob.type !== "image/webp") {
-            blob = await canvasToBlob(canvas, "image/jpeg", 0.88);
-            type = "image/jpeg";
-            ext = "jpg";
+        // Sized by width and never enlarged, exactly like
+        // scripts/generate-photo-variants.mjs, so both produce the same set.
+        const variants: PhotoVariantBlob[] = [];
+        for (const width of PHOTO_VARIANT_WIDTHS) {
+            const vScale = Math.min(1, width / canvas.width);
+            const small = drawScaled(canvas, Math.round(canvas.width * vScale), Math.round(canvas.height * vScale));
+            const encoded = small && await encode(small, VARIANT_WEBP_QUALITY);
+            if (encoded) variants.push({ width, blob: encoded.blob, type: encoded.type });
         }
 
-        if (!blob || blob.size >= file.size) return untouched;
+        const main = await encode(canvas, WEBP_QUALITY);
+        if (!main || main.blob.size >= file.size) return { ...untouched, variants };
 
         const base = file.name.replace(/[.][A-Za-z0-9]+$/, "") || "photo";
-        return { blob, name: `${base}.${ext}`, type, originalBytes: file.size };
+        return { blob: main.blob, name: `${base}.${main.ext}`, type: main.type, originalBytes: file.size, variants };
     } catch {
         return untouched;
     }

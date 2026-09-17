@@ -171,7 +171,7 @@ export default function SellerDashboardPage() {
 
       {/* Top bar */}
       <header className="seller-header" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Image src="/logo-nuevo.png" alt="SpeedCars" width={120} height={34} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.85 }} />
+        <Image src="/logo-nuevo.webp" alt="SpeedCars" width={120} height={34} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.85 }} />
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           {data && (
             <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 14 }}>

@@ -53,7 +53,6 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
                     alt={title}
                     fill
                     sizes="(max-width: 578px) 100vw, (max-width: 1099px) 50vw, 33vw"
-                    quality={78}
                     loading="lazy"
                 />
                 {isSold && (

@@ -3,7 +3,7 @@ import { useEffect, useState, FormEvent } from "react";
 import { Plus, X, Camera, Star, Trash2, Pencil, Car, MapPin, Gauge, Search, Filter, ChevronDown, Check, MoreVertical, Loader2, Tag } from "lucide-react";
 import { sileo } from "sileo";
 import { optimizedSrc, fallbackToOriginal } from "@/lib/img";
-import { downscaleImage } from "@/lib/downscale-image";
+import { downscaleImage, type DownscaleResult } from "@/lib/downscale-image";
 
 import { Vehicle } from '@/types/vehicle';
 
@@ -211,7 +211,16 @@ export default function AdminVehiclesPage() {
 
             // Re-encode before signing: what we store is what every later
             // page load has to read, so the original never reaches R2.
-            const prepared = await Promise.all(fileArr.map(downscaleImage));
+            // Three at a time: decoding a dozen 12MP photos at once can run a
+            // phone out of memory.
+            const prepared: DownscaleResult[] = new Array(fileArr.length);
+            let nextFile = 0;
+            await Promise.all(Array.from({ length: Math.min(3, fileArr.length) }, async () => {
+                while (nextFile < fileArr.length) {
+                    const i = nextFile++;
+                    prepared[i] = await downscaleImage(fileArr[i]);
+                }
+            }));
             const savedBytes = prepared.reduce((n, p) => n + (p.originalBytes - p.blob.size), 0);
             if (savedBytes > 0) {
                 console.log("[upload] optimizadas: %s -> %s (-%s%%)",
@@ -220,7 +229,11 @@ export default function AdminVehiclesPage() {
                     ((savedBytes / prepared.reduce((n, p) => n + p.originalBytes, 0)) * 100).toFixed(0));
             }
 
-            const meta = prepared.map((p) => ({ name: p.name, type: p.type }));
+            const meta = prepared.map((p) => ({
+                name: p.name,
+                type: p.type,
+                variants: p.variants.map((v) => ({ width: v.width, type: v.type })),
+            }));
 
             const signRes = await fetch("/api/admin/upload", {
                 method: "POST",
@@ -235,8 +248,29 @@ export default function AdminVehiclesPage() {
 
             const publicUrls = await Promise.all(
                 prepared.map(async (file, i) => {
-                    const { uploadUrl, publicUrl } = signData.files[i];
+                    const { uploadUrl, publicUrl, variants } = signData.files[i] as {
+                        uploadUrl: string;
+                        publicUrl: string;
+                        variants?: { width: number; uploadUrl: string }[];
+                    };
                     const contentType = file.type;
+
+                    // The sizes the site displays (lib/photo-variants.ts). A
+                    // missing one only costs bandwidth — the page falls back to
+                    // the original — so it never fails the upload.
+                    const variantPuts = file.variants.map(async (v) => {
+                        const target = variants?.find((t) => t.width === v.width);
+                        if (!target) return;
+                        const res = await fetch(target.uploadUrl, {
+                            method: "PUT",
+                            headers: { "Content-Type": v.type },
+                            body: v.blob,
+                        }).catch(() => null);
+                        if (!res?.ok) {
+                            console.warn("[upload] miniatura no guardada, se mostrará el original", { file: file.name, width: v.width, status: res?.status });
+                        }
+                    });
+
                     const putRes = await fetch(uploadUrl, {
                         method: "PUT",
                         // Only Content-Type: the bucket's CORS rule allows no other
@@ -257,6 +291,7 @@ export default function AdminVehiclesPage() {
                         });
                         throw new Error(`Falló la subida de ${file.name} (${putRes.status}): ${r2Body.slice(0, 200) || putRes.statusText}`);
                     }
+                    await Promise.all(variantPuts);
                     return publicUrl;
                 }),
             );
@@ -482,7 +517,7 @@ export default function AdminVehiclesPage() {
                                 {/* Image Container */}
                                 <div className="relative aspect-16/10 bg-zinc-100 overflow-hidden shrink-0" style={{ position: "relative", aspectRatio: "16/10", background: "#f4f4f5", overflow: "hidden", flexShrink: 0 }}>
                                     {v.images?.length > 0 ? (
-                                        <img src={optimizedSrc(v.images[0], 384, 70)} {...fallbackToOriginal(v.images[0])} loading="lazy" alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                        <img src={optimizedSrc(v.images[0], 384)} {...fallbackToOriginal(v.images[0])} loading="lazy" alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <Camera size={40} className="text-zinc-200" />
@@ -923,7 +958,7 @@ export default function AdminVehiclesPage() {
                                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 32 }}>
                                                     {form.images.map((img, idx) => (
                                                         <div key={`${img}-${idx}`} className="group" style={{ position: "relative", aspectRatio: "4/3", borderRadius: 24, overflow: "hidden", background: "#f3f4f6", border: idx === 0 ? "2px solid #dc2626" : "1px solid #f3f4f6", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", transition: "all 0.5s" }}>
-                                                            <img src={optimizedSrc(img, 256, 70)} {...fallbackToOriginal(img)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                            <img src={optimizedSrc(img, 256)} {...fallbackToOriginal(img)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
 
                                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 

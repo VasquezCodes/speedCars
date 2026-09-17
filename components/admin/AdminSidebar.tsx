@@ -88,7 +88,7 @@ export default function AdminSidebar() {
                     boxShadow: "4px 0 24px rgba(0,0,0,0.3)",
                 }}>
                     <div style={{ padding: "28px 32px", display: "flex", justifyContent: "center", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                        <Image src="/logo-nuevo.png" alt="SpeedCars" width={140} height={40} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.9 }} priority />
+                        <Image src="/logo-nuevo.webp" alt="SpeedCars" width={140} height={40} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.9 }} priority />
                     </div>
                     <NavLinks />
                     <LogoutBtn />
@@ -104,7 +104,7 @@ export default function AdminSidebar() {
                     display: "flex", alignItems: "center", justifyContent: "space-between",
                     padding: "0 20px", zIndex: 101,
                 }}>
-                    <Image src="/logo-nuevo.png" alt="SpeedCars" width={100} height={28} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.9 }} />
+                    <Image src="/logo-nuevo.webp" alt="SpeedCars" width={100} height={28} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.9 }} />
                     <button
                         onClick={() => setDrawerOpen(true)}
                         aria-label="Abrir menú"
@@ -120,7 +120,7 @@ export default function AdminSidebar() {
                         <div onClick={() => setDrawerOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }} />
                         <div style={{ position: "relative", width: 260, background: "#0a0a0a", display: "flex", flexDirection: "column", height: "100%", boxShadow: "4px 0 32px rgba(0,0,0,0.5)", animation: "drawerSlideIn 0.25s ease" }}>
                             <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                                <Image src="/logo-nuevo.png" alt="SpeedCars" width={100} height={28} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.9 }} />
+                                <Image src="/logo-nuevo.webp" alt="SpeedCars" width={100} height={28} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.9 }} />
                                 <button onClick={() => setDrawerOpen(false)} aria-label="Cerrar" style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: 8, cursor: "pointer", color: "#fff", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                     <X size={18} />
                                 </button>

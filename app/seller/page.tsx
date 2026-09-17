@@ -43,7 +43,7 @@ export default function SellerLoginPage() {
       <div style={{ width: "100%", maxWidth: 400 }}>
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <Image src="/logo-nuevo.png" alt="SpeedCars" width={140} height={40} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.9 }} />
+          <Image src="/logo-nuevo.webp" alt="SpeedCars" width={140} height={40} style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.9 }} />
         </div>
 
         {/* Card */}
