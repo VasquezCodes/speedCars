@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
-import Image from 'next/image';
-import { optimizedSrc } from '@/lib/img';
+import Image from '@/components/SafeImage';
+import { optimizedSrc, fallbackToOriginal } from '@/lib/img';
 import { CalendarCheck, ChevronLeft, ChevronRight, CheckCircle2, Maximize2, X } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
 import { AppointmentForm } from '@/components/AppointmentForm';
@@ -1370,6 +1370,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src={optimizedSrc(images[lightboxIdx], 1920, 85)}
+                            {...fallbackToOriginal(images[lightboxIdx])}
                             alt={`${vehicleTitle} — imagen ${lightboxIdx + 1}`}
                             draggable={false}
                         />
@@ -1397,7 +1398,7 @@ export default function VehicleDetailClient({ vehicle }: Props) {
                                     aria-label={`Ir a imagen ${i + 1}`}
                                 >
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={optimizedSrc(src, 128, 70)} alt="" loading="lazy" />
+                                    <img src={optimizedSrc(src, 128, 70)} {...fallbackToOriginal(src)} alt="" loading="lazy" />
                                 </button>
                             ))}
                         </div>

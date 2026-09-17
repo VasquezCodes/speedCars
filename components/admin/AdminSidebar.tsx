@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/SafeImage";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Car, Users, UserCog, LogOut, Menu, X, CalendarDays } from "lucide-react";
 

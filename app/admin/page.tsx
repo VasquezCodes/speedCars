@@ -4,7 +4,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { app } from "@/lib/firebase/client";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-import Image from "next/image";
+import Image from "@/components/SafeImage";
 
 export default function AdminLoginPage() {
     const [email, setEmail] = useState("");

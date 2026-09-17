@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import Image from '@/components/SafeImage';
 
 const BRANDS = [
   { name: "FORD", file: "ford-svgrepo-com.svg" },

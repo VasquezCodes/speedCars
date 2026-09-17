@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import Image from "@/components/SafeImage";
 import { sileo } from "sileo";
 import type { SellerSessionPayload } from "@/types/seller";
 

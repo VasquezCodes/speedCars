@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from '@/components/SafeImage';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
