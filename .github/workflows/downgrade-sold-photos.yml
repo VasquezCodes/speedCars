@@ -1,0 +1,47 @@
+name: Fotos de autos vendidos
+
+# El día 1 de cada mes baja la calidad de las fotos de autos vendidos (con 7
+# días de margen), para que el bucket de R2 siga dentro de sus 10 GB gratis.
+# Detalles en scripts/downgrade-sold-photos.mjs. También se puede correr a mano
+# desde la pestaña Actions.
+on:
+  schedule:
+    - cron: "0 9 1 * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Solo mostrar qué haría, sin cambiar nada"
+        type: boolean
+        default: true
+
+jobs:
+  downgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Only the three packages the script uses, pinned to the app's versions,
+      # instead of installing the whole Next.js app.
+      - name: Instalar dependencias del script
+        run: |
+          mkdir -p "$RUNNER_TEMP/deps"
+          cd "$RUNNER_TEMP/deps"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund @aws-sdk/client-s3@3.1026.0 firebase-admin@13.7.0 sharp@0.34.5
+          ln -s "$RUNNER_TEMP/deps/node_modules" "$GITHUB_WORKSPACE/node_modules"
+
+      - name: Bajar calidad de fotos de vendidos
+        run: node --no-warnings scripts/downgrade-sold-photos.mjs ${{ inputs.dry_run && '--dry-run' || '' }}
+        env:
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          FIREBASE_ADMIN_PROJECT_ID: ${{ secrets.FIREBASE_ADMIN_PROJECT_ID }}
+          FIREBASE_ADMIN_CLIENT_EMAIL: ${{ secrets.FIREBASE_ADMIN_CLIENT_EMAIL }}
+          FIREBASE_ADMIN_PRIVATE_KEY: ${{ secrets.FIREBASE_ADMIN_PRIVATE_KEY }}

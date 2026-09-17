@@ -2,10 +2,9 @@
  * Shrink a photo in the browser before it is uploaded.
  *
  * Phones and DSLRs hand us 4000-6000px files of 2-6 MB. Nothing on this site
- * ever displays a car larger than a full-screen lightbox, so storing the
- * original just makes every later read slower and more expensive. Re-encoding
- * to a 2400px WebP keeps the lightbox visually identical while cutting a
- * typical listing photo by roughly 95%.
+ * displays a photo wider than its 1600px copy, and the stored original is
+ * only a fallback, so it is kept at 1920px: about 450 KB instead of several
+ * MB, which is what keeps the R2 bucket inside its free 10 GB.
  *
  * The same pass renders the smaller sizes the site actually shows
  * (lib/photo-variants.ts), so no server ever has to resize anything.
@@ -13,8 +12,9 @@
 
 import { PHOTO_VARIANT_WIDTHS, type PhotoVariantWidth } from "./photo-variants";
 
-const MAX_EDGE = 2400;
-const WEBP_QUALITY = 0.86;
+const MAX_EDGE = 1920;
+const WEBP_QUALITY = 0.82;
+const JPEG_QUALITY = 0.8;
 const VARIANT_WEBP_QUALITY = 0.8;
 
 export type PhotoVariantBlob = {
@@ -44,7 +44,7 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number):
 async function encode(canvas: HTMLCanvasElement, webpQuality: number): Promise<{ blob: Blob; type: string; ext: string } | null> {
     const webp = await canvasToBlob(canvas, "image/webp", webpQuality);
     if (webp?.type === "image/webp") return { blob: webp, type: "image/webp", ext: "webp" };
-    const jpeg = await canvasToBlob(canvas, "image/jpeg", Math.min(0.88, webpQuality + 0.02));
+    const jpeg = await canvasToBlob(canvas, "image/jpeg", JPEG_QUALITY);
     return jpeg ? { blob: jpeg, type: "image/jpeg", ext: "jpg" } : null;
 }
 
