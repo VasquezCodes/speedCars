@@ -26,7 +26,9 @@ function signPut(key: string, contentType: string) {
         // No CacheControl: presigned URLs never sign it, so it only
         // applies if the browser sends the header, which R2's CORS blocks.
     });
-    return getSignedUrl(s3, command, { expiresIn: 300 });
+    // An hour, not minutes: every URL of a batch is signed up front, and on a
+    // slow phone connection the last photos of 18 only start 5-10 minutes in.
+    return getSignedUrl(s3, command, { expiresIn: 3600 });
 }
 
 export async function POST(req: NextRequest) {

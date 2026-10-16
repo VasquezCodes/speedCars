@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useRef, useState, FormEvent } from "react";
 import { Plus, X, Camera, Star, Trash2, Pencil, Car, MapPin, Gauge, Search, Filter, ChevronDown, Check, MoreVertical, Loader2, Tag } from "lucide-react";
 import { sileo } from "sileo";
 import { optimizedSrc, fallbackToOriginal } from "@/lib/img";
 import { downscaleImage, type DownscaleResult } from "@/lib/downscale-image";
+import { uploadPhotos } from "@/lib/upload-photos";
 
 import { Vehicle } from '@/types/vehicle';
 
@@ -98,6 +99,8 @@ export default function AdminVehiclesPage() {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Saving now would store the vehicle without the photos still on their way.
+        if (uploading) return;
         setSaving(true);
         try {
             const method = form.id ? "PUT" : "POST";
@@ -191,11 +194,29 @@ export default function AdminVehiclesPage() {
     };
 
     const [uploading, setUploading] = useState(false);
+    const [uploadStatus, setUploadStatus] = useState("");
+    // Set while a batch is uploading. Closing the form aborts it, so its photos
+    // cannot land in whatever form is opened next.
+    const uploadAbort = useRef<AbortController | null>(null);
+
+    const closeForm = () => {
+        if (uploadAbort.current) {
+            if (!window.confirm("Todavía se están subiendo fotos. Si cerrás ahora, se pierden. ¿Cerrar igual?")) return;
+            uploadAbort.current.abort();
+            uploadAbort.current = null;
+            setUploading(false);
+            setUploadStatus("");
+        }
+        setShowForm(false);
+    };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files?.length) return;
+        const abort = new AbortController();
+        uploadAbort.current = abort;
         setUploading(true);
+        setUploadStatus("Preparando fotos...");
         try {
             const MAX_BYTES = 30 * 1024 * 1024;
             const fileArr = Array.from(files);
@@ -239,73 +260,59 @@ export default function AdminVehiclesPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ files: meta }),
+                signal: abort.signal,
             });
             const signData = await signRes.json();
             if (!signRes.ok || !signData.files) {
                 sileo.error({ title: "Error al preparar la subida", description: signData.error });
                 return;
             }
+            const signed = signData.files as {
+                uploadUrl: string;
+                publicUrl: string;
+                variants?: { width: number; uploadUrl: string }[];
+            }[];
 
-            const publicUrls = await Promise.all(
-                prepared.map(async (file, i) => {
-                    const { uploadUrl, publicUrl, variants } = signData.files[i] as {
-                        uploadUrl: string;
-                        publicUrl: string;
-                        variants?: { width: number; uploadUrl: string }[];
-                    };
-                    const contentType = file.type;
-
-                    // The sizes the site displays (lib/photo-variants.ts). A
-                    // missing one only costs bandwidth — the page falls back to
-                    // the original — so it never fails the upload.
-                    const variantPuts = file.variants.map(async (v) => {
-                        const target = variants?.find((t) => t.width === v.width);
-                        if (!target) return;
-                        const res = await fetch(target.uploadUrl, {
-                            method: "PUT",
-                            headers: { "Content-Type": v.type },
-                            body: v.blob,
-                        }).catch(() => null);
-                        if (!res?.ok) {
-                            console.warn("[upload] miniatura no guardada, se mostrará el original", { file: file.name, width: v.width, status: res?.status });
-                        }
-                    });
-
-                    const putRes = await fetch(uploadUrl, {
-                        method: "PUT",
-                        // Only Content-Type: the bucket's CORS rule allows no other
-                        // request header, and anything extra fails the preflight.
-                        headers: { "Content-Type": contentType },
-                        body: file.blob,
-                    });
-                    if (!putRes.ok) {
-                        let r2Body = "";
-                        try { r2Body = await putRes.text(); } catch {}
-                        console.error("[upload] R2 PUT falló", {
-                            file: file.name,
-                            size: file.blob.size,
-                            contentType,
-                            status: putRes.status,
-                            statusText: putRes.statusText,
-                            r2Body: r2Body.slice(0, 500),
-                        });
-                        throw new Error(`Falló la subida de ${file.name} (${putRes.status}): ${r2Body.slice(0, 200) || putRes.statusText}`);
-                    }
-                    await Promise.all(variantPuts);
-                    return publicUrl;
-                }),
+            // One photo failing (a phone dropping its connection) must not
+            // throw away the ones that made it; see lib/upload-photos.ts.
+            setUploadStatus(`Subiendo 0 de ${prepared.length}...`);
+            const { uploaded, failed } = await uploadPhotos(
+                prepared.map((p, i) => ({
+                    name: p.name,
+                    publicUrl: signed[i].publicUrl,
+                    original: { url: signed[i].uploadUrl, blob: p.blob, type: p.type },
+                    copies: p.variants.flatMap((v) => {
+                        const target = signed[i].variants?.find((t) => t.width === v.width);
+                        return target ? [{ url: target.uploadUrl, blob: v.blob, type: v.type }] : [];
+                    }),
+                })),
+                { signal: abort.signal, onProgress: (done, total) => setUploadStatus(`Subiendo ${done} de ${total}...`) },
             );
 
-            setForm((f) => ({ ...f, images: [...f.images, ...publicUrls] }));
-            sileo.success({ title: `${publicUrls.length} imagen(es) subida(s)` });
+            if (uploaded.length) setForm((f) => ({ ...f, images: [...f.images, ...uploaded] }));
+            if (!failed.length) {
+                sileo.success({ title: `${uploaded.length} imagen(es) subida(s)` });
+            } else {
+                console.error("[upload] fotos no subidas", failed);
+                sileo.error({
+                    title: uploaded.length ? `Se subieron ${uploaded.length} de ${prepared.length} imágenes` : "Error al subir imágenes",
+                    description: `No se pudo subir: ${failed.map((f) => f.name).join(", ")}. Revisá tu conexión y volvé a elegir esas imágenes.`,
+                });
+            }
         } catch (err) {
+            // The form was closed mid-upload; closeForm already cleaned up.
+            if (abort.signal.aborted) return;
             console.error("Upload error:", err);
             sileo.error({
                 title: "Error al subir imágenes",
                 description: err instanceof Error ? err.message : "Revisá tu conexión e intentá nuevamente.",
             });
         } finally {
-            setUploading(false);
+            if (uploadAbort.current === abort) {
+                uploadAbort.current = null;
+                setUploading(false);
+                setUploadStatus("");
+            }
             e.target.value = "";
         }
     };
@@ -641,7 +648,7 @@ export default function AdminVehiclesPage() {
                                 <p className="admin-modal-subtitle" style={{ color: "#9ca3af", fontWeight: 500, margin: 0 }}>Completa los detalles con cuidado.</p>
                             </div>
                             <button
-                                onClick={() => setShowForm(false)}
+                                onClick={closeForm}
                                 className="admin-modal-close-btn"
                                 style={{ borderRadius: 16, background: "#f9fafb", display: "flex", alignItems: "center", justifyContent: "center", color: "#9ca3af", border: "none", cursor: "pointer", transition: "all 0.2s", flexShrink: 0 }}
                                 onMouseEnter={(e) => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.color = "#ef4444"; }}
@@ -940,7 +947,9 @@ export default function AdminVehiclesPage() {
                                                 {uploading ? (
                                                     <>
                                                         <Loader2 size={32} style={{ color: "#dc2626", animation: "spin 1s linear infinite" }} />
-                                                        <p style={{ fontWeight: 700, color: "#4b5563", marginTop: 16 }}>Subiendo...</p>
+                                                        <p style={{ fontWeight: 700, color: "#4b5563", marginTop: 16 }}>{uploadStatus || "Subiendo..."}</p>
+                                                        {/* On iPhone, leaving Safari mid-upload can drop the connection. */}
+                                                        <span style={{ fontSize: 12, color: "#9ca3af", marginTop: 4, fontWeight: 700 }}>No cierres esta pantalla</span>
                                                     </>
                                                 ) : (
                                                     <>
@@ -1012,7 +1021,7 @@ export default function AdminVehiclesPage() {
                         <div className="admin-modal-footer" style={{ borderTop: "1px solid #f3f4f6" }}>
                             <button
                                 type="button"
-                                onClick={() => setShowForm(false)}
+                                onClick={closeForm}
                                 className="admin-modal-discard-btn"
                                 style={{ padding: "16px 32px", borderRadius: 16, fontWeight: 700, color: "#6b7280", background: "transparent", border: "none", cursor: "pointer", fontSize: 14, fontFamily: "inherit", transition: "all 0.2s" }}
                                 onMouseEnter={(e) => { e.currentTarget.style.color = "#111827"; }}
@@ -1023,16 +1032,16 @@ export default function AdminVehiclesPage() {
                             <button
                                 form="vehicle-form"
                                 type="submit"
-                                disabled={saving}
+                                disabled={saving || uploading}
                                 className="admin-modal-save-btn"
-                                style={{ padding: "20px 48px", borderRadius: 24, fontWeight: 900, fontSize: 16, color: "#fff", background: saving ? "#9ca3af" : "#d11119", boxShadow: "0 8px 32px rgba(209,17,25,0.3)", border: "none", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.5 : 1, transition: "all 0.3s", fontFamily: "inherit" }}
-                                onMouseEnter={(e) => { if (!saving) { e.currentTarget.style.background = "#18181b"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.2)"; e.currentTarget.style.transform = "translateY(-2px)"; } }}
-                                onMouseLeave={(e) => { if (!saving) { e.currentTarget.style.background = "#d11119"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(209,17,25,0.3)"; e.currentTarget.style.transform = "translateY(0)"; } }}
+                                style={{ padding: "20px 48px", borderRadius: 24, fontWeight: 900, fontSize: 16, color: "#fff", background: saving || uploading ? "#9ca3af" : "#d11119", boxShadow: "0 8px 32px rgba(209,17,25,0.3)", border: "none", cursor: saving || uploading ? "not-allowed" : "pointer", opacity: saving || uploading ? 0.5 : 1, transition: "all 0.3s", fontFamily: "inherit" }}
+                                onMouseEnter={(e) => { if (!saving && !uploading) { e.currentTarget.style.background = "#18181b"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.2)"; e.currentTarget.style.transform = "translateY(-2px)"; } }}
+                                onMouseLeave={(e) => { if (!saving && !uploading) { e.currentTarget.style.background = "#d11119"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(209,17,25,0.3)"; e.currentTarget.style.transform = "translateY(0)"; } }}
                             >
-                                {saving ? (
+                                {saving || uploading ? (
                                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                                         <div style={{ width: 20, height: 20, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid #fff", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
-                                        <span>Procesando...</span>
+                                        <span>{saving ? "Procesando..." : "Subiendo fotos..."}</span>
                                     </div>
                                 ) : (
                                     <span>Publicar Vehículo</span>
